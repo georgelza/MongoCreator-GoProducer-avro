@@ -1,0 +1,17 @@
+
+{
+    "EchoConfig": 1,                                                        # Note EchoConfig from General setup must == 0  for this to be considered
+    "Bootstrapservers": "localhost:9092",
+    "SchemaRegistryURL": "http://localhost:8081",
+    "Security_protocol": "",
+    "Sasl_mechanisms": "",
+    "BasketTopicname": "pb_salesbaskets",
+    "PaymentTopicname": "pb_salespayments",
+    "Numpartitions": 1,
+    "Replicationfactor": 1,
+    "Retension": 3600,                                                      # hour
+    "Parseduration": "60s",    
+    "Flush_interval": 100,
+    "Sasl_password":"", 
+    "Sasl_username":""       
+}

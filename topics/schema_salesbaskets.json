@@ -1,0 +1,29 @@
+syntax = "proto3";
+package types;
+
+option go_package = "./pkg/basket.v1";
+
+message BasketItems {
+  string id = 1;
+  string name = 2;
+  string brand = 3;
+  string category = 4;
+  double price = 5;
+  int32 quantity = 6;
+}
+message Idstruct {
+  string id = 1;
+  string name = 2;
+}
+message PBBasket {
+  string invoiceNumber = 1;
+  string saleDateTime_Ltz = 2;
+  string saleTimestamp_Epoc = 3;
+  Idstruct store = 4;
+  Idstruct clerk = 5;
+  string terminalPoint = 6;
+  repeated BasketItems basketItems = 7;
+  double nett = 8;
+  double vat = 9;
+  double total = 10;
+}

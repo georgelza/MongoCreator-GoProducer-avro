@@ -1,0 +1,39 @@
+{
+    "INVNUMBER": "bf1b7564-946d-4694-a8a3-c66948a25788",
+    "SALEDATETIME": "2024-07-03T08:56:20.009+02:00",
+    "SALETIMESTAMP": "1719989780009",
+    "TERMINALPOINT": "16",
+    "NETT": 1428.05,
+    "VAT": 199.93,
+    "TOTAL": 1627.98,
+    "STORE": {
+      "ID": "324213422",
+      "NAME": "PineTown"
+    },
+    "CLERK": {
+      "ID": "10002",
+      "NAME": "Greg"
+    },
+    "BASKETITEMS": [
+      {
+        "ID": "000000041",
+        "NAME": "Castle Lite NRB 24 x 330ml",
+        "BRAND": "Castle",
+        "CATEGORY": "Beverage",
+        "PRICE": 269.99,
+        "QUANTITY": 4
+      },
+      {
+        "ID": "000000013",
+        "NAME": "Sunlight Dishwashing Liquid",
+        "BRAND": "Sunlight",
+        "CATEGORY": "Cleaning",
+        "PRICE": 2.2,
+        "QUANTITY": 3
+      }
+    ],
+    "FINTRANSACTIONID": "46146e77-9d8a-467b-97fb-cb751afe226a",
+    "PAYDATETIME": "2024-07-03T09:01:18.009+02:00",
+    "PAYTIMESTAMP": "1719990078009",
+    "PAID": 1627.98
+  }

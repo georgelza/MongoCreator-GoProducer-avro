@@ -1,0 +1,10 @@
+{
+    "Url":  "localhost:27017/?directConnection=true",
+    "Port": "27017",   
+    "Root": "mongodb",
+    "Datastore": "MongoCom0",            
+    "Basketcollection": "pb_salesbaskets",
+    "Paymentcollection": "pb_salespayments",
+    "Batch_size": 2                                                 # Must be a factor of the test size from *_app.json
+    }        
+    

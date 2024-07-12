@@ -1,0 +1,56 @@
+
+
+-- ksql
+-- Access ksqldb cli
+docker exec -it ksqldb-cli ksql http://mbp.local:8088
+
+
+
+-- start kcat pod manually, this has been replaced with a container as part of the docker-compose.yaml
+docker run -d \
+  --network aws-kafka-confluent_default \
+  --name kafkacat \
+  --entrypoint bash -i \
+  confluentinc/cp-kcat:latest
+  
+  
+-- now added to docker-compose.yaml file
+docker exec -t kafkacat  kcat \
+  -b broker:29092 \
+  -t orders_spooldir_02 \
+  -C -o-1 -J \
+  -s key=s -s value=avro \
+  -r http://schema-registry:8081 \
+  | jq '.payload'
+
+
+
+docker exec -t kafkacat \
+  kcat \
+  -b broker:29092 \
+  -t pb_salesbaskets \
+  -C 
+  -s key=s -s value=json \
+  -r http://schema-registry:8081 
+
+
+docker exec -t kafkacat \
+  kcat \
+  -b broker:29092 \
+  -t pb_salespayments \
+  -C 
+  -r http://schema-registry:8081 
+
+
+docker exec -t kafkacat \
+  kcat \
+  -b broker:29092 \
+  -t pb_salescompleted1 \
+  -C -J
+  -s value=json \
+  -r http://schema-registry:8081 \
+  | jq '.payload'
+
+
+protoc -I=. --go_out=. payment.proto
+protoc -I=. --go_out=. basket.proto

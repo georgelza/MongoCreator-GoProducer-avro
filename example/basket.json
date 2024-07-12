@@ -1,0 +1,59 @@
+{
+ 	"InvoiceNumber": "1341243123341232",
+	"SaleDateTime": "2024-06-11T16:53:39.911+02:00",
+	"SaleTimetamp": "1718117619911",
+	"Store" : {
+		"Id": "2143412",
+		"Name": "sdfgsjdjndnjdfgs"
+		},
+	"Clerk": {
+		"Id": "231",
+		"Name": "grfvnowifgbvuwe"
+		},
+	"TerminalPoint": "124",
+	"BasketItems":[
+		{
+			"Id": "234123412",
+			"Name": "",
+			"Brand": "fgtwruyergfd",
+			"Category": "",
+			"Price":12412.00,
+			"Quantity":3
+		},
+		{
+			"Id": "234123421",
+			"Name": "fgtwergo678d",
+			"Brand": "",
+			"Category": "",
+			"Price":12.00,
+			"Quantity":3
+		},
+		{
+			"Id": "534123412",
+			"Name": "fadsagergfd",
+			"Brand": "",
+			"Category": "",
+			"Price":112.00,
+			"Quantity":2
+		},
+		{
+			"Id": "224123412",
+			"Name": "fgtwerg5fd",
+			"Brand": "",
+			"Category": "",
+			"Price":22.00,
+			"Quantity":4
+		},
+		{
+			"Id": "234123412",
+			"Name": "fgtwe1ergfd",
+			"Brand": "",
+			"Category": "",
+			"Price":4.99,
+			"Quantity":1
+		}
+	],
+	"Net": 442.23,
+	"VAT":10.00,
+	"Total":452.23 
+}
