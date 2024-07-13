@@ -1,6 +1,6 @@
 /*****************************************************************************
 *
-*	File			: producer.go
+*	File			: main.go
 *
 * 	Created			: 4 Dec 2023
 *
@@ -9,45 +9,10 @@
 *					: then seperately post a payment onto a seperate topic. Both topics will then be sinked into MongoAtlas collections
 *					: ... EXPAND ...
 *
-*	Modified		: 4 Dec 2023	- Start
-*					: Created the main fake document creator functions and framework, including the fake seed data to be used.
+*	Modified		: 12 July 2024
+*					: This is fork from the ProtoBuf version of the project into a Avro based version.
 *
-*					: 5 Dec 2023
-*					: Added code to output/save the created documents to the output_path directory specified
-*					: Added code to push the documents onto Confluent Kafka cluster hosted topics
-*					: Uploaded project to Git Repo
-*
-*					: 6 Dec 2023
-*					: introduced some code that when testsize is set to 0 then it uses <LARGE> value to imply run continiously.
-*					: Modified the save to file to save all basket docs to one file per run and all payments docs to a single file.
-*					: made the time off set a configuration file value (TimeOffset)
-*					: made the max items per basket a configuration file value ()
-*					: made the quantity per product a configuration file value ()
-*
-*					: 24 Jan 2024
-*					: going to add code/module to disable the Kafka push of docs and rather directly push onto Mongo Atlas, thus
-*					: bypassing the Confluent Kakfa cluster avaiability challenge.
-*
-*					: 15 Jun 2025
-*					: Moved create of the payment out into constructPayments()
-*					: changed types.Tp_payment as a normal struct into types.Pb_Payment => protobuf
-*
-*					: 16 June 2025
-*					: changed types.Tp_basket as a normal struct into types.Pb_Basket => protobuf
-*					: Schema registries created as per .proto files in the types/ directory
-*					: protoc --proto_path=. --go_out=. record.proto
-*
-*					: 17 June
-*					: Renaming the main repo => *-pb as the Protobuf version & a second version/repo *-json thats json based
-*
-*					: 25 June 2024
-*					: adding storeid to TPClerkstruct
-*
-*					: 12 July 2024
-*					: renamed the fields: *DateTime -> *DateTime_Ltz
-*					: renamed the fields: *Timestamp -> *Timestamp_Epoc
-*
-*	Git				: https://github.com/georgelza/MongoCreator-GoProducer
+*	Git				: https://github.com/georgelza/MongoCreator-GoProducer_avro
 *
 *	Author			: George Leonard
 *
@@ -55,9 +20,7 @@
 *
 *	jsonformatter 	: https://jsonformatter.curiousconcept.com/#
 *
-*					: protoc -I=. --go_out=. basket.proto
-*					: protoc -I=. --go_out=. payment.proto
-*					: Now go edit the *.pb.go file created, and update the package ____ with the correct name
+*  	json to avro	: https://konbert.com/convert/json/to/avro
 *
 *****************************************************************************/
 
@@ -68,8 +31,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
+	"log"
 	"math"
 	"math/rand"
+	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -79,11 +45,14 @@ import (
 
 	"github.com/confluentinc/confluent-kafka-go/kafka"
 	"github.com/confluentinc/confluent-kafka-go/schemaregistry"
-	"github.com/confluentinc/confluent-kafka-go/schemaregistry/serde/protobuf"
+	"github.com/confluentinc/confluent-kafka-go/schemaregistry/serde"
+	cpavro "github.com/confluentinc/confluent-kafka-go/schemaregistry/serde/avro"
+	"github.com/hamba/avro/v2"
 
 	"github.com/google/uuid"
 
 	"github.com/TylerBrock/colorjson"
+
 	"github.com/tkanos/gonfig"
 	glog "google.golang.org/grpc/grpclog"
 
@@ -116,7 +85,7 @@ func init() {
 
 	grpcLog.Infoln("###############################################################")
 	grpcLog.Infoln("#")
-	grpcLog.Infoln("#   Project   : GoProducer 2.0 - Protobuf based")
+	grpcLog.Infoln("#   Project   : GoProducer 2.0 - Avro based")
 	grpcLog.Infoln("#")
 	grpcLog.Infoln("#   Comment   : MongoCreator Project and lots of Kafka")
 	grpcLog.Infoln("#")
@@ -426,8 +395,7 @@ func CreateTopic(props types.TPKafka) {
 
 	adminClient, err := kafka.NewAdminClient(&cm)
 	if err != nil {
-		grpcLog.Error(fmt.Sprintf("Admin Client Creation Failed: %s", err))
-		os.Exit(1)
+		grpcLog.Fatalf("Admin Client Creation Failed: %s", err)
 
 	}
 
@@ -441,8 +409,7 @@ func CreateTopic(props types.TPKafka) {
 
 	maxDuration, err := time.ParseDuration(props.Parseduration)
 	if err != nil {
-		grpcLog.Error(fmt.Sprintf("Error Configuring maxDuration via ParseDuration: %s", props.Parseduration))
-		os.Exit(1)
+		grpcLog.Fatalf("Error Configuring maxDuration via ParseDuration: %s", props.Parseduration)
 
 	}
 
@@ -469,12 +436,11 @@ func CreateTopic(props types.TPKafka) {
 	for _, result := range results {
 		if result.Error.Code() != kafka.ErrNoError &&
 			result.Error.Code() != kafka.ErrTopicAlreadyExists {
-			grpcLog.Error(fmt.Sprintf("Topic Creation Failed for %s: %v", result.Topic, result.Error.String()))
-			os.Exit(1)
+			grpcLog.Fatalf("Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
 
 		} else {
 			if vGeneral.Debuglevel > 0 {
-				grpcLog.Info(fmt.Sprintf("* Topic Creation Succeeded for %s", result.Topic))
+				grpcLog.Infof("* Topic Creation Succeeded for %s", result.Topic)
 
 			}
 		}
@@ -489,20 +455,18 @@ func CreateTopic(props types.TPKafka) {
 		kafka.SetAdminOperationTimeout(maxDuration))
 
 	if err != nil {
-		grpcLog.Error(fmt.Sprintf("Problem during the topic creation: %v", err))
-		os.Exit(1)
+		grpcLog.Fatal("Problem during the topic creation: %v", err)
 	}
 
 	// Check for specific topic errors
 	for _, result := range results {
 		if result.Error.Code() != kafka.ErrNoError &&
 			result.Error.Code() != kafka.ErrTopicAlreadyExists {
-			grpcLog.Error(fmt.Sprintf("Topic Creation Failed for %s: %v", result.Topic, result.Error.String()))
-			os.Exit(1)
+			grpcLog.Fatalf("Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
 
 		} else {
 			if vGeneral.Debuglevel > 0 {
-				grpcLog.Info(fmt.Sprintf("* Topic Creation Succeeded for %s", result.Topic))
+				grpcLog.Infof("* Topic Creation Succeeded for %s", result.Topic)
 
 			}
 		}
@@ -574,7 +538,7 @@ func toFixed(num float64, precision int) float64 {
 	return float64(round(num*output)) / output
 }
 
-func constructFakeBasket() (pb_Basket types.PBBasket, eventTimestamp time.Time, storeName string, err error) {
+func constructFakeBasket() (avro_Basket types.TPBasket, eventTimestamp time.Time, storeName string, err error) {
 
 	// Fake Data etc, not used much here though
 	// https://github.com/brianvoe/gofakeit
@@ -582,8 +546,11 @@ func constructFakeBasket() (pb_Basket types.PBBasket, eventTimestamp time.Time, 
 
 	gofakeit.Seed(0)
 
-	var store types.Idstruct
-	var clerk types.Idstruct
+	var store types.TPIDStruct
+	var clerk types.TPIDStruct
+	var BasketItem types.TPBasketItems
+	var BasketItems []types.TPBasketItems
+
 	if vGeneral.Store == 0 {
 		// Determine how many Stores we have in seed file,
 		// and build the 2 structures from that viewpoint
@@ -618,7 +585,6 @@ func constructFakeBasket() (pb_Basket types.PBBasket, eventTimestamp time.Time, 
 	// now pick from array a random products to add to basket, by using 1 as a start point we ensure we always have at least 1 item.
 	nBasketItems := gofakeit.Number(1, vGeneral.Max_items_basket)
 
-	var BasketItems []*types.BasketItems
 	nett_amount := 0.0
 
 	for count := 0; count < nBasketItems; count++ {
@@ -628,13 +594,13 @@ func constructFakeBasket() (pb_Basket types.PBBasket, eventTimestamp time.Time, 
 		quantity := gofakeit.Number(1, vGeneral.Max_quantity)
 		price := varSeed.Products[productId].Price
 
-		BasketItem := &types.BasketItems{
+		BasketItem = types.TPBasketItems{
 			Id:       varSeed.Products[productId].Id,
 			Name:     varSeed.Products[productId].Name,
 			Brand:    varSeed.Products[productId].Brand,
 			Category: varSeed.Products[productId].Category,
 			Price:    varSeed.Products[productId].Price,
-			Quantity: int32(quantity),
+			Quantity: int(quantity),
 		}
 		BasketItems = append(BasketItems, BasketItem)
 
@@ -647,12 +613,12 @@ func constructFakeBasket() (pb_Basket types.PBBasket, eventTimestamp time.Time, 
 	total_amount := toFixed(nett_amount+vat_amount, 2)
 	terminalPoint := gofakeit.Number(1, vGeneral.Terminals)
 
-	pb_Basket = types.PBBasket{
+	avro_Basket = types.TPBasket{
 		InvoiceNumber:      txnId,
 		SaleDateTime_Ltz:   eventTime_ltz,
 		SaleTimestamp_Epoc: fmt.Sprint(eventTimestamp.UnixMilli()),
-		Store:              &store,
-		Clerk:              &clerk,
+		Store:              store,
+		Clerk:              clerk,
 		TerminalPoint:      strconv.Itoa(terminalPoint),
 		BasketItems:        BasketItems,
 		Nett:               nett_amount,
@@ -660,16 +626,16 @@ func constructFakeBasket() (pb_Basket types.PBBasket, eventTimestamp time.Time, 
 		Total:              total_amount,
 	}
 
-	return pb_Basket, eventTimestamp, store.Name, nil
+	return avro_Basket, eventTimestamp, store.Name, nil
 }
 
-func constructPayments(txnId string, salesTimestamp time.Time, total_amount float64) (pb_Payment types.PBPayment, err error) {
+func constructPayments(txnId string, salesTimestamp time.Time, total_amount float64) (avro_Payment types.TPPayment, err error) {
 
 	// We're saying payment can be now (salesTimestamp) and up to 5min and 59 seconds later
 	payTimestamp := salesTimestamp.Local().Add(time.Minute*time.Duration(gofakeit.Number(0, 5)) + time.Second*time.Duration(gofakeit.Number(0, 59)))
 	payTime_ltz := payTimestamp.Format("2006-01-02T15:04:05.000") + vGeneral.TimeOffset // Adding the offset is whats causing this value to be ltz
 
-	pb_Payment = types.PBPayment{
+	avro_Payment = types.TPPayment{
 		InvoiceNumber:     txnId,
 		PayDateTime_Ltz:   payTime_ltz,
 		PayTimestamp_Epoc: fmt.Sprint(payTimestamp.UnixMilli()),
@@ -677,7 +643,28 @@ func constructPayments(txnId string, salesTimestamp time.Time, total_amount floa
 		FinTransactionID:  uuid.New().String(),
 	}
 
-	return pb_Payment, nil
+	return avro_Payment, nil
+}
+
+func getSchema(schemaSubject string) (string, error) {
+
+	resp, err := http.Get(fmt.Sprintf("%s/subjects/%s-value/versions/latest", vKafka.SchemaRegistryURL, schemaSubject))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+
+	var schemaResponse map[string]interface{}
+	if err := json.Unmarshal(body, &schemaResponse); err != nil {
+		return "", err
+	}
+
+	return schemaResponse["schema"].(string), nil
 }
 
 // Big worker... This is where all the magic is called from, ha ha.
@@ -689,8 +676,12 @@ func runLoader(arg string) {
 	var basketcol *mongo.Collection
 	var paymentcol *mongo.Collection
 	var client schemaregistry.Client
-	var serializer *protobuf.Serializer
+	var serializer *cpavro.SpecificSerializer
 	var p *kafka.Producer
+	var avroBasketSchema string
+	var avroPaymentSchema string
+	var BasketSchema avro.Schema
+	var PaymentSchema avro.Schema
 
 	// Initialize the vGeneral struct variable - This holds our configuration settings.
 	vGeneral = loadConfig(arg)
@@ -714,9 +705,9 @@ func runLoader(arg string) {
 		if vGeneral.Debuglevel > 0 {
 			grpcLog.Info("**** Configure Client Kafka Connection ****")
 			grpcLog.Info("*")
-			grpcLog.Info(fmt.Sprintf("* Kafka bootstrap Server is %s", vKafka.Bootstrapservers))
+			grpcLog.Infof("* Kafka bootstrap Server is %s", vKafka.Bootstrapservers)
 			if vKafka.SchemaRegistryURL != "" {
-				grpcLog.Info(fmt.Sprintf("* Schema Registry URL is    %s", vKafka.SchemaRegistryURL))
+				grpcLog.Infof("* Schema Registry URL is    %s", vKafka.SchemaRegistryURL)
 			}
 		}
 
@@ -750,26 +741,26 @@ func runLoader(arg string) {
 		// Variable p holds the new Producer instance.
 		p, err = kafka.NewProducer(&cm)
 		if err != nil {
-			grpcLog.Error(fmt.Sprintf("Failed to create producer: %s", err))
+			grpcLog.Fatalf("Failed to create Kafka producer: %s", err)
 
 		}
 		defer p.Close()
 
 		// Check for errors in creating the Producer
 		if err != nil {
-			grpcLog.Error(fmt.Sprintf("😢Oh noes, there's an error creating the Producer! %s", err))
+			grpcLog.Errorf("😢Oh noes, there's an error creating the Producer! %s", err)
 
 			if ke, ok := err.(kafka.Error); ok {
 				switch ec := ke.Code(); ec {
 				case kafka.ErrInvalidArg:
-					grpcLog.Error(fmt.Sprintf("😢 Can't create the producer because you've configured it wrong (code: %d)!\n\t%v\n\nTo see the configuration options, refer to https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md", ec, err))
+					grpcLog.Errorf("😢 Can't create the producer because you've configured it wrong (code: %d)!\n\t%v\n\nTo see the configuration options, refer to https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md", ec, err)
 				default:
-					grpcLog.Error(fmt.Sprintf("😢 Can't create the producer (Kafka error code %d)\n\tError: %v\n", ec, err))
+					grpcLog.Errorf("😢 Can't create the producer (Kafka error code %d)\n\tError: %v\n", ec, err)
 				}
 
 			} else {
 				// It's not a kafka.Error
-				grpcLog.Error(fmt.Sprintf("😢 Oh noes, there's a generic error creating the Producer! %v", err.Error()))
+				grpcLog.Errorf("😢 Oh noes, there's a generic error creating the Producer! %v", err.Error())
 			}
 			// call it when you know it's broken
 			os.Exit(1)
@@ -779,20 +770,41 @@ func runLoader(arg string) {
 		// Create a new Schema Registry client
 		client, err = schemaregistry.NewClient(schemaregistry.NewConfig(vKafka.SchemaRegistryURL))
 		if err != nil {
-			grpcLog.Error(fmt.Sprintf("Failed to create Schema Registry client: %s", err))
+			grpcLog.Fatalf("Failed to create Schema Registry client: %s", err)
 
 		}
 
-		serdeConfig := protobuf.NewSerializerConfig()
+		serdeConfig := cpavro.NewSerializerConfig()
 		//serdeConfig.AutoRegisterSchemas = false
 		//serdeConfig.UseLatestVersion = true
 		//serdeConfig.EnableValidation = true
 
-		// Create a Protobuf serializer
-		serializer, err = protobuf.NewSerializer(client, 2, serdeConfig)
+		serializer, err = cpavro.NewSpecificSerializer(client, serde.ValueSerde, serdeConfig)
 		if err != nil {
-			grpcLog.Errorln(fmt.Sprintf("Failed to create Protobuf serializer: %s", err))
+			grpcLog.Fatalf("Failed to create Avro serializer: %s", err)
 
+		}
+
+		avroBasketSchema, err = getSchema(vKafka.BasketTopicname)
+		if err != nil {
+			grpcLog.Fatalf("Failed to retrieve Sales Basket Schema: %s", err)
+
+		}
+
+		BasketSchema, err = avro.Parse(avroBasketSchema)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		avroPaymentSchema, err = getSchema(vKafka.PaymentTopicname)
+		if err != nil {
+			grpcLog.Fatalf("Failed to retrieve Sales Payment Schema: %s", err)
+
+		}
+
+		PaymentSchema, err = avro.Parse(avroPaymentSchema)
+		if err != nil {
+			log.Fatal(err)
 		}
 
 		if vGeneral.Debuglevel > 0 {
@@ -818,13 +830,13 @@ func runLoader(arg string) {
 
 		Mongoclient, err := mongo.Connect(ctx, opts)
 		if err != nil {
-			grpcLog.Fatal("Mongo Connect Failed: ", err)
+			grpcLog.Fatalf("Mongo Connect Failed: %s", err)
 		}
 		grpcLog.Infoln("* MongoDB Client Connected")
 
 		defer func() {
 			if err = Mongoclient.Disconnect(ctx); err != nil {
-				grpcLog.Fatal("Mongo Disconected: ", err)
+				grpcLog.Fatalf("Mongo Disconected: %s", err)
 			}
 		}()
 
@@ -837,7 +849,7 @@ func runLoader(arg string) {
 		// Create go routine to defer the closure
 		defer func() {
 			if err = Mongoclient.Disconnect(context.TODO()); err != nil {
-				grpcLog.Fatal("Mongo Disconected: ", err)
+				grpcLog.Fatalf("Mongo Disconected: %s", err)
 			}
 		}()
 
@@ -870,8 +882,7 @@ func runLoader(arg string) {
 
 		f_basket, err = os.OpenFile(loc_basket, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			grpcLog.Errorln("os.OpenFile error A", err)
-			panic(err)
+			grpcLog.Fatalf("os.OpenFile error A", err)
 
 		}
 		defer f_basket.Close()
@@ -885,8 +896,7 @@ func runLoader(arg string) {
 
 		f_pmnt, err = os.OpenFile(loc_pmnt, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
-			grpcLog.Errorln("os.OpenFile error A", err)
-			panic(err)
+			grpcLog.Fatalf("os.OpenFile error A", err)
 
 		}
 		defer f_pmnt.Close()
@@ -913,7 +923,7 @@ func runLoader(arg string) {
 	var paymentdocs = make([]interface{}, vMongodb.Batch_size)
 
 	var json_SalesBasket []byte
-	var json_Payment []byte
+	var json_SalesPayment []byte
 
 	// We will use this to remember when we last flushed the kafka queues and mongo collection.
 	var vFlush = 0
@@ -931,49 +941,45 @@ func runLoader(arg string) {
 
 		}
 
-		// We're going to time every record and push that to prometheus
+		// We're going to time every record and push that to prometheus -- EVENTUALLY
 		txnStart := time.Now()
 
 		// Build an sales basket
-		pb_Basket, eventTimestamp, storeName, err := constructFakeBasket()
+		strct_SalesBasket, eventTimestamp, storeName, err := constructFakeBasket()
 		if err != nil {
-			grpcLog.Fatalln("Fatal constructFakeBasket: %s", err)
-			os.Exit(1)
+			grpcLog.Fatalf("Fatal construct Fake Sales Basket: %s", err)
 
 		}
 
-		// Lets sleep a bit before creating SalesPayment
+		// Lets sleep a bit before creating SalesPayment, human behaviour... looking for wallet, card ;)
 		if vGeneral.Sleep > 0 {
 			n := rand.Intn(vGeneral.Sleep)
 			time.Sleep(time.Duration(n) * time.Millisecond)
 		}
 
-		// Build an payment record for created sales basket
-		pb_Payment, err := constructPayments(pb_Basket.InvoiceNumber, eventTimestamp, pb_Basket.Total)
+		// Build the sales payment record for the previous created sales basket
+		strct_SalesPayment, err := constructPayments(strct_SalesBasket.InvoiceNumber, eventTimestamp, strct_SalesBasket.Total)
 		if err != nil {
-			grpcLog.Fatalln("Fatal constructPayments: %s", err)
-			os.Exit(1)
+			grpcLog.Fatalf("Fatal construct Fake Sales Payments: %s", err)
 
 		}
 
-		json_SalesBasket, err = json.Marshal(pb_Basket)
+		json_SalesBasket, err = json.Marshal(strct_SalesBasket)
 		if err != nil {
-			grpcLog.Fatalln("json_SalesBasket Marshal: %s", err)
-			os.Exit(1)
+			grpcLog.Fatalf("json_SalesBasket Marshal: %s", err)
 
 		}
 
-		json_Payment, err = json.Marshal(pb_Payment)
+		json_SalesPayment, err = json.Marshal(strct_SalesPayment)
 		if err != nil {
-			grpcLog.Fatalln("json_Payment Marshal: %s", err)
-			os.Exit(1)
+			grpcLog.Fatalf("json_SalesPayment Marshal: %s", err)
 
 		}
 
 		// echo to screen
 		if vGeneral.Debuglevel >= 2 {
 			prettyJSON(string(json_SalesBasket))
-			prettyJSON(string(json_Payment))
+			prettyJSON(string(json_SalesPayment))
 		}
 
 		// Post to Confluent Kafka - if enabled
@@ -984,31 +990,64 @@ func runLoader(arg string) {
 				grpcLog.Info("Post to Confluent Kafka topics")
 			}
 
-			// Proto serialize SalesBasket
-			valueBytes, err := serializer.Serialize(vKafka.BasketTopicname, &pb_Basket)
+			var msg interface{}
+			var avro_bytes []byte
+			var payload []byte
+			var kafkaMsg kafka.Message
+
+			// -------------------------------- Sales Basket ---------------------------------------------------
+
+			// struct to avro
+			avro_bytes, err = avro.Marshal(BasketSchema, strct_SalesBasket)
 			if err != nil {
-				grpcLog.Fatalf("Basket: Failed to serialize record: %s", err)
+				grpcLog.Fatalf("Failed to avro Marhsal Sales Basket: %s", err.Error())
 			}
 
-			kafkaMsg := kafka.Message{
+			fmt.Printf("avro bytes %+v\n", avro_bytes)
+
+			err = json.Unmarshal(avro_bytes, &msg)
+			if err != nil {
+				grpcLog.Fatalf("Failed to  UnMarhsal (Sales Basket) avro_bytes to interface{}: %s", err.Error())
+			}
+
+			payload, err = serializer.Serialize(vKafka.BasketTopicname, msg)
+			if err != nil {
+				grpcLog.Fatalf("Failed to serialize Sales Basket payload: %s", err.Error())
+			}
+
+			kafkaMsg = kafka.Message{
 				TopicPartition: kafka.TopicPartition{
 					Topic:     &vKafka.BasketTopicname,
 					Partition: kafka.PartitionAny,
 				},
-				Value: valueBytes,        // This is the payload/body thats being posted
+				Value: payload,           // This is the payload/body thats being posted
 				Key:   []byte(storeName), // We us this to group the same transactions together in order, IE submitting/Debtor Bank.
 			}
 
 			// This is where we publish message onto the topic... on the Confluent cluster for now,
 			if err := p.Produce(&kafkaMsg, nil); err != nil {
-				grpcLog.Error(fmt.Sprintf("😢 Darn, there's an error producing the message! %s", err.Error()))
+				grpcLog.Fatalf("😢 Darn, there's an error producing the Sales Basket message! %s", err.Error())
 
 			}
 
-			// Proto serialize SalesPayment
-			valueBytes, err = serializer.Serialize(vKafka.PaymentTopicname, &pb_Payment)
+			// -------------------------------- Sales Basket Done ---------------------------------------------------
+
+			// -------------------------------- Sales Payment ---------------------------------------------------
+
+			// struct to avro
+			avro_bytes, err = avro.Marshal(PaymentSchema, strct_SalesPayment)
 			if err != nil {
-				grpcLog.Fatalf("Payment: Failed to serialize record: %s", err)
+				grpcLog.Fatalf("Failed to avro Marhsal Sales Payments: %s", err.Error())
+			}
+
+			json.Unmarshal(avro_bytes, &msg)
+			if err != nil {
+				grpcLog.Fatalf("Failed to  UnMarhsal (Sales Payments) avro_bytes to interface{}: %s", err.Error())
+			}
+
+			payload, err = serializer.Serialize(vKafka.PaymentTopicname, msg)
+			if err != nil {
+				grpcLog.Fatalf("Failed to serialize Sales Payments payload: %s", err.Error())
 			}
 
 			kafkaMsg = kafka.Message{
@@ -1016,15 +1055,17 @@ func runLoader(arg string) {
 					Topic:     &vKafka.PaymentTopicname,
 					Partition: kafka.PartitionAny,
 				},
-				Value: valueBytes,        // This is the payload/body thats being posted
+				Value: payload,           // This is the payload/body thats being posted
 				Key:   []byte(storeName), // We us this to group the same transactions together in order, IE submitting/Debtor Bank.
 			}
 
 			// This is where we publish message onto the topic... on the Confluent cluster for now,
 			if err := p.Produce(&kafkaMsg, nil); err != nil {
-				grpcLog.Errorf("😢 Darn, there's an error producing the message! %s", err.Error())
+				grpcLog.Fatalf("😢 Darn, there's an error producing the Sales Payment message! %s", err.Error())
 
 			}
+
+			// -------------------------------- Sales Payment Done ---------------------------------------------------
 
 			vFlush++
 
@@ -1036,7 +1077,7 @@ func runLoader(arg string) {
 
 				} else {
 					if vGeneral.Debuglevel >= 1 {
-						grpcLog.Info(fmt.Sprintf("%s/%s, Messages flushed from the queue", count, vFlush))
+						grpcLog.Infof("%s/%s, Messages flushed from the queue", count, vFlush)
 
 					}
 					vFlush = 0
@@ -1060,16 +1101,16 @@ func runLoader(arg string) {
 							// It's a delivery report
 							km := ev.(*kafka.Message)
 							if km.TopicPartition.Error != nil {
-								grpcLog.Error(fmt.Sprintf("☠️ Failed to send message to topic '%v'\tErr: %v",
+								grpcLog.Errorf("☠️ Failed to send message to topic '%v'\tErr: %v",
 									string(*km.TopicPartition.Topic),
-									km.TopicPartition.Error))
+									km.TopicPartition.Error)
 
 							} else {
 								if vGeneral.Debuglevel > 2 {
-									grpcLog.Info(fmt.Sprintf("✅ Message delivered to topic '%v'(partition %d at offset %d)",
+									grpcLog.Infof("✅ Message delivered to topic '%v'(partition %d at offset %d)",
 										string(*km.TopicPartition.Topic),
 										km.TopicPartition.Partition,
-										km.TopicPartition.Offset))
+										km.TopicPartition.Offset)
 
 								}
 							}
@@ -1077,7 +1118,7 @@ func runLoader(arg string) {
 						case kafka.Error:
 							// It's an error
 							em := ev.(kafka.Error)
-							grpcLog.Error(fmt.Sprint("☠️ Uh oh, caught an error:\n\t%v", em))
+							grpcLog.Errorf("☠️ Uh oh, caught an error:\n\t%v", em)
 
 						}
 					case <-termChan:
@@ -1105,7 +1146,7 @@ func runLoader(arg string) {
 
 			}
 
-			paymentdoc, err := JsonToBson(json_Payment)
+			paymentdoc, err := JsonToBson(json_SalesPayment)
 			if err != nil {
 				grpcLog.Errorln("Oops, we had a problem JsonToBson converting the payload, ", err)
 
@@ -1152,7 +1193,7 @@ func runLoader(arg string) {
 				}
 				if vGeneral.Debuglevel >= 3 {
 					// prettyJSON takes a string which is actually JSON and makes it's pretty, and prints it.
-					prettyJSON(string(json_Payment))
+					prettyJSON(string(json_SalesPayment))
 
 				}
 
@@ -1206,7 +1247,7 @@ func runLoader(arg string) {
 			}
 
 			// Basket
-			pretty_basket, err := json.MarshalIndent(pb_Basket, "", " ")
+			pretty_basket, err := json.MarshalIndent(strct_SalesBasket, "", " ")
 			if err != nil {
 				grpcLog.Errorln(fmt.Sprintf("Basket MarshalIndent error %s", err))
 
@@ -1218,7 +1259,7 @@ func runLoader(arg string) {
 			}
 
 			// Payment
-			pretty_pmnt, err := json.MarshalIndent(pb_Payment, "", " ")
+			pretty_pmnt, err := json.MarshalIndent(strct_SalesPayment, "", " ")
 			if err != nil {
 				grpcLog.Errorln(fmt.Sprintf("Payment MarshalIndent error %s", err))
 

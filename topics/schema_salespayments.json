@@ -1,12 +1,12 @@
-syntax = "proto3";
-package types;
-
-option go_package = ".";
-
-message PBPayment {
-  string invoiceNumber = 1;
-  string payDateTime_Ltz = 2;
-  string payTimestamp_Epoc = 3;
-  double paid = 4;
-  string finTransactionID = 5;
-}
+{
+    "name": "avro_SalesPayments_1",
+    "namespace": "org.hamba.avro",
+    "type": "record",
+    "fields": [
+      {"name": "invoiceNumber","type": "string"},
+      {"name": "finTransactionId","type": "string"},
+      {"name": "payDateTime_Ltz","type": "string"},
+      {"name": "payTimestamp_Epoc","type": "string"},
+      {"name": "paid", "type":"double"}
+    ]
+  }

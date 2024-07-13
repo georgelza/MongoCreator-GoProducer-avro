@@ -1,7 +1,7 @@
 {
- 	"InvoiceNumber": "1341243123341232",
-	"SaleDateTime": "2024-06-11T16:53:39.911+02:00",
-	"SaleTimetamp": "1718117619911",
+	"InvoiceNumber": "1341243123341232",
+	"SaleDateTime_Ltz": "2024-06-11T16:53:39.911+02:00",
+	"SaleTimetamp_Epoc": "1718117619911",
 	"Store" : {
 		"Id": "2143412",
 		"Name": "sdfgsjdjndnjdfgs"

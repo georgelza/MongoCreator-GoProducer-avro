@@ -3,13 +3,13 @@
 export COMPOSE_PROJECT_NAME=devlab
 
 docker compose exec broker kafka-topics \
- --create -topic pb_salespayments \
+ --create -topic avro_salespayments_1 \
  --bootstrap-server localhost:9092 \
  --partitions 1 \
  --replication-factor 1
 
 docker compose exec broker kafka-topics \
- --create -topic pb_salesbaskets \
+ --create -topic avro_salesbaskets_1 \
  --bootstrap-server localhost:9092 \
  --partitions 1 \
  --replication-factor 1

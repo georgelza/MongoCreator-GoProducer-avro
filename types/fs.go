@@ -55,16 +55,40 @@ type TPMongodb struct {
 	Batch_size        int
 }
 
-// the below is used as structure of the seed file
-type TPClerkStruct struct {
-	Id      string `json:"id,omitempty"`
-	Name    string `json:"name,omitempty"`
-	StoreId string `json:"storeId,omitempty"`
+type TPBasketItems struct {
+	Id       string  `json:"id,omitempty"`
+	Name     string  `json:"name,omitempty"`
+	Brand    string  `json:"brand,omitempty"`
+	Category string  `json:"category,omitempty"`
+	Price    float64 `json:"price,omitempty"`
+	Quantity int     `json:"quantity,omitempty"`
 }
 
-type TPStoreStruct struct {
-	Id   string `json:"id,omitempty"`
-	Name string `json:"name,omitempty"`
+type TPBasket struct {
+	InvoiceNumber      string          `json:"invoiceNumber,omitempty" avro:"invoiceNumber"`
+	SaleDateTime_Ltz   string          `json:"saleDateTime_Ltz,omitempty" avro:"saleDateTime_Ltz"`
+	SaleTimestamp_Epoc string          `json:"saleTimestamp_Epoc,omitempty" avro:"saleTimestamp_Epoc"`
+	TerminalPoint      string          `json:"terminalPoint,omitempty" avro:"terminalPoint"`
+	Nett               float64         `json:"nett,omitempty" avro:"nett"`
+	Vat                float64         `json:"vat,omitempty" avro:"vat"`
+	Total              float64         `json:"total,omitempty" avro:"total"`
+	Store              TPIDStruct      `json:"store,omitempty" avro:"store"`
+	Clerk              TPIDStruct      `json:"clerk,omitempty" avro:"clerk"`
+	BasketItems        []TPBasketItems `json:"basketItems,omitempty" avro:"basketItems"`
+}
+
+type TPPayment struct {
+	InvoiceNumber     string  `json:"invoiceNumber,omitempty" avro:"invoiceNumber"`
+	PayDateTime_Ltz   string  `json:"payDateTime_Ltz,omitempty" avro:"payDateTime_Ltz"`
+	PayTimestamp_Epoc string  `json:"payTimestamp_Epoc,omitempty" avro:"payTimestamp_Epoc"`
+	Paid              float64 `json:"paid,omitempty" avro:"paid"`
+	FinTransactionID  string  `json:"finTransactionId,omitempty" avro:"finTransactionId"`
+}
+
+// the below is used as structure of the seed file
+type TPIDStruct struct {
+	Id   string `json:"id,omitempty" avro:"id"`
+	Name string `json:"name,omitempty" avro:"name"`
 }
 
 type TProductStruct struct {
@@ -76,7 +100,7 @@ type TProductStruct struct {
 }
 
 type TPSeed struct {
-	Clerks   []TPClerkStruct  `json:"clerks,omitempty"`
-	Stores   []TPStoreStruct  `json:"stores,omitempty"`
+	Clerks   []TPIDStruct     `json:"clerks,omitempty"`
+	Stores   []TPIDStruct     `json:"stores,omitempty"`
 	Products []TProductStruct `json:"products,omitempty"`
 }

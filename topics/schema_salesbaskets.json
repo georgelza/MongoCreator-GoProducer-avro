@@ -1,29 +1,112 @@
-syntax = "proto3";
-package types;
-
-option go_package = "./pkg/basket.v1";
-
-message BasketItems {
-  string id = 1;
-  string name = 2;
-  string brand = 3;
-  string category = 4;
-  double price = 5;
-  int32 quantity = 6;
-}
-message Idstruct {
-  string id = 1;
-  string name = 2;
-}
-message PBBasket {
-  string invoiceNumber = 1;
-  string saleDateTime_Ltz = 2;
-  string saleTimestamp_Epoc = 3;
-  Idstruct store = 4;
-  Idstruct clerk = 5;
-  string terminalPoint = 6;
-  repeated BasketItems basketItems = 7;
-  double nett = 8;
-  double vat = 9;
-  double total = 10;
+{
+  "type": "record",
+  "name": "SalesBasket",
+  "namespace": "ca.dataedu",
+  "fields": [
+    {
+      "name": "invoiceNumber",
+      "type": "string"
+    },
+    {
+      "name": "saleDateTime_Ltz",
+      "type": "string"
+    },
+    {
+      "name": "saleTimestamp_Epoc",
+      "type": "string"
+    },
+    {
+      "name": "terminalPoint",
+      "type": "string"
+    },
+    {
+      "name": "total",
+      "type": "double"
+    },
+    {
+      "name": "vat",
+      "type": "double"
+    },
+    {
+      "name": "nett",
+      "type": "double"
+    },
+    {
+      "name": "clerk",
+      "type": {
+          "type": "record",
+          "name": "clerk",
+          "namespace": "idStruct",
+          "fields": [
+            {
+              "name": "id",
+              "type":"string"
+            },
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ]
+        }
+      
+    },
+    {
+      "name": "store",  
+      "type": {
+          "type": "record",
+          "name": "store",
+          "namespace": "idStruct",
+          "fields": [
+            {
+              "name": "id",
+              "type": "string"
+            },
+            {
+              "name": "name",
+              "type": "string"
+            }
+          ]
+        }
+    },
+    {
+      "name": "basketItems",
+      "type": [
+        {
+          "type": "array",
+          "items": {
+              "type": "record",
+              "name": "basketItems",
+              "namespace": "TPBasketItems",
+              "fields": [
+                {
+                  "name": "brand",
+                  "type": "string"
+                },
+                {
+                  "name": "category",
+                  "type": "string"
+                },
+                {
+                  "name": "id",
+                  "type": "string"
+                },
+                {
+                  "name": "name",
+                  "type": "string"
+                },
+                {
+                  "name": "price",
+                  "type": "double"
+                },
+                {
+                  "name": "quantity",
+                  "type": "int"
+                }
+              ]
+            }
+          
+        }
+      ]
+    }
+  ]
 }
