@@ -12,7 +12,7 @@
 *	Modified		: 12 July 2024
 *					: This is fork from the ProtoBuf version of the project into a Avro based version.
 *
-*	Git				: https://github.com/georgelza/MongoCreator-GoProducer_avro
+*	Git				: https://github.com/georgelza/MongoCreator-GoProducer-avro
 *
 *	Author			: George Leonard
 *
