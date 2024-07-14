@@ -1003,12 +1003,12 @@ func runLoader(arg string) {
 				grpcLog.Fatalf("Failed to avro Marhsal Sales Basket: %s", err.Error())
 			}
 
-			fmt.Printf("avro bytes %+v\n", avro_bytes)
-
 			err = json.Unmarshal(avro_bytes, &msg)
 			if err != nil {
 				grpcLog.Fatalf("Failed to UnMarhsal (Sales Basket) avro_bytes to interface{}: %s", err.Error())
 			}
+
+			fmt.Printf("avro bytes %+v\n", msg)
 
 			payload, err = serializer.Serialize(vKafka.BasketTopicname, msg)
 			if err != nil {

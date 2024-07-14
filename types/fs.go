@@ -55,6 +55,11 @@ type TPMongodb struct {
 	Batch_size        int
 }
 
+type TPIDStruct struct {
+	Id   string `json:"id,omitempty" avro:"id"`
+	Name string `json:"name,omitempty" avro:"name"`
+}
+
 type TPBasketItems struct {
 	Id       string  `json:"id,omitempty" avro:"id"`
 	Name     string  `json:"name,omitempty" avro:"name"`
@@ -64,6 +69,7 @@ type TPBasketItems struct {
 	Quantity int     `json:"quantity,omitempty" avro:"quantity"`
 }
 
+// the following 2 structs form the core of the Kafka Payloads
 type TPBasket struct {
 	InvoiceNumber      string          `json:"invoiceNumber,omitempty" avro:"invoiceNumber"`
 	SaleDateTime_Ltz   string          `json:"saleDateTime_Ltz,omitempty" avro:"saleDateTime_Ltz"`
@@ -86,11 +92,6 @@ type TPPayment struct {
 }
 
 // the below is used as structure of the seed file
-type TPIDStruct struct {
-	Id   string `json:"id,omitempty" avro:"id"`
-	Name string `json:"name,omitempty" avro:"name"`
-}
-
 type TProductStruct struct {
 	Id       string  `json:"id,omitempty"`
 	Name     string  `json:"name,omitempty"`
