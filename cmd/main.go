@@ -968,6 +968,28 @@ func runLoader(arg string) {
 
 		}
 
+		if vGeneral.Debuglevel >= 2 || vGeneral.MongoAtlasEnabled == 1 || vGeneral.Json_to_file == 1 {
+
+			json_SalesBasket, err = json.Marshal(strct_SalesBasket)
+			if err != nil {
+				grpcLog.Fatalf("JSON Marshal to json_SalesBasket Failed: %s", err)
+
+			}
+
+			json_SalesPayment, err = json.Marshal(strct_SalesPayment)
+			if err != nil {
+				grpcLog.Fatalf("JSON Marshal to json_SalesPayment Failed: %s", err)
+
+			}
+
+			// echo to screen
+			if vGeneral.Debuglevel >= 2 {
+				prettyJSON(string(json_SalesBasket))
+				prettyJSON(string(json_SalesPayment))
+			}
+
+		}
+
 		// Post to Confluent Kafka - if enabled
 		if vGeneral.KafkaEnabled == 1 {
 
@@ -989,14 +1011,16 @@ func runLoader(arg string) {
 				grpcLog.Fatalf("Failed to avro Marhsal Sales Basket: %s", err.Error())
 			}
 
+			fmt.Printf("avro bytes %+v\n", &avro_bytes)
+
 			err = json.Unmarshal(avro_bytes, &msg)
 			if err != nil {
 				grpcLog.Fatalf("Failed to UnMarhsal (Sales Basket) avro_bytes to interface{}: %s", err.Error())
 			}
 
-			fmt.Printf("avro bytes %+v\n", msg)
+			fmt.Printf("avro bytes %+v\n", &msg)
 
-			payload, err = serializer.Serialize(vKafka.BasketTopicname, msg)
+			payload, err = serializer.Serialize(vKafka.BasketTopicname, &msg)
 			if err != nil {
 				grpcLog.Fatalf("Failed to serialize Sales Basket payload: %s", err.Error())
 			}
@@ -1028,10 +1052,10 @@ func runLoader(arg string) {
 
 			json.Unmarshal(avro_bytes, &msg)
 			if err != nil {
-				grpcLog.Fatalf("Failed to  UnMarhsal (Sales Payments) avro_bytes to interface{}: %s", err.Error())
+				grpcLog.Fatalf("Failed to UnMarhsal (Sales Payments) avro_bytes to interface{}: %s", err.Error())
 			}
 
-			payload, err = serializer.Serialize(vKafka.PaymentTopicname, msg)
+			payload, err = serializer.Serialize(vKafka.PaymentTopicname, &msg)
 			if err != nil {
 				grpcLog.Fatalf("Failed to serialize Sales Payments payload: %s", err.Error())
 			}
@@ -1114,29 +1138,6 @@ func runLoader(arg string) {
 				}
 				close(doneChan)
 			}()
-
-		}
-
-		// Moved this here as we don't use the below json objects in the Kafka/Avro part, lets only do the marshal if we need to.
-		if vGeneral.Debuglevel >= 2 || vGeneral.MongoAtlasEnabled == 1 || vGeneral.Json_to_file == 1 {
-
-			json_SalesBasket, err = json.Marshal(strct_SalesBasket)
-			if err != nil {
-				grpcLog.Fatalf("JSON Marshal to json_SalesBasket Failed: %s", err)
-
-			}
-
-			json_SalesPayment, err = json.Marshal(strct_SalesPayment)
-			if err != nil {
-				grpcLog.Fatalf("JSON Marshal to json_SalesPayment Failed: %s", err)
-
-			}
-
-			// echo to screen
-			if vGeneral.Debuglevel >= 2 {
-				prettyJSON(string(json_SalesBasket))
-				prettyJSON(string(json_SalesPayment))
-			}
 
 		}
 
