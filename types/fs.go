@@ -56,12 +56,12 @@ type TPMongodb struct {
 }
 
 type TPBasketItems struct {
-	Id       string  `json:"id,omitempty"`
-	Name     string  `json:"name,omitempty"`
-	Brand    string  `json:"brand,omitempty"`
-	Category string  `json:"category,omitempty"`
-	Price    float64 `json:"price,omitempty"`
-	Quantity int     `json:"quantity,omitempty"`
+	Id       string  `json:"id,omitempty" avro:"id"`
+	Name     string  `json:"name,omitempty" avro:"name"`
+	Brand    string  `json:"brand,omitempty" avro:"brand"`
+	Category string  `json:"category,omitempty" avro:"category"`
+	Price    float64 `json:"price,omitempty" avro:"price"`
+	Quantity int     `json:"quantity,omitempty" avro:"quantity"`
 }
 
 type TPBasket struct {

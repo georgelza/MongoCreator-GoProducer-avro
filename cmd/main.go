@@ -538,7 +538,7 @@ func toFixed(num float64, precision int) float64 {
 	return float64(round(num*output)) / output
 }
 
-func constructFakeBasket() (avro_Basket types.TPBasket, eventTimestamp time.Time, storeName string, err error) {
+func constructFakeBasket() (strct_Basket types.TPBasket, eventTimestamp time.Time, storeName string, err error) {
 
 	// Fake Data etc, not used much here though
 	// https://github.com/brianvoe/gofakeit
@@ -546,31 +546,31 @@ func constructFakeBasket() (avro_Basket types.TPBasket, eventTimestamp time.Time
 
 	gofakeit.Seed(0)
 
-	var store types.TPIDStruct
-	var clerk types.TPIDStruct
-	var BasketItem types.TPBasketItems
-	var BasketItems []types.TPBasketItems
+	var strct_store types.TPIDStruct
+	var strct_clerk types.TPIDStruct
+	var strct_BasketItem types.TPBasketItems
+	var strct_BasketItems []types.TPBasketItems
 
 	if vGeneral.Store == 0 {
 		// Determine how many Stores we have in seed file,
 		// and build the 2 structures from that viewpoint
 		storeCount := len(varSeed.Stores) - 1
 		nStoreId := gofakeit.Number(0, storeCount)
-		store.Id = varSeed.Stores[nStoreId].Id
-		store.Name = varSeed.Stores[nStoreId].Name
+		strct_store.Id = varSeed.Stores[nStoreId].Id
+		strct_store.Name = varSeed.Stores[nStoreId].Name
 
 	} else {
 		// We specified a specific store
-		store.Id = varSeed.Stores[vGeneral.Store].Id
-		store.Name = varSeed.Stores[vGeneral.Store].Name
+		strct_store.Id = varSeed.Stores[vGeneral.Store].Id
+		strct_store.Name = varSeed.Stores[vGeneral.Store].Name
 
 	}
 
 	// Determine how many Clerks we have in seed file,
 	clerkCount := len(varSeed.Clerks) - 1
 	nClerkId := gofakeit.Number(0, clerkCount)
-	clerk.Id = varSeed.Clerks[nClerkId].Id
-	clerk.Name = varSeed.Clerks[nClerkId].Name
+	strct_clerk.Id = varSeed.Clerks[nClerkId].Id
+	strct_clerk.Name = varSeed.Clerks[nClerkId].Name
 
 	// Uniqiue reference to the basket/sale
 	txnId := uuid.New().String()
@@ -594,15 +594,15 @@ func constructFakeBasket() (avro_Basket types.TPBasket, eventTimestamp time.Time
 		quantity := gofakeit.Number(1, vGeneral.Max_quantity)
 		price := varSeed.Products[productId].Price
 
-		BasketItem = types.TPBasketItems{
+		strct_BasketItem = types.TPBasketItems{
 			Id:       varSeed.Products[productId].Id,
 			Name:     varSeed.Products[productId].Name,
 			Brand:    varSeed.Products[productId].Brand,
 			Category: varSeed.Products[productId].Category,
-			Price:    varSeed.Products[productId].Price,
-			Quantity: int(quantity),
+			Price:    price,
+			Quantity: quantity,
 		}
-		BasketItems = append(BasketItems, BasketItem)
+		strct_BasketItems = append(strct_BasketItems, strct_BasketItem)
 
 		nett_amount = nett_amount + price*float64(quantity)
 
@@ -613,29 +613,29 @@ func constructFakeBasket() (avro_Basket types.TPBasket, eventTimestamp time.Time
 	total_amount := toFixed(nett_amount+vat_amount, 2)
 	terminalPoint := gofakeit.Number(1, vGeneral.Terminals)
 
-	avro_Basket = types.TPBasket{
+	strct_Basket = types.TPBasket{
 		InvoiceNumber:      txnId,
 		SaleDateTime_Ltz:   eventTime_ltz,
 		SaleTimestamp_Epoc: fmt.Sprint(eventTimestamp.UnixMilli()),
-		Store:              store,
-		Clerk:              clerk,
 		TerminalPoint:      strconv.Itoa(terminalPoint),
-		BasketItems:        BasketItems,
 		Nett:               nett_amount,
 		Vat:                vat_amount,
 		Total:              total_amount,
+		Store:              strct_store,
+		Clerk:              strct_clerk,
+		BasketItems:        strct_BasketItems,
 	}
 
-	return avro_Basket, eventTimestamp, store.Name, nil
+	return strct_Basket, eventTimestamp, strct_store.Name, nil
 }
 
-func constructPayments(txnId string, salesTimestamp time.Time, total_amount float64) (avro_Payment types.TPPayment, err error) {
+func constructPayments(txnId string, salesTimestamp time.Time, total_amount float64) (strct_Payment types.TPPayment, err error) {
 
 	// We're saying payment can be now (salesTimestamp) and up to 5min and 59 seconds later
 	payTimestamp := salesTimestamp.Local().Add(time.Minute*time.Duration(gofakeit.Number(0, 5)) + time.Second*time.Duration(gofakeit.Number(0, 59)))
 	payTime_ltz := payTimestamp.Format("2006-01-02T15:04:05.000") + vGeneral.TimeOffset // Adding the offset is whats causing this value to be ltz
 
-	avro_Payment = types.TPPayment{
+	strct_Payment = types.TPPayment{
 		InvoiceNumber:     txnId,
 		PayDateTime_Ltz:   payTime_ltz,
 		PayTimestamp_Epoc: fmt.Sprint(payTimestamp.UnixMilli()),
@@ -643,7 +643,7 @@ func constructPayments(txnId string, salesTimestamp time.Time, total_amount floa
 		FinTransactionID:  uuid.New().String(),
 	}
 
-	return avro_Payment, nil
+	return strct_Payment, nil
 }
 
 func getSchema(schemaSubject string) (string, error) {
