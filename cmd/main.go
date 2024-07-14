@@ -20,7 +20,7 @@
 *
 *	jsonformatter 	: https://jsonformatter.curiousconcept.com/#
 *
-*  	json to avro	: https://konbert.com/convert/json/to/avro
+*  	json to avro schema	: http://www.dataedu.ca/avro
 *
 *****************************************************************************/
 
@@ -558,19 +558,23 @@ func constructFakeBasket() (strct_Basket types.TPBasket, eventTimestamp time.Tim
 		nStoreId := gofakeit.Number(0, storeCount)
 		strct_store.Id = varSeed.Stores[nStoreId].Id
 		strct_store.Name = varSeed.Stores[nStoreId].Name
+		// Want to add lat/long for store
 
 	} else {
 		// We specified a specific store
 		strct_store.Id = varSeed.Stores[vGeneral.Store].Id
 		strct_store.Name = varSeed.Stores[vGeneral.Store].Name
+		// Want to add lat/long for store
 
 	}
 
 	// Determine how many Clerks we have in seed file,
+	// We want to change this to a function call, where we select a clerk that work at the previous selected store
 	clerkCount := len(varSeed.Clerks) - 1
 	nClerkId := gofakeit.Number(0, clerkCount)
 	strct_clerk.Id = varSeed.Clerks[nClerkId].Id
 	strct_clerk.Name = varSeed.Clerks[nClerkId].Name
+	strct_clerk.Surname = varSeed.Clerks[nClerkId].Surname
 
 	// Uniqiue reference to the basket/sale
 	txnId := uuid.New().String()
@@ -964,24 +968,6 @@ func runLoader(arg string) {
 
 		}
 
-		json_SalesBasket, err = json.Marshal(strct_SalesBasket)
-		if err != nil {
-			grpcLog.Fatalf("json_SalesBasket Marshal: %s", err)
-
-		}
-
-		json_SalesPayment, err = json.Marshal(strct_SalesPayment)
-		if err != nil {
-			grpcLog.Fatalf("json_SalesPayment Marshal: %s", err)
-
-		}
-
-		// echo to screen
-		if vGeneral.Debuglevel >= 2 {
-			prettyJSON(string(json_SalesBasket))
-			prettyJSON(string(json_SalesPayment))
-		}
-
 		// Post to Confluent Kafka - if enabled
 		if vGeneral.KafkaEnabled == 1 {
 
@@ -1128,6 +1114,28 @@ func runLoader(arg string) {
 				}
 				close(doneChan)
 			}()
+
+		}
+
+		if vGeneral.Debuglevel >= 2 || vGeneral.MongoAtlasEnabled == 1 || vGeneral.Json_to_file == 1 {
+
+			json_SalesBasket, err = json.Marshal(strct_SalesBasket)
+			if err != nil {
+				grpcLog.Fatalf("Failed to json_SalesBasket Marshal: %s", err)
+
+			}
+
+			json_SalesPayment, err = json.Marshal(strct_SalesPayment)
+			if err != nil {
+				grpcLog.Fatalf("Failed to json_SalesPayment Marshal: %s", err)
+
+			}
+
+			// echo to screen
+			if vGeneral.Debuglevel >= 2 {
+				prettyJSON(string(json_SalesBasket))
+				prettyJSON(string(json_SalesPayment))
+			}
 
 		}
 

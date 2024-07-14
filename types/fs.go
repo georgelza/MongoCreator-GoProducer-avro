@@ -1,6 +1,6 @@
 package types
 
-// Structs - the values we bring in from *app.json configuration file
+// Structs - the values we bring in from *app.json configuration files
 type TPGeneral struct {
 	EchoConfig        int
 	Hostname          string
@@ -55,15 +55,17 @@ type TPMongodb struct {
 	Batch_size        int
 }
 
-// Supporting Structures, I realise they the same, some changed planned that would require seperate structs
+// Supporting Structures, I realise they the same,
 type TPStoreStruct struct {
 	Id   string `json:"id,omitempty" avro:"id"`
 	Name string `json:"name,omitempty" avro:"name"`
 }
 
 type TPClerkStruct struct {
-	Id   string `json:"id,omitempty" avro:"id"`
-	Name string `json:"name,omitempty" avro:"name"`
+	Id      string `json:"id,omitempty" avro:"id"`
+	Name    string `json:"name,omitempty" avro:"name"`
+	Surname string `json:"surname,omitempty" avro:"surname"`
+	StoreId string `json:"storeId,omitempty" avro:"storeId"`
 }
 
 type TPBasketItems struct {
@@ -97,7 +99,7 @@ type TPPayment struct {
 	FinTransactionID  string  `json:"finTransactionId,omitempty" avro:"finTransactionId"`
 }
 
-// the below is used as structure of the seed file
+// the below is used as structure of the seed file, note TPClerkStruct and TPStoreStruct defined above.
 type TProductStruct struct {
 	Id       string  `json:"id,omitempty"`
 	Name     string  `json:"name,omitempty"`

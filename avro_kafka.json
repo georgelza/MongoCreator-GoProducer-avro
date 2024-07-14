@@ -1,6 +1,6 @@
 
 {
-    "EchoConfig": 1,                                                        # Note EchoConfig from General setup must == 0  for this to be considered
+    "EchoConfig": 2,                                                        # Note EchoConfig from General setup must == 0  for this to be considered
     "Bootstrapservers": "localhost:9092",
     "SchemaRegistryURL": "http://localhost:8081",
     "Security_protocol": "",

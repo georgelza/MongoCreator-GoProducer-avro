@@ -15,10 +15,10 @@
       "type": {
           "type": "record",
           "name": "clerk",
-          "namespace": "idStruct",
           "fields": [
             {"name": "id","type": "string"},
-            {"name": "name","type": "string"}
+            {"name": "name","type": "string"},
+            {"name": "surname","type": "string"}
           ]
         }
     },
@@ -27,7 +27,6 @@
       "type": {
           "type": "record",
           "name": "store",
-          "namespace": "idStruct",
           "fields": [
             {"name": "id","type": "string"},
             {"name": "name","type": "string"}
@@ -41,7 +40,6 @@
           "items": {
               "type": "record",
               "name": "basketItems",
-              "namespace": "TPBasketItems",
               "fields": [
                 {"name": "brand","type": "string"},
                 {"name": "category","type": "string"},
