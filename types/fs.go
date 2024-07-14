@@ -55,7 +55,6 @@ type TPMongodb struct {
 	Batch_size        int
 }
 
-// Supporting Structures, I realise they the same,
 type TPStoreStruct struct {
 	Id   string `json:"id,omitempty" avro:"id"`
 	Name string `json:"name,omitempty" avro:"name"`

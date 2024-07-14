@@ -1,7 +1,7 @@
 {
   "type": "record",
-  "name": "SalesBasket",
-  "namespace": "ca.dataedu",
+  "name": "SalesBasket_1",
+  "namespace": "Sales",
   "fields": [
     {"name": "invoiceNumber","type": "string"},
     {"name": "saleDateTime_Ltz","type": "string"},
@@ -46,7 +46,7 @@
                 {"name": "id","type": "string"},
                 {"name": "name","type": "string"},
                 {"name": "price","type": "double"},
-                { "name": "quantity","type": "int"}
+                {"name": "quantity","type": "int"}
               ]
             }
         }

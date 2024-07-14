@@ -5,20 +5,18 @@ go 1.22.0
 require (
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2
 	github.com/brianvoe/gofakeit v3.18.0+incompatible
-	github.com/confluentinc/confluent-kafka-go v1.9.2
+	github.com/confluentinc/confluent-kafka-go/v2 v2.5.0
 	github.com/google/uuid v1.6.0
-	github.com/hamba/avro/v2 v2.22.1
 	github.com/tkanos/gonfig v0.0.0-20210106201359-53e13348de2f
 	go.mongodb.org/mongo-driver v1.13.1
 	google.golang.org/grpc v1.62.1
 )
 
 require (
-	github.com/actgardner/gogen-avro/v10 v10.2.1 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
-	github.com/heetch/avro v0.4.5 // indirect
+	github.com/hamba/avro/v2 v2.20.1 // indirect
 	github.com/hokaccha/go-prettyjson v0.0.0-20211117102719-0474bc63780f // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/klauspost/compress v1.17.8 // indirect
@@ -38,7 +36,6 @@ require (
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.19.0 // indirect
 	golang.org/x/text v0.14.0 // indirect
-	google.golang.org/protobuf v1.33.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

@@ -11,7 +11,7 @@
     "Replicationfactor": 1,
     "Retension": 3600,                                                      # hour
     "Parseduration": "60s",    
-    "Flush_interval": 2,
+    "Flush_interval": 10,
     "Sasl_password":"", 
     "Sasl_username":""       
 }

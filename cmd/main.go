@@ -31,11 +31,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
-	"log"
 	"math"
 	"math/rand"
-	"net/http"
 	"os"
 	"runtime"
 	"strconv"
@@ -43,11 +40,10 @@ import (
 
 	"github.com/brianvoe/gofakeit"
 
-	"github.com/confluentinc/confluent-kafka-go/kafka"
-	"github.com/confluentinc/confluent-kafka-go/schemaregistry"
-	"github.com/confluentinc/confluent-kafka-go/schemaregistry/serde"
-	cpavro "github.com/confluentinc/confluent-kafka-go/schemaregistry/serde/avro"
-	"github.com/hamba/avro/v2"
+	"github.com/confluentinc/confluent-kafka-go/v2/kafka"
+	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry"
+	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde"
+	"github.com/confluentinc/confluent-kafka-go/v2/schemaregistry/serde/avrov2"
 
 	"github.com/google/uuid"
 
@@ -650,27 +646,6 @@ func constructPayments(txnId string, salesTimestamp time.Time, total_amount floa
 	return strct_Payment, nil
 }
 
-func getSchema(schemaSubject string) (string, error) {
-
-	resp, err := http.Get(fmt.Sprintf("%s/subjects/%s-value/versions/latest", vKafka.SchemaRegistryURL, schemaSubject))
-	if err != nil {
-		return "", err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
-	}
-
-	var schemaResponse map[string]interface{}
-	if err := json.Unmarshal(body, &schemaResponse); err != nil {
-		return "", err
-	}
-
-	return schemaResponse["schema"].(string), nil
-}
-
 // Big worker... This is where all the magic is called from, ha ha.
 func runLoader(arg string) {
 
@@ -680,12 +655,8 @@ func runLoader(arg string) {
 	var basketcol *mongo.Collection
 	var paymentcol *mongo.Collection
 	var client schemaregistry.Client
-	var serializer *cpavro.SpecificSerializer
+	var serializer *avrov2.Serializer
 	var p *kafka.Producer
-	var avroBasketSchema string
-	var avroPaymentSchema string
-	var BasketSchema avro.Schema
-	var PaymentSchema avro.Schema
 
 	// Initialize the vGeneral struct variable - This holds our configuration settings.
 	vGeneral = loadConfig(arg)
@@ -778,37 +749,16 @@ func runLoader(arg string) {
 
 		}
 
-		serdeConfig := cpavro.NewSerializerConfig()
-		//serdeConfig.AutoRegisterSchemas = false
-		//serdeConfig.UseLatestVersion = true
+		serdeConfig := avrov2.NewSerializerConfig()
+		serdeConfig.AutoRegisterSchemas = false
+		serdeConfig.UseLatestVersion = true
 		//serdeConfig.EnableValidation = true
 
-		serializer, err = cpavro.NewSpecificSerializer(client, serde.ValueSerde, serdeConfig)
+		//serializer, err = avro.NewGenericSerializer(client, serde.ValueSerde, serdeConfig)
+		serializer, err = avrov2.NewSerializer(client, serde.ValueSerde, serdeConfig)
 		if err != nil {
 			grpcLog.Fatalf("Failed to create Avro serializer: %s", err)
 
-		}
-
-		avroBasketSchema, err = getSchema(vKafka.BasketTopicname)
-		if err != nil {
-			grpcLog.Fatalf("Failed to retrieve Sales Basket Schema: %s", err)
-
-		}
-
-		BasketSchema, err = avro.Parse(avroBasketSchema)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		avroPaymentSchema, err = getSchema(vKafka.PaymentTopicname)
-		if err != nil {
-			grpcLog.Fatalf("Failed to retrieve Sales Payment Schema: %s", err)
-
-		}
-
-		PaymentSchema, err = avro.Parse(avroPaymentSchema)
-		if err != nil {
-			log.Fatal(err)
 		}
 
 		if vGeneral.Debuglevel > 0 {
@@ -840,7 +790,8 @@ func runLoader(arg string) {
 
 		defer func() {
 			if err = Mongoclient.Disconnect(ctx); err != nil {
-				grpcLog.Fatalf("Mongo Disconected: %s", err)
+				grpcLog.Errorf("Mongo Disconected: %s", err)
+				os.Exit(1)
 			}
 		}()
 
@@ -853,7 +804,8 @@ func runLoader(arg string) {
 		// Create go routine to defer the closure
 		defer func() {
 			if err = Mongoclient.Disconnect(context.TODO()); err != nil {
-				grpcLog.Fatalf("Mongo Disconected: %s", err)
+				grpcLog.Errorf("Mongo Disconected: %s", err)
+				os.Exit(1)
 			}
 		}()
 
@@ -968,27 +920,27 @@ func runLoader(arg string) {
 
 		}
 
-		if vGeneral.Debuglevel >= 2 || vGeneral.MongoAtlasEnabled == 1 || vGeneral.Json_to_file == 1 {
+		//if vGeneral.Debuglevel >= 2 || vGeneral.MongoAtlasEnabled == 1 || vGeneral.Json_to_file == 1 {
 
-			json_SalesBasket, err = json.Marshal(strct_SalesBasket)
-			if err != nil {
-				grpcLog.Fatalf("JSON Marshal to json_SalesBasket Failed: %s", err)
-
-			}
-
-			json_SalesPayment, err = json.Marshal(strct_SalesPayment)
-			if err != nil {
-				grpcLog.Fatalf("JSON Marshal to json_SalesPayment Failed: %s", err)
-
-			}
-
-			// echo to screen
-			if vGeneral.Debuglevel >= 2 {
-				prettyJSON(string(json_SalesBasket))
-				prettyJSON(string(json_SalesPayment))
-			}
+		json_SalesBasket, err = json.Marshal(strct_SalesBasket)
+		if err != nil {
+			grpcLog.Fatalf("JSON Marshal to json_SalesBasket Failed: %s", err)
 
 		}
+
+		json_SalesPayment, err = json.Marshal(strct_SalesPayment)
+		if err != nil {
+			grpcLog.Fatalf("JSON Marshal to json_SalesPayment Failed: %s", err)
+
+		}
+
+		// echo to screen
+		if vGeneral.Debuglevel >= 2 {
+			prettyJSON(string(json_SalesBasket))
+			prettyJSON(string(json_SalesPayment))
+		}
+
+		//}
 
 		// Post to Confluent Kafka - if enabled
 		if vGeneral.KafkaEnabled == 1 {
@@ -998,31 +950,18 @@ func runLoader(arg string) {
 				grpcLog.Info("Post to Confluent Kafka topics")
 			}
 
-			var msg interface{}
-			var avro_bytes []byte
 			var payload []byte
 			var kafkaMsg kafka.Message
 
 			// -------------------------------- Sales Basket ---------------------------------------------------
 
-			// struct to avro
-			avro_bytes, err = avro.Marshal(BasketSchema, strct_SalesBasket)
+			var intf_SalesBasket interface{} = &strct_SalesBasket
+
+			// We need to serialize the Sales Basket interface into a byte array so we can post it to Kafka
+			payload, err = serializer.Serialize(vKafka.BasketTopicname, intf_SalesBasket)
 			if err != nil {
-				grpcLog.Fatalf("Failed to avro Marhsal Sales Basket: %s", err.Error())
-			}
+				grpcLog.Fatalf("Oops, we had a problem Serializeing Sales Basket payload, %s\n", err)
 
-			fmt.Printf("avro bytes %+v\n", &avro_bytes)
-
-			err = json.Unmarshal(avro_bytes, &msg)
-			if err != nil {
-				grpcLog.Fatalf("Failed to UnMarhsal (Sales Basket) avro_bytes to interface{}: %s", err.Error())
-			}
-
-			fmt.Printf("avro bytes %+v\n", &msg)
-
-			payload, err = serializer.Serialize(vKafka.BasketTopicname, &msg)
-			if err != nil {
-				grpcLog.Fatalf("Failed to serialize Sales Basket payload: %s", err.Error())
 			}
 
 			kafkaMsg = kafka.Message{
@@ -1036,7 +975,7 @@ func runLoader(arg string) {
 
 			// This is where we publish message onto the topic... on the Confluent cluster for now,
 			if err := p.Produce(&kafkaMsg, nil); err != nil {
-				grpcLog.Fatalf("😢 Darn, there's an error producing the Sales Basket message! %s", err.Error())
+				grpcLog.Fatalf("😢 Darn, there's an error producing the Sales Basket message! %s\n", err.Error())
 
 			}
 
@@ -1044,20 +983,13 @@ func runLoader(arg string) {
 
 			// -------------------------------- Sales Payment ---------------------------------------------------
 
-			// struct to avro
-			avro_bytes, err = avro.Marshal(PaymentSchema, strct_SalesPayment)
-			if err != nil {
-				grpcLog.Fatalf("Failed to avro Marhsal Sales Payments: %s", err.Error())
-			}
+			var intf_SalesPayment interface{} = &strct_SalesPayment
 
-			json.Unmarshal(avro_bytes, &msg)
+			// We need to serialize the Sales Basket interface into a byte array so we can post it to Kafka
+			payload, err = serializer.Serialize(vKafka.PaymentTopicname, intf_SalesPayment)
 			if err != nil {
-				grpcLog.Fatalf("Failed to UnMarhsal (Sales Payments) avro_bytes to interface{}: %s", err.Error())
-			}
+				grpcLog.Errorf("Oops, we had a problem Serializeing Sales Payment payload, %s\n", err)
 
-			payload, err = serializer.Serialize(vKafka.PaymentTopicname, &msg)
-			if err != nil {
-				grpcLog.Fatalf("Failed to serialize Sales Payments payload: %s", err.Error())
 			}
 
 			kafkaMsg = kafka.Message{
