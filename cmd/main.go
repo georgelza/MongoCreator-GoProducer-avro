@@ -1117,17 +1117,18 @@ func runLoader(arg string) {
 
 		}
 
+		// Moved this here as we don't use the below json objects in the Kafka/Avro part, lets only do the marshal if we need to.
 		if vGeneral.Debuglevel >= 2 || vGeneral.MongoAtlasEnabled == 1 || vGeneral.Json_to_file == 1 {
 
 			json_SalesBasket, err = json.Marshal(strct_SalesBasket)
 			if err != nil {
-				grpcLog.Fatalf("Failed to json_SalesBasket Marshal: %s", err)
+				grpcLog.Fatalf("JSON Marshal to json_SalesBasket Failed: %s", err)
 
 			}
 
 			json_SalesPayment, err = json.Marshal(strct_SalesPayment)
 			if err != nil {
-				grpcLog.Fatalf("Failed to json_SalesPayment Marshal: %s", err)
+				grpcLog.Fatalf("JSON Marshal to json_SalesPayment Failed: %s", err)
 
 			}
 
