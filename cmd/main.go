@@ -546,8 +546,8 @@ func constructFakeBasket() (strct_Basket types.TPBasket, eventTimestamp time.Tim
 
 	gofakeit.Seed(0)
 
-	var strct_store types.TPIDStruct
-	var strct_clerk types.TPIDStruct
+	var strct_store types.TPStoreStruct
+	var strct_clerk types.TPClerkStruct
 	var strct_BasketItem types.TPBasketItems
 	var strct_BasketItems []types.TPBasketItems
 

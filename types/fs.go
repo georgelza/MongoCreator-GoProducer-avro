@@ -55,7 +55,13 @@ type TPMongodb struct {
 	Batch_size        int
 }
 
-type TPIDStruct struct {
+// Supporting Structures, I realise they the same, some changed planned that would require seperate structs
+type TPStoreStruct struct {
+	Id   string `json:"id,omitempty" avro:"id"`
+	Name string `json:"name,omitempty" avro:"name"`
+}
+
+type TPClerkStruct struct {
 	Id   string `json:"id,omitempty" avro:"id"`
 	Name string `json:"name,omitempty" avro:"name"`
 }
@@ -78,8 +84,8 @@ type TPBasket struct {
 	Nett               float64         `json:"nett,omitempty" avro:"nett"`
 	Vat                float64         `json:"vat,omitempty" avro:"vat"`
 	Total              float64         `json:"total,omitempty" avro:"total"`
-	Store              TPIDStruct      `json:"store,omitempty" avro:"store"`
-	Clerk              TPIDStruct      `json:"clerk,omitempty" avro:"clerk"`
+	Store              TPStoreStruct   `json:"store,omitempty" avro:"store"`
+	Clerk              TPClerkStruct   `json:"clerk,omitempty" avro:"clerk"`
 	BasketItems        []TPBasketItems `json:"basketItems,omitempty" avro:"basketItems"`
 }
 
@@ -101,7 +107,7 @@ type TProductStruct struct {
 }
 
 type TPSeed struct {
-	Clerks   []TPIDStruct     `json:"clerks,omitempty"`
-	Stores   []TPIDStruct     `json:"stores,omitempty"`
+	Clerks   []TPClerkStruct  `json:"clerks,omitempty"`
+	Stores   []TPStoreStruct  `json:"stores,omitempty"`
 	Products []TProductStruct `json:"products,omitempty"`
 }
