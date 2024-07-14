@@ -3,34 +3,13 @@
   "name": "SalesBasket",
   "namespace": "ca.dataedu",
   "fields": [
-    {
-      "name": "invoiceNumber",
-      "type": "string"
-    },
-    {
-      "name": "saleDateTime_Ltz",
-      "type": "string"
-    },
-    {
-      "name": "saleTimestamp_Epoc",
-      "type": "string"
-    },
-    {
-      "name": "terminalPoint",
-      "type": "string"
-    },
-    {
-      "name": "total",
-      "type": "double"
-    },
-    {
-      "name": "vat",
-      "type": "double"
-    },
-    {
-      "name": "nett",
-      "type": "double"
-    },
+    {"name": "invoiceNumber","type": "string"},
+    {"name": "saleDateTime_Ltz","type": "string"},
+    {"name": "saleTimestamp_Epoc","type": "string"},
+    {"name": "terminalPoint","type": "string"},
+    {"name": "total","type": "double"},
+    {"name": "vat","type": "double"},
+    {"name": "nett","type": "double"},
     {
       "name": "clerk",
       "type": {
@@ -38,17 +17,10 @@
           "name": "clerk",
           "namespace": "idStruct",
           "fields": [
-            {
-              "name": "id",
-              "type":"string"
-            },
-            {
-              "name": "name",
-              "type": "string"
-            }
+            {"name": "id","type": "string"},
+            {"name": "name","type": "string"}
           ]
         }
-      
     },
     {
       "name": "store",  
@@ -57,14 +29,8 @@
           "name": "store",
           "namespace": "idStruct",
           "fields": [
-            {
-              "name": "id",
-              "type": "string"
-            },
-            {
-              "name": "name",
-              "type": "string"
-            }
+            {"name": "id","type": "string"},
+            {"name": "name","type": "string"}
           ]
         }
     },
@@ -78,30 +44,12 @@
               "name": "basketItems",
               "namespace": "TPBasketItems",
               "fields": [
-                {
-                  "name": "brand",
-                  "type": "string"
-                },
-                {
-                  "name": "category",
-                  "type": "string"
-                },
-                {
-                  "name": "id",
-                  "type": "string"
-                },
-                {
-                  "name": "name",
-                  "type": "string"
-                },
-                {
-                  "name": "price",
-                  "type": "double"
-                },
-                {
-                  "name": "quantity",
-                  "type": "int"
-                }
+                {"name": "brand","type": "string"},
+                {"name": "category","type": "string"},
+                {"name": "id","type": "string"},
+                {"name": "name","type": "string"},
+                {"name": "price","type": "double"},
+                { "name": "quantity","type": "int"}
               ]
             }
           
