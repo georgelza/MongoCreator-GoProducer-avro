@@ -1007,7 +1007,7 @@ func runLoader(arg string) {
 
 			err = json.Unmarshal(avro_bytes, &msg)
 			if err != nil {
-				grpcLog.Fatalf("Failed to  UnMarhsal (Sales Basket) avro_bytes to interface{}: %s", err.Error())
+				grpcLog.Fatalf("Failed to UnMarhsal (Sales Basket) avro_bytes to interface{}: %s", err.Error())
 			}
 
 			payload, err = serializer.Serialize(vKafka.BasketTopicname, msg)

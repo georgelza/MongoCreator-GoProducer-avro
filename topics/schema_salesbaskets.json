@@ -36,8 +36,7 @@
     },
     {
       "name": "basketItems",
-      "type": [
-        {
+      "type": {
           "type": "array",
           "items": {
               "type": "record",
@@ -52,9 +51,7 @@
                 { "name": "quantity","type": "int"}
               ]
             }
-          
         }
-      ]
     }
   ]
 }
