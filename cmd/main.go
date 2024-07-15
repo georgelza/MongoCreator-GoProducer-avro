@@ -555,12 +555,14 @@ func constructFakeBasket() (strct_Basket types.TPBasket, eventTimestamp time.Tim
 		strct_store.Id = varSeed.Stores[nStoreId].Id
 		strct_store.Name = varSeed.Stores[nStoreId].Name
 		// Want to add lat/long for store
+		// Want to add contact details for store
 
 	} else {
 		// We specified a specific store
 		strct_store.Id = varSeed.Stores[vGeneral.Store].Id
 		strct_store.Name = varSeed.Stores[vGeneral.Store].Name
 		// Want to add lat/long for store
+		// Want to add contact details for store
 
 	}
 
@@ -568,6 +570,9 @@ func constructFakeBasket() (strct_Basket types.TPBasket, eventTimestamp time.Tim
 	// We want to change this to a function call, where we select a clerk that work at the previous selected store
 	clerkCount := len(varSeed.Clerks) - 1
 	nClerkId := gofakeit.Number(0, clerkCount)
+
+	// We assign based on fields as we don't want to injest the entire clerk structure, (it includes in the seed file the storeId
+	// which is there for us to be able to filter based on store in a later version).
 	strct_clerk.Id = varSeed.Clerks[nClerkId].Id
 	strct_clerk.Name = varSeed.Clerks[nClerkId].Name
 	strct_clerk.Surname = varSeed.Clerks[nClerkId].Surname

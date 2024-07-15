@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "SalesPayments_1",
+  "name": "SalesPayments",
   "namespace": "Sales",
   "fields": [
     {"name": "invoiceNumber", "type": "string"},

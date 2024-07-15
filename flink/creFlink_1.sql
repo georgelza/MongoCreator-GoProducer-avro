@@ -14,7 +14,7 @@ CREATE TABLE avro_salescompleted (
     VAT DOUBLE,
     TOTAL DOUBLE,
     STORE row<ID STRING, NAME STRING>,
-    CLERK row<ID STRING, NAME STRING>,
+    CLERK row<ID STRING, NAME STRING, SURNAME STRING>,
     BASKETITEMS array<row<ID STRING, NAME STRING, BRAND STRING, CATEGORY STRING, PRICE DOUBLE, QUANTITY INT>>,
     FINTRANSACTIONID STRING,
     PAYDATETIME_LTZ STRING,
@@ -33,6 +33,8 @@ CREATE TABLE avro_salescompleted (
     'value.fields-include' = 'ALL'
 );
 
+-- NEW OUTPUT Tables
+--
 -- https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/queries/window-agg/
 -- We going to output the group by into this table, backed by topic which we will sink to MongoDB via connector
 CREATE TABLE avro_sales_per_store_per_terminal_per_5min (
@@ -54,20 +56,6 @@ CREATE TABLE avro_sales_per_store_per_terminal_per_5min (
     'value.fields-include' = 'ALL'
 );
 
-
--- Aggregate query/worker
-Insert into avro_sales_per_store_per_terminal_per_5min
-SELECT 
-    `STORE`.`ID` as STORE_ID,
-    TERMINALPOINT,
-    window_start,
-    window_end,
-    COUNT(*) as salesperterminal,
-    SUM(TOTAL) as totalperterminal
-  FROM TABLE(
-    TUMBLE(TABLE avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
-  GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
-
 CREATE TABLE avro_sales_per_store_per_terminal_per_hour (
     store_id STRING,
     terminalpoint STRING,
@@ -88,7 +76,19 @@ CREATE TABLE avro_sales_per_store_per_terminal_per_hour (
 );
 
 
--- Aggregate query/worker
+-- Aggregate query/workers
+Insert into avro_sales_per_store_per_terminal_per_5min
+SELECT 
+    `STORE`.`ID` as STORE_ID,
+    TERMINALPOINT,
+    window_start,
+    window_end,
+    COUNT(*) as salesperterminal,
+    SUM(TOTAL) as totalperterminal
+  FROM TABLE(
+    TUMBLE(TABLE avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
+  GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
+
 Insert into avro_sales_per_store_per_terminal_per_hour
 SELECT 
     `STORE`.`ID` as STORE_ID,

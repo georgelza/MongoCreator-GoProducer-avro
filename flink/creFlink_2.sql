@@ -8,7 +8,9 @@
 -- this is done here this way to "lighten" the load/dependency on Kafka stream processing, and well, as another method/arrow in quiver.
 
 -- pull (INPUT) the avro_salesbaskets topic into Flink
-CREATE TABLE avro_salesbaskets_x (
+
+
+CREATE TABLE avro_salesbasketsx (
     INVOICENUMBER STRING,
     SALEDATETIME_LTZ STRING,
     SALETIMESTAMP_EPOC STRING,
@@ -17,7 +19,7 @@ CREATE TABLE avro_salesbaskets_x (
     VAT DOUBLE,
     TOTAL DOUBLE,
     STORE row<ID STRING, NAME STRING>,
-    CLERK row<ID STRING, NAME STRING>,
+    CLERK row<ID STRING, NAME STRING, SURNAME STRING>,
     BASKETITEMS array<row<ID STRING, NAME STRING, BRAND STRING, CATEGORY STRING, PRICE DOUBLE, QUANTITY INT>>,
     SALESTIMESTAMP_WM AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
     WATERMARK FOR SALESTIMESTAMP_WM AS SALESTIMESTAMP_WM
@@ -32,13 +34,13 @@ CREATE TABLE avro_salesbaskets_x (
     'value.fields-include' = 'ALL'
 );
 
--- pull (INPUT) the avro_salespayments topic into Flink
-CREATE TABLE avro_salespayments_x (
+-- pull (INPUT) the avro_salespayments_1 topic into Flink
+CREATE TABLE avro_salespayments (
     INVOICENUMBER STRING,
-    FINTRANSACTIONID STRING,
     PAYDATETIME_LTZ STRING,
     PAYTIMESTAMP_EPOC STRING,
     PAID DOUBLE,
+    FINTRANSACTIONID STRING,
     PAYTIMESTAMP_WM AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(PAYTIMESTAMP_EPOC AS BIGINT) / 1000)),
     WATERMARK FOR PAYTIMESTAMP_WM AS PAYTIMESTAMP_WM
 ) WITH (
@@ -48,9 +50,48 @@ CREATE TABLE avro_salespayments_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:8081', 
+    'value.avro-confluent.properties.use.latest.version' = 'true',
     'value.fields-include' = 'ALL'
 );
+
+
+CREATE TABLE avro_salescompleted_x
+WITH (
+    'connector' = 'kafka',
+    'topic' = 'avro_salesbaskets_x',
+    'properties.bootstrap.servers' = 'broker:29092',
+    'properties.group.id' = 'testGroup',
+    'scan.startup.mode' = 'earliest-offset',
+    'value.format' = 'avro-confluent',
+    'value.avro-confluent.schema-registry.url' = 'http://schema-registry:8081',
+    'value.fields-include' = 'ALL'
+)
+AS SELECT 
+        b.INVOICENUMBER,
+        b.SALEDATETIME_LTZ,
+        b.SALETIMESTAMP_EPOC,
+        b.TERMINALPOINT,
+        b.NETT,
+        b.VAT,
+        b.TOTAL,
+        b.STORE,
+        b.CLERK,    
+        b.BASKETITEMS,        
+        a.PAYDATETIME_LTZ,
+        a.PAYTIMESTAMP_EPOC,
+        a.PAID,
+        a.FINTRANSACTIONID,
+        a.PAYTIMESTAMP_WM,
+        b.SALESTIMESTAMP_WM
+    FROM 
+        avro_salespayments a,
+        avro_salesbaskets b
+    WHERE a.INVOICENUMBER = b.INVOICENUMBER
+    AND PAYTIMESTAMP_WM > SALESTIMESTAMP_WM 
+    AND SALESTIMESTAMP_WM > (SALESTIMESTAMP_WM - INTERVAL '1' HOUR);
+
+
 
 -- Our avro_salescompleted (OUTPUT) table which will push values to the CP Kafka topic.
 -- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
@@ -63,12 +104,12 @@ CREATE TABLE avro_salescompleted_x (
     VAT DOUBLE,
     TOTAL DOUBLE,
     STORE row<ID STRING, NAME STRING>,
-    CLERK row<ID STRING, NAME STRING>,
+    CLERK row<ID STRING, NAME STRING, SURNAME STRING>,
     BASKETITEMS array<row<ID STRING, NAME STRING, BRAND STRING, CATEGORY STRING, PRICE DOUBLE, QUANTITY INT>>,
-    FINTRANSACTIONID STRING,
     PAYDATETIME_LTZ STRING,
     PAYTIMESTAMP_EPOC STRING,
     PAID DOUBLE,
+    FINTRANSACTIONID STRING,
     SALESTIMESTAMP_WM AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
     PAYTIMESTAMP_WM AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(PAYTIMESTAMP_EPOC AS BIGINT) / 1000)),
     WATERMARK FOR SALESTIMESTAMP_WM AS SALESTIMESTAMP_WM
@@ -96,13 +137,13 @@ Insert into avro_salescompleted_x
         b.STORE,
         b.CLERK,    
         b.BASKETITEMS,        
-        a.FINTRANSACTIONID,
         a.PAYDATETIME_LTZ,
         a.PAYTIMESTAMP_EPOC,
-        a.PAID
+        a.PAID,
+        a.FINTRANSACTIONID
     FROM 
-        avro_salespayments_x a,
-        avro_salesbaskets_x b
+        avro_salespayments a,
+        avro_salesbaskets b
     WHERE a.INVOICENUMBER = b.INVOICENUMBER
     AND PAYTIMESTAMP_WM > SALESTIMESTAMP_WM 
     AND SALESTIMESTAMP_WM > (SALESTIMESTAMP_WM - INTERVAL '1' HOUR);
@@ -175,7 +216,7 @@ SELECT
   GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
 
 
-  -- Calculate sales per store per product
+  -- Calculate sales per store per product - ERROR - Need to"flatten" the basketitems array.
 SELECT 
     `STORE`.`ID` as STORE_ID,
     `BASKETITEMS`.`NAME` as PRODUCT,
