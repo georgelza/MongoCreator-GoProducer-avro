@@ -1,6 +1,6 @@
 {
- 	"InvoiceNumber": "13412431233412322",
-	"PayDateTime_Ltz": "2023-12-12-T13:22:37.000+02:00",
+ 	"InvoiceNumber": "1341243123341232",
+	"PayDateTime_Ltz": "2023-12-23-T16:55:39.000+02:00",
 	"PayTimetamp_Epoc": "1718117619911",
 	"Paid": 452.23,
 	"FinTransactionID": "42dfgt245wsdg34231rfwfg234234"
