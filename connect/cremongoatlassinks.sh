@@ -14,17 +14,17 @@
 curl -X POST \
   -H "Content-Type: application/json" \
   --data '
-     { "name": "mongo-atlas-salesbaskets-sink-pb",
+     { "name": "mongo-atlas-salesbaskets-sink-avro",
         "config": {
           "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
           "connection.uri": "'${MONGO_URL}'",
           "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-          "value.converter":"io.confluent.connect.protobuf.ProtobufConverter",
+          "value.converter":"io.confluent.connect.avro.AvroConverter",
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database": "MongoCom0",
-          "collection": "pb_salesbaskets",
-          "topics": "pb_salesbaskets"
+          "collection": "salesbaskets",
+          "topics": "avro_salesbaskets"
         }
       } 
       ' \
@@ -34,17 +34,17 @@ curl -X POST \
   curl -X POST \
   -H "Content-Type: application/json" \
   --data '
-     { "name": "mongo-atlas-salespayments-sink-pb",
+     { "name": "mongo-atlas-salespayments-sink-avro",
         "config": {
           "connector.class": "com.mongodb.kafka.connect.MongoSinkConnector",
           "connection.uri": "'${MONGO_URL}'",
           "key.converter": "org.apache.kafka.connect.storage.StringConverter",
-          "value.converter":"io.confluent.connect.protobuf.ProtobufConverter",
+          "value.converter":"io.confluent.connect.avro.AvroConverter",
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database": "MongoCom0",
-          "collection": "pb_salespayments",
-          "topics": "pb_salespayments"
+          "collection": "salespayments",
+          "topics": "avro_salespayments"
         }
       } 
       ' \

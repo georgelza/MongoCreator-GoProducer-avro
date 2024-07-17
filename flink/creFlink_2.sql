@@ -205,30 +205,7 @@ CREATE TABLE unnested_sales (
     'value.fields-include' = 'ALL'
 );
 
--- TESTING
-CREATE TABLE unnested_salesxx (
-    `store_id` STRING,
-    `product` STRING,
-    `brand` STRING,
-    `saleValue` DOUBLE,
-    `category` STRING,
-    `saleDateTime_Ltz` STRING,
-    `saleTimestamp_Epoc` STRING,
-    `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
-    WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
-) PARTITIONED BY (`store_id`) 
-WITH (
-    'connector' = 'kafka',
-    'topic' = 'unnested_sales',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
-    'value.fields-include' = 'ALL'
-);
-
-insert into unnested_salesxx 
+insert into unnested_sales
 SELECT
       `store`.`id` as `store_id`,
       bi.`name` AS `product`,

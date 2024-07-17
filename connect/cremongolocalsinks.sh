@@ -24,7 +24,7 @@ curl -X POST \
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database":"MongoCom0",
-          "collection":"avro_salesbaskets",
+          "collection":"salesbaskets",
           "topics":"avro_salesbaskets"
           }
       }
@@ -44,7 +44,7 @@ curl -X POST \
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database":"MongoCom0",
-          "collection":"avro_salespayments",
+          "collection":"salespayments",
           "topics":"avro_salespayments"
           }
       }
@@ -63,7 +63,7 @@ curl -X POST \
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database":"MongoCom0",
-          "collection":"avro_salescompleted",
+          "collection":"salescompleted",
           "topics":"avro_salescompleted"
           }
       }
@@ -84,7 +84,7 @@ curl -X POST \
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database":"MongoCom0",
-          "collection":"avro_sales_by_store_by_5min",
+          "collection":"sales_by_store_by_5min",
           "topics":"avro_sales_per_store_per_5min"
           }
       }
@@ -104,7 +104,7 @@ curl -X POST \
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database":"MongoCom0",
-          "collection":"avro_sales_by_store_by_hour",
+          "collection":"sales_by_store_by_hour",
           "topics":"avro_sales_per_store_per_hour"
           }
       }
@@ -124,7 +124,7 @@ curl -X POST \
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database":"MongoCom0",
-          "collection":"avro_sales_by_store_by_terminal_5min_x",
+          "collection":"sales_by_store_by_terminal_5min_x",
           "topics":"avro_sales_per_store_per_terminal_per_5min_x"
           }
       }
@@ -143,7 +143,7 @@ curl -X POST \
           "value.converter.schema.registry.url":"http://schema-registry:8081",
           "value.converter.schemas.enable": true,
           "database":"MongoCom0",
-          "collection":"avro_sales_by_store_by_terminal_hour_x",
+          "collection":"sales_by_store_by_terminal_hour_x",
           "topics":"avro_sales_per_store_per_terminal_per_hour_x"
           }
       }
