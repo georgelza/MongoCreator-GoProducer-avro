@@ -166,7 +166,17 @@ select
   SALES_PER_TERMINAL
 from AVRO_SALES_PER_TERMINAL_POINT EMIT CHANGES;
 
--- change SaleTimsestam to BIGINT
+-- SALETIMESTAMP is a string representing epoc based date/time, we need to convert to BIGINT
+SELECT INVOICENUMBER, 
+	TIMESTAMPTOSTRING(CAST(SaleTimestamp_Epoc AS BIGINT), 'YYYY-MM-dd HH:mm:ss.SSS') AS SALETIMESTAMP_str,
+	STORE->Name,
+	STORE->ID,
+	CLERK->Name,
+	CLERK->ID
+FROM pb_salesbaskets;
+
+
+-- change SaleTimsestamp to BIGINT
 CREATE STREAM pb_salesbaskets1 WITH (
 		KAFKA_TOPIC='pb_salesbaskets1',
        	VALUE_FORMAT='ProtoBuf',
@@ -185,6 +195,7 @@ CREATE STREAM pb_salesbaskets1 WITH (
     		BasketItems 
 		from pb_salesbaskets
 			emit changes;
+
 
 -- change SaleTimsestam to TIMESTAMPTOSTRING, with a format
 CREATE STREAM pb_salesbaskets2 WITH (
@@ -205,42 +216,3 @@ CREATE STREAM pb_salesbaskets2 WITH (
     		BasketItems 
 		from pb_salesbaskets
 			emit changes;
-
-
-CREATE STREAM pb_salespayments1 WITH (
-		KAFKA_TOPIC='pb_salespayments1',
-       	VALUE_FORMAT='ProtoBuf',
-       	PARTITIONS=1)
-       	as  
-		select   	
-			InvoiceNumber,
-	      	FinTransactionId,
-	      	PayDateTime_Ltz,
-		  	CAST(PayTimestamp_Epoc AS BIGINT) AS Pay_epoc_bigint,
-	      	Paid  
-		from pb_salespayments
-	emit changes;
-
-
-CREATE STREAM pb_salespayments2 WITH (
-		KAFKA_TOPIC='pb_salespayments2',
-       	VALUE_FORMAT='ProtoBuf',
-       	PARTITIONS=1)
-       	as  
-		select   	
-			InvoiceNumber,
-	      	FinTransactionId,
-	      	PayDateTime_Ltz,
-		  	TIMESTAMPTOSTRING(CAST(PayTimestamp_Epoc AS BIGINT), 'yyyy-MM-dd''T''HH:mm:ss.SSS') AS PayTimestamp_str,
-	      	Paid  
-		from pb_salespayments
-	emit changes;
-
--- SALETIMESTAMP is a string representing epoc based date/time, we need to convert to BIGINT
-SELECT INVOICENUMBER, 
-	TIMESTAMPTOSTRING(CAST(SaleTimestamp_Epoc AS BIGINT), 'YYYY-MM-dd HH:mm:ss.SSS') AS SALETIMESTAMP_str,
-	STORE->Name,
-	STORE->ID,
-	CLERK->Name,
-	CLERK->ID
-FROM pb_salesbaskets;

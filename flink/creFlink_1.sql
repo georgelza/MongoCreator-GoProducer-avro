@@ -1,10 +1,15 @@
 
--- Source topic is Avro serialized (Pb requires a PB Serdes be compiled into the Flink containers, it's not included default)
--- key is based the invnumber (as it was used t join salesbaskets and salespayments)
+-- Source topics is Avro serialized.
 -- Flink UI : http://localhost:9081/#/overview
 
--- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic 
--- as a kStream job/output.
+-- The below injest the avro_salescompleted data from the kSql created stream as a output of a join from the 2 source kSql tables, the join results are inserted into avro_salescompleted_x.
+-- salesbaskets_x and salespayments is build as virtual tables from the original topics (salesbaskets and salespayments)
+-- join key is invoiceNumber.
+
+-- After this we do a simple aggregate on sales per store per terminal per 5min and per hour (these values are at the root of the avro_salesbaskets table).
+
+
+-- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table.
 CREATE TABLE avro_salescompleted (
     INVNUMBER STRING,
     SALEDATETIME_LTZ STRING,
