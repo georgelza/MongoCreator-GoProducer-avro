@@ -1,5 +1,9 @@
+# docker-compose -p my-project up
+# or
+# export COMPOSE_PROJECT_NAME=my-project
+# docker-compose up
+#
 services:
-
   broker:
     image: confluentinc/cp-kafka:7.6.1
     hostname: ${COMPOSE_PROJECT_NAME}-broker
