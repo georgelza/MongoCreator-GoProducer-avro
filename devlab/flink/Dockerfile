@@ -35,13 +35,13 @@ RUN echo "-> Install JARs: Flink's connector" && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.18.1/flink-sql-avro-confluent-registry-1.18.1.jar -O && \
     popd
     
-#RUN echo "-> Install JARs: DB connectors" && \
-#    mkdir -p ./lib && pushd $_ && \
-#    curl https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.30/mysql-connector-java-8.0.30.jar -O && \
-#    curl https://repo1.maven.org/maven2/org/postgresql/postgresql/42.5.1/postgresql-42.5.1.jar -O && \
-#    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-mongodb/1.2.0-1.18/flink-connector-mongodb-1.2.0-1.18.jar -O && \
-#    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-redis_2.11/1.1.5/flink-connector-redis_2.11-1.1.5.jar -O && \
-#    popd
+RUN echo "-> Install JARs: DB connectors" && \
+    mkdir -p ./lib && pushd $_ && \
+    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-mongodb/1.2.0-1.18/flink-connector-mongodb-1.2.0-1.18.jar -O && \
+    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-redis_2.11/1.1.5/flink-connector-redis_2.11-1.1.5.jar -O && \
+    curl https://repo1.maven.org/maven2/mysql/mysql-connector-java/8.0.30/mysql-connector-java-8.0.30.jar -O && \
+    curl https://repo1.maven.org/maven2/org/postgresql/postgresql/42.5.1/postgresql-42.5.1.jar -O && \
+    popd
     
 RUN echo "-> Install JARs: Flink's Hive connector" && \
     mkdir -p ./lib/hive && pushd $_ && \

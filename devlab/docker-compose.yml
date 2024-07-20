@@ -4,6 +4,7 @@
 # docker-compose up
 #
 services:
+  # Core Confluent Kafka bits
   broker:
     image: confluentinc/cp-kafka:7.6.1
     hostname: ${COMPOSE_PROJECT_NAME}-broker
@@ -44,6 +45,30 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: ${COMPOSE_PROJECT_NAME}-schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      
+  control-center:
+    image: confluentinc/cp-enterprise-control-center:7.6.1
+    hostname: ${COMPOSE_PROJECT_NAME}-control-center
+    container_name: ${COMPOSE_PROJECT_NAME}-control-center
+    depends_on:
+      - broker
+      - schema-registry
+      - connect
+      - ksqldb-server
+    ports:
+      - "9021:9021"
+    environment:
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
+      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: '${COMPOSE_PROJECT_NAME}-connect:8083'
+      CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT: '/connectors'
+      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://${COMPOSE_PROJECT_NAME}-ksqldb-server:8088"
+      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:8081"
+      CONTROL_CENTER_REPLICATION_FACTOR: 1
+      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
+      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
+      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
+      PORT: 9021
 
   connect:
     build:
@@ -79,31 +104,8 @@ services:
       CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
     volumes:
       - ./demo-scene/csv-to-kafka/data:/data
-      
-  control-center:
-    image: confluentinc/cp-enterprise-control-center:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-control-center
-    container_name: ${COMPOSE_PROJECT_NAME}-control-center
-    depends_on:
-      - broker
-      - schema-registry
-      - connect
-      - ksqldb-server
-    ports:
-      - "9021:9021"
-    environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
-      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: '${COMPOSE_PROJECT_NAME}-connect:8083'
-      CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT: '/connectors'
-      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://${COMPOSE_PROJECT_NAME}-ksqldb-server:8088"
-      CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
-      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:8081"
-      CONTROL_CENTER_REPLICATION_FACTOR: 1
-      CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
-      CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
-      CONFLUENT_METRICS_TOPIC_REPLICATION: 1
-      PORT: 9021
 
+  # Confluent ksql server
   ksqldb-server:
     image: confluentinc/cp-ksqldb-server:7.6.1
     hostname: ${COMPOSE_PROJECT_NAME}-ksqldb-server
@@ -140,7 +142,19 @@ services:
     volumes:
       - ./:/data
     
-      
+  kcat:
+    image: confluentinc/cp-kcat:7.6.1
+    hostname: ${COMPOSE_PROJECT_NAME}-kcat
+    container_name: ${COMPOSE_PROJECT_NAME}-kcat
+    depends_on:
+      - broker
+      - schema-registry
+      - connect
+    entrypoint: /bin/bash -i
+    tty: true
+
+
+  # Apache Flink bits    
   flink-jobmanager:
     #image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
     image: apache-flink:1.18.1-scala_2.12-java11 
@@ -182,20 +196,11 @@ services:
       FLINK_JOBMANAGER_HOST: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     volumes:
       - ./settings/:/settings
-
-  kcat:
-    image: confluentinc/cp-kcat:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-kcat
-    container_name: ${COMPOSE_PROJECT_NAME}-kcat
-    depends_on:
-      - broker
-      - schema-registry
-      - connect
-    entrypoint: /bin/bash -i
-    tty: true
       
+
+  # Database's to play with
   mongodb:
-    image: mongodb/mongodb-atlas-local:latest
+    image: mongodb/mongodb-atlas-local:7.0.4
     hostname: mongodb
     container_name: mongodb
     restart: no
@@ -203,7 +208,7 @@ services:
       - "27017:27017" 
       
   postgresql:
-    image: postgres:14
+    image: postgres:14.12-bullseye
     hostname: postgresql
     container_name: postgresql
     restart: no
@@ -213,7 +218,7 @@ services:
       POSTGRES_PASSWORD: abfr24
 
   mysql:
-    image: mysql:8.0
+    image: mysql:9.0
     hostname: mysql
     container_name: mysql
     restart: no 
@@ -221,6 +226,7 @@ services:
       - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: abfr24
+
 
 # Without a network explicitly defined, you hit this Hive/Thrift error
 # java.net.URISyntaxException Illegal character in hostname
