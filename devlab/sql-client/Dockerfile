@@ -21,29 +21,33 @@
 #SQL CLI - inspired by https://github.com/wuchong/flink-sql-demo/tree/v1.11-EN/sql-client
 ###############################################################################
 
-FROM flink:1.18.1-scala_2.12-java11
+#FROM flink:1.18.1-scala_2.12-java11
+FROM arm64v8/flink:1.18.1-scala_2.12-java11
 
 # Create CLI lib folder
-COPY sql-client/bin/* /opt/sql-client/
+COPY ./bin/* /opt/sql-client/
 RUN mkdir -p /opt/sql-client/lib
 
 # Download connector libraries
 RUN wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-elasticsearch7/3.0.1-1.17/flink-sql-connector-elasticsearch7-3.0.1-1.17.jar; \
     wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.2.0-1.18/flink-sql-connector-kafka-3.2.0-1.18.jar; \
-    wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-jdbc/3.2.0-1.18/flink-connector-jdbc-3.2.0-1.18.jar; \
-    wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-json/1.18.1/flink-json-1.18.1.jar; \
-    wget -P /opt/sql-client/lib/ https://jdbc.postgresql.org/download/postgresql-42.5.4.jar; \
     wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.18.1/flink-sql-avro-confluent-registry-1.18.1.jar; \
-    wget -P /opt/sql-client/lib/ https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar; 
+    wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro/1.18.1/flink-sql-avro-1.18.1.jar; \
+    wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-jdbc/3.2.0-1.18/flink-connector-jdbc-3.2.0-1.18.jar; \
+    wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-kafka/3.2.0-1.18/flink-connector-kafka-3.2.0-1.18.jar; \
+    wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-json/1.18.1/flink-json-1.18.1.jar; \
+    wget -P /opt/sql-client/lib/ https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar; \
+    wget -P /opt/sql-client/lib/ https://jdbc.postgresql.org/download/postgresql-42.5.4.jar;
 
+ 
 # Copy configuration
-COPY sql-client/conf/* /opt/flink/conf/
+COPY ./conf/* /opt/flink/conf/
 
 WORKDIR /opt/sql-client
 ENV SQL_CLIENT_HOME /opt/sql-client
 
 USER root
-COPY sql-client/docker-entrypoint.sh /
+COPY ./docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 
