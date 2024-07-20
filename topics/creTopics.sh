@@ -17,7 +17,7 @@ docker compose exec broker kafka-topics \
 # Lets list topics, excluding the default Confluent Platform topics
 docker compose exec broker kafka-topics \
  --bootstrap-server mbp.local:9092 \
- --list | grep -v '_confluent' |grep -v '__' |grep -v '_schemas'
+ --list | grep -v '_confluent' |grep -v '__' |grep -v '_schemas' | grep -v 'default' | grep -v 'docker-connect'
 
  ./reg_salespayments.sh
 

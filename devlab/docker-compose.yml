@@ -142,7 +142,8 @@ services:
     
       
   flink-jobmanager:
-    image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
+    #image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
+    image: apache-flink:1.18.1-scala_2.12-java11 
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     ports:
@@ -155,7 +156,8 @@ services:
         rest.bind-port: 9081
 
   flink-taskmanager:
-    image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
+    #image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
+    image: apache-flink:1.18.1-scala_2.12-java11 
     hostname: ${COMPOSE_PROJECT_NAME}-flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -169,7 +171,8 @@ services:
         taskmanager.numberOfTaskSlots: 10
 
   flink-sql-client:
-    image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
+    #image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
+    image: apache-flink-sql-client:1.18.1-scala_2.12-java11 
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     depends_on:
@@ -180,10 +183,10 @@ services:
     volumes:
       - ./settings/:/settings
 
-  kafkacat-cli:
-    image: confluentinc/cp-kcat:latest
-    hostname: ${COMPOSE_PROJECT_NAME}-kafkacat-cli
-    container_name: ${COMPOSE_PROJECT_NAME}-kafkacat-cli
+  kcat:
+    image: confluentinc/cp-kcat:7.6.1
+    hostname: ${COMPOSE_PROJECT_NAME}-kcat
+    container_name: ${COMPOSE_PROJECT_NAME}-kcat
     depends_on:
       - broker
       - schema-registry
