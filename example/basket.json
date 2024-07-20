@@ -1,52 +1,52 @@
 {
-	"InvoiceNumber": "1341243123341232",
-	"SaleDateTime_Ltz": "2023-12-23T16:53:39.911+02:00",
-	"SaleTimetamp_Epoc": "1718117619911",
-	"Store" : {
-		"Id": "1033",
-		"Name": "Derry"
+	"invoiceNumber": "1341243123341232",
+	"saleDateTime_Ltz": "2023-12-23T16:53:39.911+02:00",
+	"salesTimetamp_Epoc": "1718117619911",
+	"store" : {
+		"id": "1033",
+		"name": "Derry"
 		},
-	"Clerk": {
-		"Id": "231",
-		"Name": "Martin",
-		"Surname": "Smith"
+	"clerk": {
+		"id": "231",
+		"name": "Martin",
+		"surname": "Smith"
 		},
-	"TerminalPoint": "14",
-	"BasketItems":[
+	"terminalPoint": "14",
+	"basketItems":[
 		{
-			"Id": "234123412",
-			"Name": "Minty Frsh",
-			"Brand": "Colgate",
-			"Category": "Healthcare",
-			"Price":12412.00,
-			"Quantity":3
-		},
-		{
-			"Id": "234123421",
-			"Name": "All Bran",
-			"Brand": "Kellog's",
-			"Category": "Cereal",
-			"Price":12.00,
-			"Quantity":3
+			"id": "234123412",
+			"name": "Minty Frsh",
+			"brand": "Colgate",
+			"category": "Healthcare",
+			"price":12412.00,
+			"quantity":3
 		},
 		{
-			"Id": "534123412",
-			"Name": "Sugar Free",
-			"Brand": "Coke",
-			"Category": "Cool drinks",
-			"Price":112.00,
-			"Quantity":2
+			"id": "234123421",
+			"name": "All Bran",
+			"brand": "Kellog's",
+			"category": "Cereal",
+			"price":12.00,
+			"quantity":3
 		},
 		{
-			"Id": "224123412",
-			"Name": "Auto Wash",
-			"Brand": "OMO",
-			"Category": "Cleaning",
-			"Price":22.00,
-			"Quantity":4
+			"id": "534123412",
+			"name": "Sugar Free",
+			"brand": "Coke",
+			"category": "Cool drinks",
+			"price":112.00,
+			"quantity":2
+		},
+		{
+			"id": "224123412",
+			"name": "Auto Wash",
+			"brand": "OMO",
+			"category": "Cleaning",
+			"price":22.00,
+			"quantity":4
 		}
 	],
-	"Net": 442.23,
-	"VAT":10.00,
-	"Total":452.23 
+	"nett": 442.23,
+	"vat":10.00,
+	"total":452.23 
 }
