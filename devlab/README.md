@@ -12,4 +12,8 @@ If you are going to use shadotraffic to generate data make sure yo get yourself 
 
 Note: I had to change the schema_manager default port from 8081 to 9081 as 8081 is already in use by the flink cluster/jobmanager.
 
+Note: allot of the technical bits came from Robin Moffatt's blogs (You can't do Kafka or Flink and not follow him as a first stop):
 
+    https://github.com/decodableco/examples/blob/main/catalogs/flink-iceberg-jdbc/README.adoc
+    &
+    https://rmoff.net
