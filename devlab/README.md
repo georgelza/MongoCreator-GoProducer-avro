@@ -4,10 +4,12 @@ This directory includes a docker-compose.yml file which can be used to spin up a
 
 Take note of the .env file which is used to name the compose project, allowing the file to be moved around if required.
 
-Note the same .env file is located in the Topics directory to allow the docker-compose commands to know which compose project to use.
+Note the same 'export COMPOSE_PROJECT_NAME=devlab' is specified in the creTopics.sh to allow the docker-compose commands to know which compose project to use.
 
-If we want to include the project name on all containers created then removed the container definition from the docker-compose.yml file.
+Note: I work on a M1 based Mac, so my architecture is arm64, aka aarch64, ss such see all Dockerfile's under "./devlab/*" for the base images used.
 
-Note: this would require things like the creTopics.sh to be modified to include the project name.
+If you are going to use shadotraffic to generate data make sure yo get yourself a license key from https://www.shadotraffic.com/
 
-This might also have impact on the various depends_on sections in the docker-compose.yml file.
+Note: I had to change the schema_manager default port from 8081 to 9081 as 8081 is already in use by the flink cluster/jobmanager.
+
+
