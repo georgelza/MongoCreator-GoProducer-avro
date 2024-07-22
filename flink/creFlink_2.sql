@@ -219,6 +219,7 @@ SELECT
 
 
 -- Add sink to Iceberg
+-- Originates from Robbin Moffat's : https://www.decodable.co/blog/kafka-to-iceberg-with-flink blog post.
 CREATE TABLE t_i_unnested_sales WITH (
 	  'connector'     = 'iceberg',
 	  'catalog-type'  = 'hive',

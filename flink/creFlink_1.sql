@@ -42,6 +42,7 @@ CREATE TABLE t_k_avro_salescompleted (
 --
 -- https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/queries/window-agg/
 -- We going to output the group by into this table, backed by topic which we will sink to MongoDB via connector
+
 CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_5min (
     store_id STRING,
     terminalpoint STRING,
@@ -60,6 +61,20 @@ CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_5min (
     'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
+
+-- Aggregate query/worker
+Insert into t_f_avro_sales_per_store_per_terminal_per_5min
+SELECT 
+    `STORE`.`ID` as STORE_ID,
+    TERMINALPOINT,
+    window_start,
+    window_end,
+    COUNT(*) as salesperterminal,
+    SUM(TOTAL) as totalperterminal
+  FROM TABLE(
+    TUMBLE(TABLE t_k_avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
+  GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
+
 
 CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_hour (
     store_id STRING,
@@ -80,20 +95,7 @@ CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_hour (
     'value.fields-include' = 'ALL'
 );
 
-
 -- Aggregate query/workers
-Insert into t_f_avro_sales_per_store_per_terminal_per_5min
-SELECT 
-    `STORE`.`ID` as STORE_ID,
-    TERMINALPOINT,
-    window_start,
-    window_end,
-    COUNT(*) as salesperterminal,
-    SUM(TOTAL) as totalperterminal
-  FROM TABLE(
-    TUMBLE(TABLE t_k_avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
-  GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
-
 Insert into t_f_avro_sales_per_store_per_terminal_per_hour
 SELECT 
     `STORE`.`ID` as STORE_ID,
