@@ -7,8 +7,8 @@ services:
   # Core Confluent Kafka bits
   broker:
     image: confluentinc/cp-kafka:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-broker
     container_name: ${COMPOSE_PROJECT_NAME}-broker
+    hostname: ${COMPOSE_PROJECT_NAME}-broker
     ports:
       - "9092:9092"
       - "9101:9101"
@@ -35,8 +35,8 @@ services:
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-schema-registry
     container_name: ${COMPOSE_PROJECT_NAME}-schema-registry
+    hostname: ${COMPOSE_PROJECT_NAME}-schema-registry
     depends_on:
       - broker
     ports:
@@ -48,8 +48,8 @@ services:
       
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-control-center
     container_name: ${COMPOSE_PROJECT_NAME}-control-center
+    hostname: ${COMPOSE_PROJECT_NAME}-control-center
     depends_on:
       - broker
       - schema-registry
@@ -72,12 +72,12 @@ services:
 
   connect:
     build:
-      context: ./connect
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: connect/Dockerfile
     image: kafka-connect-custom:1.2
     # image: cnfldemos/cp-server-connect-datagen:0.6.4-7.6.0
-    hostname: ${COMPOSE_PROJECT_NAME}-connect
     container_name: ${COMPOSE_PROJECT_NAME}-connect
+    hostname: ${COMPOSE_PROJECT_NAME}-connect
     depends_on:
       - broker
       - schema-registry
@@ -108,8 +108,8 @@ services:
   # Confluent ksql server
   ksqldb-server:
     image: confluentinc/cp-ksqldb-server:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-ksqldb-server
     container_name: ${COMPOSE_PROJECT_NAME}-ksqldb-server
+    hostname: ${COMPOSE_PROJECT_NAME}-ksqldb-server
     depends_on:
       - broker
       - connect
@@ -131,8 +131,8 @@ services:
 
   ksqldb-cli:
     image: confluentinc/cp-ksqldb-cli:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-ksqldb-cli
     container_name: ${COMPOSE_PROJECT_NAME}-ksqldb-cli
+    hostname: ${COMPOSE_PROJECT_NAME}-ksqldb-cli
     depends_on:
       - broker
       - connect
@@ -145,25 +145,20 @@ services:
 
   kcat:
     image: confluentinc/cp-kcat:7.6.1
-    hostname: ${COMPOSE_PROJECT_NAME}-kcat
     container_name: ${COMPOSE_PROJECT_NAME}-kcat
+    hostname: ${COMPOSE_PROJECT_NAME}-kcat
     depends_on:
       - broker
       - schema-registry
-      - connect
     entrypoint: /bin/bash -i
     tty: true
 
 
   # Apache Flink bits    
   flink-jobmanager:
-    build:
-      context: ./flink
-      dockerfile: Dockerfile
-    image: apache-flink:1.18.1-scala_2.12-java11 
-    #image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
-    hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+    image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+    hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     ports:
       - 9081:9081
     command: jobmanager
@@ -174,8 +169,7 @@ services:
         rest.bind-port: 9081
 
   flink-taskmanager:
-    image: apache-flink:1.18.1-scala_2.12-java11
-    #image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
+    image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
     hostname: ${COMPOSE_PROJECT_NAME}-flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -189,13 +183,9 @@ services:
         taskmanager.numberOfTaskSlots: 10
 
   flink-sql-client:
-    build:
-      context: ./sql-client
-      dockerfile: Dockerfile
-    image: apache-flink-sql-client:1.18.1-scala_2.12-java11
-    #image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
-    hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
+    image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
+    hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     depends_on:
       - flink-jobmanager
       - flink-taskmanager
@@ -204,36 +194,6 @@ services:
     volumes:
       - ./settings/:/settings
       
-
-  # Database's to play with
-  mongodb:
-    image: mongodb/mongodb-atlas-local:7.0.4
-    hostname: mongodb
-    container_name: mongodb
-    restart: no
-    ports:
-      - "27017:27017" 
-      
-  postgresql:
-    image: postgres:14.12-bullseye
-    hostname: postgresql
-    container_name: postgresql
-    restart: no
-    ports:
-      - "5432:5432"
-    environment:
-      POSTGRES_PASSWORD: abfr24
-
-  mysql:
-    image: mysql:9.0
-    hostname: mysql
-    container_name: mysql
-    restart: no 
-    ports:
-      - "3306:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: abfr24
-
 
 # Without a network explicitly defined, you hit this Hive/Thrift error
 # java.net.URISyntaxException Illegal character in hostname
