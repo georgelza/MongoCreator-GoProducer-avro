@@ -14,7 +14,7 @@
 
 -- NOTE: Case sentivity... need to match the case as per types/fs.go structs avro sections.
 -- pull (INPUT) the avro_salesbaskets topic into Flink into avro_salesbaskets_x
-CREATE TABLE avro_salesbaskets_x (
+CREATE TABLE t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -34,12 +34,12 @@ CREATE TABLE avro_salesbaskets_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.schema-registry.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
 -- pull (INPUT) the avro_salespayments topic into Flink (avro_salespayments_x)
-CREATE TABLE avro_salespayments_x (
+CREATE TABLE t_k_avro_salespayments_x (
     `invoiceNumber` STRING,
     `payDateTime_Ltz` STRING,
     `payTimestamp_Epoc` STRING,
@@ -54,7 +54,7 @@ CREATE TABLE avro_salespayments_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081', 
+    'value.avro-confluent.url' = 'http://schema-registry:9081', 
     'value.avro-confluent.properties.use.latest.version' = 'true',
     'value.fields-include' = 'ALL'
 );
@@ -62,7 +62,7 @@ CREATE TABLE avro_salespayments_x (
 
 -- Our avro_salescompleted_x (OUTPUT) table which will push values to the CP Kafka topic.
 -- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
-CREATE TABLE avro_salescompleted_x (
+CREATE TABLE t_f_avro_salescompleted_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -87,12 +87,12 @@ CREATE TABLE avro_salescompleted_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.schema-registry.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
 -- the fields in the select is case sensitive, needs to match theprevious create tables which match the definitions in the struct/avro sections.
-Insert into avro_salescompleted_x
+Insert into t_f_avro_salescompleted_x
 select
         b.invoiceNumber,
         b.saleDateTime_Ltz,
@@ -109,15 +109,15 @@ select
         a.paid,
         a.finTransactionId
     FROM 
-        avro_salespayments_x a,
-        avro_salesbaskets_x b
+        t_k_avro_salespayments_x a,
+        t_k_avro_salesbaskets_x b
     WHERE a.invoiceNumber = b.invoiceNumber
     AND a.payTimestamp_WM > b.saleTimestamp_WM 
     AND b.saleTimestamp_WM > (b.saleTimestamp_WM - INTERVAL '1' HOUR);
 
 
 -- Create sales per store per terminal per 5 min output table - dev purposes
-CREATE TABLE avro_sales_per_store_per_terminal_per_5min_x (
+CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
     `terminalPoint` STRING,
     window_start  TIMESTAMP(3),
@@ -131,13 +131,13 @@ CREATE TABLE avro_sales_per_store_per_terminal_per_5min_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
 -- Calculate sales per store per terminal per 5 min - dev purposes
 -- Aggregate query/worker
-Insert into avro_sales_per_store_per_terminal_per_5min_x
+Insert into t_f_avro_sales_per_store_per_terminal_per_5min_x
 SELECT 
     `store`.`id` as `store_id`,
     terminalPoint,
@@ -146,12 +146,12 @@ SELECT
     COUNT(*) as `salesperterminal`,
     SUM(total) as `totalperterminal`
   FROM TABLE(
-    TUMBLE(TABLE avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
+    TUMBLE(TABLE t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
   GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
 
 
 -- Create sales per store per terminal per hour output table
-CREATE TABLE avro_sales_per_store_per_terminal_per_hour_x (
+CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_hour_x (
     `store_id` STRING,
     `terminalPoint` STRING,
     window_start  TIMESTAMP(3),
@@ -165,12 +165,12 @@ CREATE TABLE avro_sales_per_store_per_terminal_per_hour_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
 -- Calculate sales per store per terminal per hour
-Insert into avro_sales_per_store_per_terminal_per_hour_x
+Insert into t_f_avro_sales_per_store_per_terminal_per_hour_x
 SELECT 
     `store`.`id` as `store_id`,
     terminalPoint,
@@ -179,12 +179,12 @@ SELECT
     COUNT(*) as `salesperterminal`,
     SUM(total) as `totalperterminal`
   FROM TABLE(
-    TUMBLE(TABLE avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '1' HOUR))
+    TUMBLE(TABLE t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '1' HOUR))
   GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
 
 
 --- unest the salesBasket
-CREATE TABLE unnested_sales (
+CREATE TABLE t_f_unnested_sales (
     `store_id` STRING,
     `product` STRING,
     `brand` STRING,
@@ -201,11 +201,11 @@ CREATE TABLE unnested_sales (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
-insert into unnested_sales
+insert into t_f_unnested_sales
 SELECT
       `store`.`id` as `store_id`,
       bi.`name` AS `product`,
@@ -214,12 +214,22 @@ SELECT
       bi.`category` AS `category`,
       `saleDateTime_Ltz` as saleDateTime_Ltz,
       `saleTimestamp_Epoc` as saleTimestamp_Epoc
-    FROM avro_salescompleted_x  -- assuming avro_salescompleted_x is a table function
+    FROM t_f_avro_salescompleted_x  -- assuming avro_salescompleted_x is a table function
     CROSS JOIN UNNEST(`basketItems`) AS bi;
 
 
+-- Add sink to Iceberg
+CREATE TABLE t_i_unnested_sales WITH (
+	  'connector'     = 'iceberg',
+	  'catalog-type'  = 'hive',
+	  'catalog-name'  = 'dev',
+	  'warehouse'     = 's3a://warehouse',
+	  'hive-conf-dir' = '/opt/sql-client/conf')
+  AS SELECT * FROM t_f_unnested_sales;
+
+
 -- Sales per store per brand per 5 min - output table
-CREATE TABLE avro_sales_per_store_per_brand_per_5min_x (
+CREATE TABLE t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
   `brand` STRING,
   window_start  TIMESTAMP(3),
@@ -233,11 +243,11 @@ CREATE TABLE avro_sales_per_store_per_brand_per_5min_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
-Insert into avro_sales_per_store_per_brand_per_5min_x
+Insert into t_f_avro_sales_per_store_per_brand_per_5min_x
 SELECT 
     store_id,
     brand,
@@ -246,12 +256,12 @@ SELECT
     COUNT(*) as `salesperbrand`,
     SUM(saleValue) as `totalperbrand`
   FROM TABLE(
-    TUMBLE(TABLE unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+    TUMBLE(TABLE t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
   GROUP BY store_id, brand, window_start, window_end;
 
 
 -- Sales per store per product per 5 min - output table
-CREATE TABLE avro_sales_per_store_per_product_per_5min_x (
+CREATE TABLE t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
   `product` STRING,
   window_start  TIMESTAMP(3),
@@ -265,11 +275,11 @@ CREATE TABLE avro_sales_per_store_per_product_per_5min_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
-Insert into avro_sales_per_store_per_product_per_5min_x
+Insert into t_f_avro_sales_per_store_per_product_per_5min_x
 SELECT 
     store_id,
     product,
@@ -278,11 +288,11 @@ SELECT
     COUNT(*) as `salesperproduct`,
     SUM(saleValue) as `totalperproduct`
   FROM TABLE(
-    TUMBLE(TABLE unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+    TUMBLE(TABLE t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
   GROUP BY store_id, product, window_start, window_end;
 
 -- Sales per store per category per 5 min - output table
-CREATE TABLE avro_sales_per_store_per_category_per_5min_x (
+CREATE TABLE t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
   `category` STRING,
   window_start  TIMESTAMP(3),
@@ -296,11 +306,11 @@ CREATE TABLE avro_sales_per_store_per_category_per_5min_x (
     'properties.group.id' = 'testGroup',
     'scan.startup.mode' = 'earliest-offset',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
-Insert into avro_sales_per_store_per_category_per_5min_x
+Insert into t_f_avro_sales_per_store_per_category_per_5min_x
 SELECT 
     store_id,
     category,
@@ -309,5 +319,5 @@ SELECT
     COUNT(*) as `salespercategory`,
     SUM(saleValue) as `totalpercategory`
   FROM TABLE(
-    TUMBLE(TABLE unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+    TUMBLE(TABLE t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
   GROUP BY store_id, category, window_start, window_end;

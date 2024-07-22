@@ -40,11 +40,11 @@ services:
     depends_on:
       - broker
     ports:
-      - "8081:8081"
+      - "9081:9081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: ${COMPOSE_PROJECT_NAME}-schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
-      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:9081
       
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.6.1
@@ -63,7 +63,7 @@ services:
       CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT: '/connectors'
       CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://${COMPOSE_PROJECT_NAME}-ksqldb-server:8088"
       CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
-      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:8081"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:9081"
       CONTROL_CENTER_REPLICATION_FACTOR: 1
       CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
@@ -96,7 +96,7 @@ services:
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
       CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://${COMPOSE_PROJECT_NAME}-schema-registry:8081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://${COMPOSE_PROJECT_NAME}-schema-registry:9081
       # CLASSPATH required due to CC-2422
       CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-7.6.1.jar
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
@@ -121,7 +121,7 @@ services:
       KSQL_HOST_NAME: ${COMPOSE_PROJECT_NAME}-ksqldb-server
       KSQL_LISTENERS: "http://0.0.0.0:8088"
       KSQL_CACHE_MAX_BYTES_BUFFERING: 0
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:8081"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:9081"
       KSQL_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
       KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
       KSQL_KSQL_CONNECT_URL: "http://${COMPOSE_PROJECT_NAME}-connect:8083"
@@ -156,20 +156,25 @@ services:
 
   # Apache Flink bits    
   flink-jobmanager:
-    image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
+    build:
+      context: .
+      dockerfile: flink/Dockerfile
+    image: apacheflink_pod:1.18.1-scala_2.12-java11
+    #image: apache/flink-kafka:1.18.1-scala_2.12-java11
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     ports:
-      - 9081:9081
+      - 8081:8081
     command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
-        rest.bind-port: 9081
+        rest.bind-port: 8081
 
   flink-taskmanager:
-    image: cnfldemos/flink-kafka:1.16.0-scala_2.12-java11
+    image: apacheflink_pod:1.18.1-scala_2.12-java11
+    #image: apache/flink-kafka:1.18.1-scala_2.12-java11
     hostname: ${COMPOSE_PROJECT_NAME}-flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -183,7 +188,11 @@ services:
         taskmanager.numberOfTaskSlots: 10
 
   flink-sql-client:
-    image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
+    build:
+      context: .
+      dockerfile: sql-client/Dockerfile
+    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11
+    #image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     depends_on:
@@ -194,6 +203,83 @@ services:
     volumes:
       - ./settings/:/settings
       
+
+  # S3-Amazon Compatible store, as storage for Iceberg
+  # http://localhost:9001/browser
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    hostname: minio
+    environment:
+      - MINIO_ROOT_USER=admin
+      - MINIO_ROOT_PASSWORD=password
+    ports:
+      - 9001:9001  # Web console
+      - 9000:9000  # api address
+    command: ["server", "/data", "--console-address", ":9001"]
+
+
+  # https://hub.docker.com/r/minio/mc
+  # Minio Client
+  mc:
+    image: minio/mc:latest
+    container_name: mc
+    hostname: mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc config host add minio http://minio:9000 admin password) do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc rm -r --force minio/warehouse;
+      /usr/bin/mc mb minio/warehouse;
+      tail -f /dev/null
+      " 
+
+
+  # Catalog for Flink
+  hive-metastore:
+    build:
+      context: .
+      dockerfile: hms-standalone-s3/Dockerfile
+#    build: ./hms-standalone-s3
+    image: hms-s3.1.0
+    container_name: hms
+    hostname: hms
+    ports:
+      - "9083:9083"
+    environment:
+      - HMS_LOGLEVEL=INFO
+
+  # Iceberg Python Client
+  #
+  pyiceberg:
+    image: python:3.12-bookworm
+    container_name: pyiceberg
+    hostname: pyiceberg
+    depends_on:
+      - minio
+      - hive-metastore
+    environment:
+      PYICEBERG_CATALOG__DEFAULT__URI: thrift://hms:9083
+      PYICEBERG_CATALOG__DEFAULT__S3__ACCESS_KEY_ID: admin
+      PYICEBERG_CATALOG__DEFAULT__S3__SECRET_ACCESS_KEY: password
+      PYICEBERG_CATALOG__DEFAULT__S3__PATH_STYLE_ACCESS: true
+      PYICEBERG_CATALOG__DEFAULT__S3__ENDPOINT: http://minio:9000
+    entrypoint: >
+      /bin/sh -c "
+      pip install pyiceberg["s3fs,hive,pyarrow"];
+      sleep infinity
+      "
+
+  # aarch64 compatible - used by above
+  duckdb:
+    image: codieplusplus/duckdb:latest
+    container_name: duckdb
+    hostname: duckdb
+    restart: no
+    entrypoint: tail -f /dev/null
+
+
 
 # Without a network explicitly defined, you hit this Hive/Thrift error
 # java.net.URISyntaxException Illegal character in hostname

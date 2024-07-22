@@ -10,7 +10,7 @@
 
 
 -- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table.
-CREATE TABLE avro_salescompleted (
+CREATE TABLE t_k_avro_salescompleted (
     INVNUMBER STRING,
     SALEDATETIME_LTZ STRING,
     SALETIMESTAMP_EPOC STRING,
@@ -34,7 +34,7 @@ CREATE TABLE avro_salescompleted (
     'scan.startup.mode' = 'earliest-offset',
     'properties.group.id' = 'testGroup',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.schema-registry.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
@@ -42,7 +42,7 @@ CREATE TABLE avro_salescompleted (
 --
 -- https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/queries/window-agg/
 -- We going to output the group by into this table, backed by topic which we will sink to MongoDB via connector
-CREATE TABLE avro_sales_per_store_per_terminal_per_5min (
+CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_5min (
     store_id STRING,
     terminalpoint STRING,
     window_start  TIMESTAMP(3),
@@ -55,13 +55,13 @@ CREATE TABLE avro_sales_per_store_per_terminal_per_5min (
     'topic' = 'avro_sales_per_store_per_terminal_per_5min',
     'properties.bootstrap.servers' = 'broker:29092',
     'key.format' = 'avro-confluent',
-    'key.avro-confluent.url' = 'http://schema-registry:8081',
+    'key.avro-confluent.url' = 'http://schema-registry:9081',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
-CREATE TABLE avro_sales_per_store_per_terminal_per_hour (
+CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_hour (
     store_id STRING,
     terminalpoint STRING,
     window_start  TIMESTAMP(3),
@@ -74,15 +74,15 @@ CREATE TABLE avro_sales_per_store_per_terminal_per_hour (
     'topic' = 'avro_sales_per_store_per_terminal_per_hour',
     'properties.bootstrap.servers' = 'broker:29092',
     'key.format' = 'avro-confluent',
-    'key.avro-confluent.url' = 'http://schema-registry:8081',
+    'key.avro-confluent.url' = 'http://schema-registry:9081',
     'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:8081',
+    'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
 
 
 -- Aggregate query/workers
-Insert into avro_sales_per_store_per_terminal_per_5min
+Insert into t_f_avro_sales_per_store_per_terminal_per_5min
 SELECT 
     `STORE`.`ID` as STORE_ID,
     TERMINALPOINT,
@@ -91,10 +91,10 @@ SELECT
     COUNT(*) as salesperterminal,
     SUM(TOTAL) as totalperterminal
   FROM TABLE(
-    TUMBLE(TABLE avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
+    TUMBLE(TABLE t_k_avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
   GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
 
-Insert into avro_sales_per_store_per_terminal_per_hour
+Insert into t_f_avro_sales_per_store_per_terminal_per_hour
 SELECT 
     `STORE`.`ID` as STORE_ID,
     TERMINALPOINT,
@@ -103,5 +103,5 @@ SELECT
     COUNT(*) as salesperterminal,
     SUM(TOTAL) as totalperterminal
   FROM TABLE(
-    TUMBLE(TABLE avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '1' HOUR))
+    TUMBLE(TABLE t_k_avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '1' HOUR))
   GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
