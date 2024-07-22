@@ -204,6 +204,9 @@ services:
       - ./settings/:/settings
       
 
+  # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog
+  # https://www.decodable.co/blog/kafka-to-iceberg-with-flink
+  #
   # S3-Amazon Compatible store, as storage for Iceberg
   # http://localhost:9001/browser
   minio:
@@ -271,6 +274,19 @@ services:
       sleep infinity
       "
 
+  # Shadowtraffic
+  shadowtraffic:
+    # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
+    image: shadowtraffic/shadowtraffic:0.6.0
+    container_name: shadowtraffic
+    hostname: shadowtraffic
+      #    profiles: ["shadowtraffic"]
+    env_file:
+      - shadowtraffic/license.env
+    volumes:
+      - ./shadowtraffic:/data
+    command: --config /data/kafka-retail.json
+
   # aarch64 compatible - used by above
   duckdb:
     image: codieplusplus/duckdb:latest
@@ -286,4 +302,4 @@ services:
 # https://github.com/TrivadisPF/platys-modern-data-platform/issues/231
 networks:
   default:
-     name: ${COMPOSE_PROJECT_NAME}_default
+     name: ${COMPOSE_PROJECT_NAME}
