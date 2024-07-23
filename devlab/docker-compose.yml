@@ -275,17 +275,17 @@ services:
       "
 
   # Shadowtraffic
-  shadowtraffic:
-    # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
-    image: shadowtraffic/shadowtraffic:0.6.0
-    container_name: shadowtraffic
-    hostname: shadowtraffic
-      #    profiles: ["shadowtraffic"]
-    env_file:
-      - shadowtraffic/license.env
-    volumes:
-      - ./shadowtraffic:/data
-    command: --config /data/kafka-retail.json
+#  shadowtraffic:
+#    # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
+#    image: shadowtraffic/shadowtraffic:0.6.0
+#    container_name: shadowtraffic
+#    hostname: shadowtraffic
+#      #    profiles: ["shadowtraffic"]
+#    env_file:
+#      - shadowtraffic/license.env
+#    volumes:
+#      - ./shadowtraffic:/data
+#    command: --config /data/kafka-retail.json
 
   # aarch64 compatible - used by above
   duckdb:
@@ -295,6 +295,34 @@ services:
     restart: no
     entrypoint: tail -f /dev/null
 
+# Database's to play with
+  # mongodb:
+  #   image: mongodb/mongodb-atlas-local:7.0.4
+  #   hostname: mongodb
+  #   container_name: mongodb
+  #   restart: no
+  #   ports:
+  #     - "27017:27017" 
+      
+  # postgresql:
+  #   image: postgres:14.12-bullseye
+  #   hostname: postgresql
+  #   container_name: postgresql
+  #   restart: no
+  #   ports:
+  #     - "5432:5432"
+  #   environment:
+  #     POSTGRES_PASSWORD: abfr24
+
+  # mysql:
+  #   image: mysql:9.0
+  #   hostname: mysql
+  #   container_name: mysql
+  #   restart: no 
+  #   ports:
+  #     - "3306:3306"
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: abfr24
 
 
 # Without a network explicitly defined, you hit this Hive/Thrift error

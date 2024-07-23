@@ -228,6 +228,14 @@ CREATE TABLE t_i_unnested_sales WITH (
 	  'hive-conf-dir' = '/opt/sql-client/conf')
   AS SELECT * FROM t_f_unnested_sales;
 
+-- Lets try flink with a complex structure...
+CREATE TABLE t_i_salescompleted_x WITH (
+	  'connector'     = 'iceberg',
+	  'catalog-type'  = 'hive',
+	  'catalog-name'  = 'dev',
+	  'warehouse'     = 's3a://warehouse',
+	  'hive-conf-dir' = '/opt/sql-client/conf')
+  AS SELECT * FROM t_f_avro_salescompleted_x;
 
 -- Sales per store per brand per 5 min - output table
 CREATE TABLE t_f_avro_sales_per_store_per_brand_per_5min_x (
