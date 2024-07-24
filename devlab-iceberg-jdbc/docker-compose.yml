@@ -157,7 +157,7 @@ services:
   flink-jobmanager:
     build:
       context: .
-      dockerfile: flink-iceberg-jdbc/Dockerfile
+      dockerfile: flink/Dockerfile
     image: apacheflink_pod:1.18.1-scala_2.12-java11-b
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
@@ -196,7 +196,7 @@ services:
   flink-sql-client:
     build:
       context: .
-      dockerfile: sql-client-jdbc/Dockerfile
+      dockerfile: sql-client/Dockerfile
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client

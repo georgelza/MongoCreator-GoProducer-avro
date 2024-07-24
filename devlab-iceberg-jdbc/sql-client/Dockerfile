@@ -4,6 +4,7 @@
 ###############################################################################
 
 FROM arm64v8/flink:1.18.1-scala_2.12-java11
+SHELL ["/bin/bash", "-c"]
 
 USER root
 
@@ -18,16 +19,11 @@ RUN echo "-> Install duckdb cli" ; \
     && rm duckdb_cli-linux-aarch64.zip
 
 
-# Create CLI lib folder
-RUN echo "-> Creating directories"; \
-    mkdir -p /opt/sql-client/conf;
+USER flink
 
 # Copy configuration
-#COPY flink-iceberg-jdbc/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
-COPY sql-client-jdbc/bin/sql-client.sh /opt/sql-client/
-COPY sql-client-jdbc/conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
-
-USER flink
+COPY sql-client/bin/sql-client.sh /opt/sql-client/
+COPY sql-client/conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
 
 RUN echo "-> Install JARs: Flink's Kafka connector"; \
     mkdir -p /opt/flink/lib/kafka; \
@@ -74,7 +70,7 @@ RUN echo "-> Purge apt artifacts"; \
 WORKDIR /opt/sql-client
 ENV SQL_CLIENT_HOME /opt/sql-client
 
-COPY sql-client-jdbc/docker-entrypoint.sh /
+COPY sql-client/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 ENTRYPOINT ["/docker-entrypoint.sh"]
 

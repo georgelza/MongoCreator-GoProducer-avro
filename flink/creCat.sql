@@ -15,13 +15,18 @@ CREATE DATABASE `c_iceberg_jdbc`.`db01`;
 
 USE `c_iceberg_jdbc`.`db01`;
 
+-- Example/test
+
 CREATE TABLE t_foo (c1 varchar, c2 int);
 
 INSERT INTO t_foo VALUES ('a',42);
+
+-- Go see minio:9001/browser
 
 SET 'execution.runtime-mode' = 'batch';
 SET 'sql-client.execution.result-mode' = 'tableau';
 
 -- Wait a few moments; running this straightaway often doesn't show
 -- the results
+
 SELECT * FROM t_foo;
