@@ -160,9 +160,10 @@ services:
       context: .
       dockerfile: flink/Dockerfile
     image: apacheflink_pod:1.18.1-scala_2.12-java11
-    #image: apache/flink-kafka:1.18.1-scala_2.12-java11
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+    depends_on:
+      - hive-metastore
     ports:
       - 8081:8081
     command: jobmanager
@@ -174,7 +175,6 @@ services:
 
   flink-taskmanager:
     image: apacheflink_pod:1.18.1-scala_2.12-java11
-    #image: apache/flink-kafka:1.18.1-scala_2.12-java11
     hostname: ${COMPOSE_PROJECT_NAME}-flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -192,7 +192,6 @@ services:
       context: .
       dockerfile: sql-client/Dockerfile
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11
-    #image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     depends_on:
@@ -286,6 +285,7 @@ services:
 #    command: --config /data/kafka-retail.json
 
   # aarch64 compatible - used by above
+  
   duckdb:
     image: codieplusplus/duckdb:latest
     container_name: duckdb
