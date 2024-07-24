@@ -75,7 +75,6 @@ services:
       context: .
       dockerfile: connect/Dockerfile
     image: kafka-connect-custom:1.2
-    # image: cnfldemos/cp-server-connect-datagen:0.6.4-7.6.0
     container_name: ${COMPOSE_PROJECT_NAME}-connect
     hostname: ${COMPOSE_PROJECT_NAME}-connect
     depends_on:
@@ -158,11 +157,13 @@ services:
   flink-jobmanager:
     build:
       context: .
-      dockerfile: flink/Dockerfile
-    image: apacheflink_pod:1.18.1-scala_2.12-java11
-    #image: apache/flink-kafka:1.18.1-scala_2.12-java11
+      dockerfile: flink-iceberg-jdbc/Dockerfile
+    image: apacheflink_pod:1.18.1-scala_2.12-java11-b
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+    depends_on:
+      - postgres
+      - minio
     ports:
       - 8081:8081
     command: jobmanager
@@ -171,10 +172,12 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
         rest.bind-port: 8081
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=za-south-1
 
   flink-taskmanager:
-    image: apacheflink_pod:1.18.1-scala_2.12-java11
-    #image: apache/flink-kafka:1.18.1-scala_2.12-java11
+    image: apacheflink_pod:1.18.1-scala_2.12-java11-b
     hostname: ${COMPOSE_PROJECT_NAME}-flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -186,23 +189,26 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=za-south-1
 
   flink-sql-client:
     build:
       context: .
-      dockerfile: sql-client/Dockerfile
-    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11
-    #image: cnfldemos/flink-sql-client-kafka:1.16.0-scala_2.12-java11
+      dockerfile: sql-client-jdbc/Dockerfile
+    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     depends_on:
       - flink-jobmanager
       - flink-taskmanager
     environment:
-      FLINK_JOBMANAGER_HOST: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
-    volumes:
-      - ./settings/:/settings
-      
+      - FLINK_JOBMANAGER_HOST=${COMPOSE_PROJECT_NAME}-flink-jobmanager
+      - AWS_ACCESS_KEY_ID=admin
+      - AWS_SECRET_ACCESS_KEY=password
+      - AWS_REGION=za-south-1
+  
 
   # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog
   # https://www.decodable.co/blog/kafka-to-iceberg-with-flink
@@ -238,90 +244,17 @@ services:
       tail -f /dev/null
       " 
 
-  # Catalog for Flink
-  hive-metastore:
-    build:
-      context: .
-      dockerfile: hms-standalone-s3/Dockerfile
-    image: hms-s:3.1.2
-    container_name: hms
-    hostname: hms
-    ports:
-      - "9083:9083"
-    environment:
-      - HMS_LOGLEVEL=INFO
 
-
-  # Iceberg Python Client
-  pyiceberg:
-    image: python:3.12-bookworm
-    container_name: pyiceberg
-    hostname: pyiceberg
-    depends_on:
-      - minio
-      - hive-metastore
-    environment:
-      PYICEBERG_CATALOG__DEFAULT__URI: thrift://hms:9083
-      PYICEBERG_CATALOG__DEFAULT__S3__ACCESS_KEY_ID: admin
-      PYICEBERG_CATALOG__DEFAULT__S3__SECRET_ACCESS_KEY: password
-      PYICEBERG_CATALOG__DEFAULT__S3__PATH_STYLE_ACCESS: true
-      PYICEBERG_CATALOG__DEFAULT__S3__ENDPOINT: http://minio:9000
-    entrypoint: >
-      /bin/sh -c "
-      pip install pyiceberg["s3fs,hive,pyarrow"];
-      sleep infinity
-      "
-
-  # Shadowtraffic
-#  shadowtraffic:
-#    # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
-#    image: shadowtraffic/shadowtraffic:0.6.0
-#    container_name: shadowtraffic
-#    hostname: shadowtraffic
-#      #    profiles: ["shadowtraffic"]
-#    env_file:
-#      - shadowtraffic/license.env
-#    volumes:
-#      - ./shadowtraffic:/data
-#    command: --config /data/kafka-retail.json
-
-  # aarch64 compatible - used by above
-  duckdb:
-    image: codieplusplus/duckdb:latest
-    container_name: duckdb
-    hostname: duckdb
-    restart: no
-    entrypoint: tail -f /dev/null
-
-# Database's to play with
-  # mongodb:
-  #   image: mongodb/mongodb-atlas-local:7.0.4
-  #   hostname: mongodb
-  #   container_name: mongodb
-  #   restart: no
-  #   ports:
-  #     - "27017:27017" 
-      
-  # postgresql:
-  #   image: postgres:14.12-bullseye
-  #   hostname: postgresql
-  #   container_name: postgresql
-  #   restart: no
-  #   ports:
-  #     - "5432:5432"
-  #   environment:
-  #     - POSTGRES_USER=dba
-  #     - POSTGRES_PASSWORD=rules
-
-  # mysql:
-  #   image: mysql:9.0
-  #   hostname: mysql
-  #   container_name: mysql
-  #   restart: no 
-  #   ports:
-  #     - "3306:3306"
-  #   environment:
-  #     MYSQL_ROOT_PASSWORD: abfr24
+  postgres:
+     image: postgres:14.12-bullseye
+     hostname: postgres
+     container_name: postgres
+     restart: no
+     ports:
+       - "5432:5432"
+     environment:
+       - POSTGRES_USER=dba
+       - POSTGRES_PASSWORD=rules
 
 
 # Without a network explicitly defined, you hit this Hive/Thrift error

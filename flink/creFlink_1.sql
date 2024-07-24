@@ -8,6 +8,8 @@
 
 -- After this we do a simple aggregate on sales per store per terminal per 5min and per hour (these values are at the root of the avro_salesbaskets table).
 
+-- First Create a Catalog using our defined hms and backing S3.
+
 
 -- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table.
 CREATE TABLE t_k_avro_salescompleted (
@@ -73,7 +75,7 @@ SELECT
     SUM(TOTAL) as totalperterminal
   FROM TABLE(
     TUMBLE(TABLE t_k_avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
-  GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end;
+  GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end; 
 
 
 CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_hour (

@@ -1,6 +1,8 @@
-FROM kulikoa/hms-standalone
+FROM hms-standalone
+# FROM kulikoa/hms-standalone
 
-RUN apt-get update && apt-get install -y curl rlwrap vim
+RUN apt-get update && \
+    apt-get install -y curl rlwrap vim
 
 RUN cd /opt/hive-metastore/lib && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -O && \

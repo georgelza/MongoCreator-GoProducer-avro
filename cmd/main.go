@@ -1024,7 +1024,7 @@ func runLoader(arg string) {
 
 				} else {
 					if vGeneral.Debuglevel >= 1 {
-						grpcLog.Infof("%s/%s, Messages flushed from the queue", count, vFlush)
+						grpcLog.Infof("%v Total Messages, Flushing every %v Messages", count, vFlush)
 
 					}
 					vFlush = 0

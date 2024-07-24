@@ -14,7 +14,9 @@
 
 -- NOTE: Case sentivity... need to match the case as per types/fs.go structs avro sections.
 -- pull (INPUT) the avro_salesbaskets topic into Flink into avro_salesbaskets_x
-CREATE TABLE t_k_avro_salesbaskets_x (
+
+
+CREATE or replace TABLE t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -146,7 +148,7 @@ SELECT
     COUNT(*) as `salesperterminal`,
     SUM(total) as `totalperterminal`
   FROM TABLE(
-    TUMBLE(TABLE t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
+    TUMBLE(TABLE `c_hive`.`db01`.t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
   GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
 
 
@@ -218,24 +220,39 @@ SELECT
     CROSS JOIN UNNEST(`basketItems`) AS bi;
 
 
+-- Set up Iceberg sink
+-- Set checkpoint to happen every minute
+SET 'execution.checkpointing.interval' = '60sec';
+
+-- Set this so that the operators are separate in the Flink WebUI.
+SET 'pipeline.operator-chaining.enabled' = 'false';
+
 -- Add sink to Iceberg
 -- Originates from Robbin Moffat's : https://www.decodable.co/blog/kafka-to-iceberg-with-flink blog post.
 CREATE TABLE t_i_unnested_sales WITH (
 	  'connector'     = 'iceberg',
 	  'catalog-type'  = 'hive',
-	  'catalog-name'  = 'dev',
+	  'catalog-name'  = 'c_hive',
 	  'warehouse'     = 's3a://warehouse',
-	  'hive-conf-dir' = '/opt/sql-client/conf')
+	  'hive-conf-dir' = './conf')
   AS SELECT * FROM t_f_unnested_sales;
+
+Insert into t_i_unnested_sales
+  SELECT * FROM t_f_unnested_sales;
 
 -- Lets try flink with a complex structure...
 CREATE TABLE t_i_salescompleted_x WITH (
 	  'connector'     = 'iceberg',
 	  'catalog-type'  = 'hive',
-	  'catalog-name'  = 'dev',
+	  'catalog-name'  = 'c_hive',
 	  'warehouse'     = 's3a://warehouse',
-	  'hive-conf-dir' = '/opt/sql-client/conf')
+	  'hive-conf-dir' = './conf')
   AS SELECT * FROM t_f_avro_salescompleted_x;
+
+Insert into t_i_salescompleted_x
+  SELECT * FROM t_f_avro_salescompleted_x;
+
+-- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
 
 -- Sales per store per brand per 5 min - output table
 CREATE TABLE t_f_avro_sales_per_store_per_brand_per_5min_x (

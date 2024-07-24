@@ -6,6 +6,8 @@
 FROM arm64v8/flink:1.18.1-scala_2.12-java11
 SHELL ["/bin/bash", "-c"]
 
+WORKDIR /opt/flink
+
 # Install some useful tools
 RUN apt-get update && \
     apt-get install -y neovim tree lnav unzip
@@ -19,18 +21,20 @@ RUN wget https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-li
     && unzip duckdb_cli-linux-aarch64.zip -d /usr/local/bin \
     && rm duckdb_cli-linux-aarch64.zip
 
-USER flink
-
-WORKDIR /opt/flink
 
 # Set up Hive config
 COPY flink/conf/hive-site.xml ./conf/hive-site.xml
 
+# Copy Flink configuration
+#COPY sql-client/conf/flink-conf.yaml ./conf/flink-conf.yaml
+
 # Enable SQL Client to find the job manager when running it from this image
-RUN sed -i "s/jobmanager.rpc.address: localhost/jobmanager.rpc.address: flink-jobmanager/g" /opt/flink/conf/flink-conf.yaml
+RUN sed -i "s/jobmanager.rpc.address: localhost/jobmanager.rpc.address: devlab-flink-jobmanager/g" /opt/flink/conf/flink-conf.yaml
 
 # Install JARs
 # See https://repo.maven.apache.org/maven2/org/apache/flink/
+
+USER flink
 
 RUN echo "-> Install JARs: Flink's Kafka connector" && \
     mkdir -p ./lib/kafka && pushd $_ && \
@@ -43,7 +47,7 @@ RUN echo "-> Install JARs: Flink's Kafka connector" && \
     popd
 
 
-RUN echo "-> Install JARs: Flink's Hive connector" && \
+RUN echo "-> Install JARs: Flink's Hive connector (Catalogs)" && \
     mkdir -p ./lib/hive && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/1.18.1/flink-sql-connector-hive-3.1.3_2.12-1.18.1.jar -O && \
     popd
@@ -52,6 +56,7 @@ RUN echo "-> Install JARs: Flink's Hive connector" && \
 RUN echo "-> Install JARs: Dependencies for Iceberg" && \
     mkdir -p ./lib/iceberg && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-1.18/1.5.0/iceberg-flink-runtime-1.18-1.5.0.jar -O && \
+    curl https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.5.0/iceberg-aws-bundle-1.5.0.jar-O && \
     popd
 
 
@@ -61,7 +66,7 @@ RUN echo "-> Install JARs: AWS / Hadoop S3" && \
     curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.648/aws-java-sdk-bundle-1.12.648.jar -O  && \
     popd
 
-    
+
 RUN echo "-> Install JARs: Hadoop" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.1.1/commons-configuration2-2.1.1.jar -O && \
@@ -74,11 +79,16 @@ RUN echo "-> Install JARs: Hadoop" && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-hdfs-client/3.3.4/hadoop-hdfs-client-3.3.4.jar -O && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-client-core/3.3.4/hadoop-mapreduce-client-core-3.3.4.jar -O  && \
     popd
-    
-    
+
+
+# RUN echo "-> Install JARs: DB's" && \
+#     mkdir -p ./lib/dbs && pushd $_ && \
+#     curl https://jdbc.postgresql.org/download/postgresql-42.7.1.jar -O && \
+#     popd
+
+
 #RUN echo "-> Install JARs: DBs" && \
 #    mkdir -p ./lib/dbs && pushd $_ && \
-#    curl https://jdbc.postgresql.org/download/postgresql-42.5.4.jar -O && \
 #    curl https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar -O && \
 #    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-elasticsearch7/3.0.1-1.17/flink-sql-connector-elasticsearch7-3.0.1-1.18.jar -O && \
 #    curl https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar -O && \
