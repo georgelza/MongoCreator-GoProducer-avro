@@ -10,7 +10,7 @@
 
 -- First Create a Catalog using our defined hms and backing S3.
 
-
+-- -- AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
 -- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table.
 CREATE TABLE t_k_avro_salescompleted (
     INVNUMBER STRING,
@@ -27,7 +27,7 @@ CREATE TABLE t_k_avro_salescompleted (
     PAYDATETIME_LTZ STRING,
     PAYTIMESTAMP_EPOC STRING,
     PAID DOUBLE,
-    SALESTIMESTAMP_WM AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
+    SALESTIMESTAMP_WM timestamp(3),
     WATERMARK FOR SALESTIMESTAMP_WM AS SALESTIMESTAMP_WM
 ) WITH (
     'connector' = 'kafka',

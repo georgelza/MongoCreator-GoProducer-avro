@@ -30,3 +30,6 @@ sitcerts/
 distribute/
 old/
 
+# Mounted database volumes
+devlab-hive-jdbc/data/
+

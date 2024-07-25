@@ -15,7 +15,6 @@
 -- NOTE: Case sentivity... need to match the case as per types/fs.go structs avro sections.
 -- pull (INPUT) the avro_salesbaskets topic into Flink into avro_salesbaskets_x
 
-
 CREATE or replace TABLE t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
@@ -27,7 +26,7 @@ CREATE or replace TABLE t_k_avro_salesbaskets_x (
     `store` row<`id` STRING, `name` STRING>,
     `clerk` row<`id` STRING, `name` STRING, `surname` STRING>,
     `basketItems` array<row<`id` STRING, `name` STRING, `brand` STRING, `category` STRING, `price` DOUBLE, `quantity` INT>>,
-    `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
+    `saleTimestamp_WM` as TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
     WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
 ) WITH (
     'connector' = 'kafka',
@@ -41,6 +40,7 @@ CREATE or replace TABLE t_k_avro_salesbaskets_x (
 );
 
 -- pull (INPUT) the avro_salespayments topic into Flink (avro_salespayments_x)
+
 CREATE TABLE t_k_avro_salespayments_x (
     `invoiceNumber` STRING,
     `payDateTime_Ltz` STRING,
@@ -64,6 +64,7 @@ CREATE TABLE t_k_avro_salespayments_x (
 
 -- Our avro_salescompleted_x (OUTPUT) table which will push values to the CP Kafka topic.
 -- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
+
 CREATE TABLE t_f_avro_salescompleted_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
@@ -94,6 +95,7 @@ CREATE TABLE t_f_avro_salescompleted_x (
 );
 
 -- the fields in the select is case sensitive, needs to match theprevious create tables which match the definitions in the struct/avro sections.
+
 Insert into t_f_avro_salescompleted_x
 select
         b.invoiceNumber,
@@ -119,6 +121,7 @@ select
 
 
 -- Create sales per store per terminal per 5 min output table - dev purposes
+
 CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
     `terminalPoint` STRING,
@@ -139,6 +142,7 @@ CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_5min_x (
 
 -- Calculate sales per store per terminal per 5 min - dev purposes
 -- Aggregate query/worker
+
 Insert into t_f_avro_sales_per_store_per_terminal_per_5min_x
 SELECT 
     `store`.`id` as `store_id`,
@@ -148,11 +152,12 @@ SELECT
     COUNT(*) as `salesperterminal`,
     SUM(total) as `totalperterminal`
   FROM TABLE(
-    TUMBLE(TABLE `c_hive`.`db01`.t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
+    TUMBLE(TABLE t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
   GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
 
 
 -- Create sales per store per terminal per hour output table
+
 CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_hour_x (
     `store_id` STRING,
     `terminalPoint` STRING,
@@ -172,6 +177,7 @@ CREATE TABLE t_f_avro_sales_per_store_per_terminal_per_hour_x (
 );
 
 -- Calculate sales per store per terminal per hour
+
 Insert into t_f_avro_sales_per_store_per_terminal_per_hour_x
 SELECT 
     `store`.`id` as `store_id`,
@@ -186,6 +192,7 @@ SELECT
 
 
 --- unest the salesBasket
+
 CREATE TABLE t_f_unnested_sales (
     `store_id` STRING,
     `product` STRING,
@@ -229,24 +236,22 @@ SET 'pipeline.operator-chaining.enabled' = 'false';
 
 -- Add sink to Iceberg
 -- Originates from Robbin Moffat's : https://www.decodable.co/blog/kafka-to-iceberg-with-flink blog post.
+
 CREATE TABLE t_i_unnested_sales WITH (
 	  'connector'     = 'iceberg',
-	  'catalog-type'  = 'hive',
-	  'catalog-name'  = 'c_hive',
-	  'warehouse'     = 's3a://warehouse',
-	  'hive-conf-dir' = './conf')
+	  'catalog-type'  = 'iceberg',
+	  'catalog-name'  = 'c_iceberg_jdbc',
+	  'warehouse'     = 's3://warehouse')
   AS SELECT * FROM t_f_unnested_sales;
 
 Insert into t_i_unnested_sales
   SELECT * FROM t_f_unnested_sales;
 
--- Lets try flink with a complex structure...
 CREATE TABLE t_i_salescompleted_x WITH (
 	  'connector'     = 'iceberg',
-	  'catalog-type'  = 'hive',
-	  'catalog-name'  = 'c_hive',
-	  'warehouse'     = 's3a://warehouse',
-	  'hive-conf-dir' = './conf')
+	  'catalog-type'  = 'iceberg',
+	  'catalog-name'  = 'c_iceberg_jdbc',
+	  'warehouse'     = 's3://warehouse')
   AS SELECT * FROM t_f_avro_salescompleted_x;
 
 Insert into t_i_salescompleted_x

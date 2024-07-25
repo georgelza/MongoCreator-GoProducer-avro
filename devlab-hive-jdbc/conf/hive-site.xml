@@ -17,12 +17,8 @@
 -->
 <!-- These are default values meant to allow easy smoke testing of the metastore.  You will
 likely need to add a number of new values. -->
+
 <configuration>
-  <property>
-    <name>metastore.thrift.uris</name>
-    <value>thrift://hms:9083</value>
-  </property>
-  <!-- Add Materialization stuff for standalone metastore -->
   <property>
     <name>metastore.task.threads.always</name>
     <value>org.apache.hadoop.hive.metastore.events.EventCleanerTask</value>
@@ -31,35 +27,28 @@ likely need to add a number of new values. -->
     <name>metastore.expression.proxy</name>
     <value>org.apache.hadoop.hive.metastore.DefaultPartitionExpressionProxy</value>
   </property>
-
-  <!-- Derby embedded DB-->
   <property>
-    <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:derby:;databaseName=/tmp/metastore_db;create=true</value>
+  <name>javax.jdo.option.ConnectionDriverName</name>
+  <value>org.postgresql.Driver</value>
+</property>
+<property>
+  <name>javax.jdo.option.ConnectionURL</name>
+  <value>jdbc:postgresql://postgres:5432/hive_metastore</value>
+</property>
+<property>
+  <name>javax.jdo.option.ConnectionUserName</name>
+  <value>hive</value>
+</property>
+<property>
+  <name>javax.jdo.option.ConnectionPassword</name>
+  <value>hive</value>
+</property>
+  <property>
+    <name>metastore.warehouse.dir</name>
+    <value>s3a://warehouse/db01/</value>
   </property>
   <property>
-    <name>javax.jdo.option.ConnectionDriverName</name>
-    <value>org.apache.derby.jdbc.EmbeddedDriver</value>
+    <name>metastore.thrift.port</name>
+    <value>9083</value>
   </property>
-
-    <property>
-        <name>fs.s3a.access.key</name>
-        <value>admin</value>
-    </property>
-
-    <property>
-        <name>fs.s3a.secret.key</name>
-        <value>password</value>
-    </property>
-
-    <property>
-        <name>fs.s3a.endpoint</name>
-        <value>http://minio:9000</value>
-    </property>
-
-    <property>
-        <name>fs.s3a.path.style.access</name>
-        <value>true</value>
-    </property>
-
 </configuration>
