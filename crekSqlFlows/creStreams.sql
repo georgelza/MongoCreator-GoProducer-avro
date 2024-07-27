@@ -5,7 +5,8 @@
 -- https://www.confluent.io/blog/ksqldb-2-0-introduces-date-and-time-data-types/
 
 -- create stream object from source topic, same format as source
--- salesbaskets - This becomes a input table for us
+-- salesbaskets - This becomes a input table for us 
+
 CREATE STREAM avro_salesbaskets (
 	   	InvoiceNumber VARCHAR,
 	 	SaleDateTime_Ltz VARCHAR,
@@ -33,7 +34,8 @@ WITH (KAFKA_TOPIC='avro_salesbaskets',
         	PARTITIONS=1);
 
 
--- salespayments - This becomes a input table for us
+-- salespayments - This becomes a input table for us 
+
 CREATE STREAM avro_salespayments (
 	      	InvoiceNumber VARCHAR,
 	      	FinTransactionId VARCHAR,
@@ -46,7 +48,8 @@ CREATE STREAM avro_salespayments (
        	PARTITIONS=1);
 
 
--- salescompleted - This will be a output table for us.
+-- salescompleted - This will be a output table for us. 
+
 CREATE STREAM avro_salescompleted WITH (
 		KAFKA_TOPIC='avro_salescompleted',
        	VALUE_FORMAT='Avro',

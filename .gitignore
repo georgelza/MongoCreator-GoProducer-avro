@@ -31,5 +31,6 @@ distribute/
 old/
 
 # Mounted database volumes
-devlab-hive-jdbc/data/
+devlab-hive-jdbc-postgress/data/
+devlab-hms-standalone/data/
 
