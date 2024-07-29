@@ -202,32 +202,116 @@ services:
 #     environment:
 #       FLINK_JOBMANAGER_HOST: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
       
-  # Hive Metastore - Configured as GenericCatalog for Apache Paimon
+  # Local Hive Metastore based Catalog (with PostgreSQL DB) for Apache Paimon
 
+  # First we start the PostgreSQL
 
-
-  # PostgreSql backend store for HMS Metastore
   postgres:
     image: postgres:14-alpine
     container_name: postgres
     hostname: postgres
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_DB}
     ports:
-      - '5432:5432'
+      - '${DATABASE_PORT}:${DATABASE_PORT}'
     # volumes:
     #   - ./data/postgres:/var/lib/postgresql/data
  
- 
+  # Next up is the Apache HIVE Stack
+  #
+  # https://hive.apache.org
+  # https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/table/hive/overview/
+  #
+  # HIVE Metastore
+  # https://cwiki.apache.org/confluence/display/hive/design
+
+  # https://hub.docker.com/r/apache/hive
+  # https://github.com/apache/hive
+  #
+  # https://hive.apache.org/developement/gettingstarted
+  #
+  # Launch the HiveServer2 with an embedded Metastore.
+  # This is lightweight and for a quick setup, it uses Derby as metastore db.
+  docker run -d -p 10000:10000 -p 10002:10002 \
+    --env SERVICE_NAME=hiveserver2 \
+    --name hive4 \
+    apache/hive:${HIVE_VERSION}
+
+  # Launch Standalone Metastore
+  # For a quick start, launch the Metastore with Derby,
+  docker run -d -p 9083:9083 \
+    --env SERVICE_NAME=metastore \
+    --name hms \
+    apache/hive:${HIVE_VERSION}
+
+
+  # Advanced Setup
+  # Using HS2 with Standalone/Remote Metastore
+  docker run -d -p 10000:10000 -p 10002:10002 \
+    --env SERVICE_NAME=hiveserver2 \
+    --env SERVICE_OPTS="-Dhive.metastore.uris=thrift://hms:9083" \
+    --env IS_RESUME="true" \
+    --name hiveserver2 \
+    apache/hive:${HIVE_VERSION}
+  # "-Dhive.metastore.uris is used to specify the external Metastore
+
+  # NOTE: To save the data between container restarts, you can start the HiveServer2 with mounted volume:
+  docker run -d -p 10000:10000 -p 10002:10002 \
+    --env SERVICE_NAME=hiveserver2 \
+    --env SERVICE_OPTS="-Dhive.metastore.uris=thrift://hms:9083" \
+    --env IS_RESUME="true" \
+    --mount source=warehouse,target=/opt/hive/data/warehouse \
+    --name hiveserver2 \
+    apache/hive:${HIVE_VERSION} 
+
+  # Launch Standalone Metastore With External RDBMS (Postgres/Oracle/MySql/MsSql)
+  docker run -d -p 9083:9083 \
+    --env SERVICE_NAME=metastore \
+    --env DB_DRIVER=postgres \
+    --env SERVICE_OPTS="-Djavax.jdo.option.ConnectionDriverName=org.postgresql.Driver -Djavax.jdo.option.ConnectionURL=jdbc:postgresql://${DATABASE_HOST}:${DATABASE_PORT}/${DATABASE_DB} -Djavax.jdo.option.ConnectionUserName=${DATABASE_USER} -Djavax.jdo.option.ConnectionPassword=${DATABASE_PASSWORD}" \
+    --mount source=warehouse,target=/opt/hive/data/warehouse \
+    --name hms \
+    apache/hive:${HIVE_VERSION}
+
+  # Custom Configurations
+  #
+  # If you want to use your own core-site.xml/hdfs-site.xml/yarn-site.xml or hive-site.xml for the service, 
+  # you can provide the environment variable HIVE_CUSTOM_CONF_DIR for the command. For example:
+  # Put the custom configuration file under the directory /opt/hive/conf and run:
+  docker run -d -p 9083:9083 \
+    --env SERVICE_NAME=metastore \
+    --env DB_DRIVER=postgres -v /opt/hive/conf:/hive_custom_conf \
+    --env HIVE_CUSTOM_CONF_DIR=/hive_custom_conf \
+    --name hms \
+    apache/hive:${HIVE_VERSION}
+
+  # Accessing Beeline:
+  # docker exec -it hive4 beeline -u 'jdbc:hive2://localhost:10000/'
+  # Accessing HiveServer2 Web UI:
+  # Accessed on browser at http://localhost:10002/
+
+
+    depends_on:
+      - postgres
+
+  
+
+  # Next up is the HDFS
+
   # Hadoop / HDFS
   # The Namenode UI can be accessed at http://localhost:9870/⁠ and 
   # the ResourceManager UI can be accessed at http://localhost:8088/⁠
   namenode:
+    build:
+      context: .
+      dockerfile: hdfs/Dockerfile
     image: hadoop:3.3.5
     container_name: namenode
     hostname: namenode
+    depends_on:
+      - hms
     command: ["hdfs", "namenode"]
     ports:
       - 9870:9870
@@ -236,51 +320,59 @@ services:
         ENSURE_NAMENODE_DIR: "/tmp/hadoop-root/dfs/name"
         CLUSTER_NAME: hdfspaimon
     env_file:
-      - ./hadoop.env
+      - ./hdfs/hadoop.env
     volumes:
       - ./data/hadoop/namenode:/hadoop/dfs/name
 
   datanode:
     image: hadoop:3.3.5
-    container_name: datanode
-    hostname: datanode
     command: ["hdfs", "datanode"]
+    depends_on:
+      - namenode
+    deploy:
+      replicas: 1
     environment:
       SERVICE_PRECONDITION: "namenode:9870"
     env_file:
-      - ./hadoop.env 
+      - ./hdfs/hadoop.env 
     volumes:
       - ./data/hadoop/datanode:/hadoop/dfs/data
 
   resourcemanager:
-      image: hadoop:3.3.5
-      container_name: resourcemanager
-      hostname: resourcemanager
-      command: ["yarn", "resourcemanager"]
-      ports:
-        - 8088:8088
-      restart: always
-      environment:
-        SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
-      env_file:
-        - ./hadoop.env
-      volumes:
-        - ./test.sh:/opt/test.sh
+    image: hadoop:3.3.5
+    container_name: resourcemanager
+    hostname: resourcemanager
+    depends_on:
+      - namenode
+    command: ["yarn", "resourcemanager"]
+    ports:
+      - 8088:8088
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+    env_file:
+      - ./hdfs/hadoop.env
+    volumes:
+      - ./test.sh:/opt/test.sh
 
-  nodemanager1:
+  nodemanager:
     image: hadoop:3.3.5
     container_name: nodemanager
     hostname: nodemanager
+    depends_on:
+      - namenode
     restart: always
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
     env_file:
-      - ./hadoop.env
+      - ./hdfs/hadoop.env
 
   historyserver:
     image: hadoop:3.3.5
     container_name: historyserver
     hostname: historyserver
+    depends_on:
+      - namenode
     restart: always
     environment:
       SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
@@ -288,8 +380,7 @@ services:
       - ./hadoop.env
     volumes:
       - ./data/hadoop/historyserver:/hadoop/yarn/timeline
-
-
+      
 
   # Apache Paimon
   # https://github.com/apache/paimon
