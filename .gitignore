@@ -31,19 +31,11 @@ distribute/
 old/
 
 # Folders where jar files will be staged, not tpo be included in git sync.
-devlab-hdfs-paimon-hdfs-cat/connect/stage
+devlab-hdfs-paimon-hdfs-cat/stage
 devlab-hdfs-paimon-hdfs-cat/data
-devlab-hdfs-paimon-hdfs-cat/flink/stage
-devlab-hdfs-paimon-hdfs-cat/hdfs/base/stage
-devlab-hdfs-paimon-hdfs-cat/paimon/stage
-devlab-hdfs-paimon-hive-cat/sql-client/stage
 
-devlab-hms-postgres/connect/stage
+devlab-hms-postgres/stage
 devlab-hms-postgres/data
-devlab-hms-postgres/flink/stage
-devlab-hms-postgres/sql-client/stage
 
-devlab-hms-standalone/connect/stage
+devlab-hms-standalone/stage
 devlab-hms-standalone/data
-devlab-hms-standalone/hms-standalone-s3
-hms-standalone-s3/sql-client/stage
