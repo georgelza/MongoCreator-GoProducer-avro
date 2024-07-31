@@ -1,6 +1,6 @@
 
 ###############################################################################
-#SQL CLI - inspired by https://github.com/wuchong/flink-sql-demo/tree/v1.11-EN/sql-client
+# https://www.decodable.co/blog/kafka-to-iceberg-with-flink
 ###############################################################################
 
 FROM arm64v8/flink:1.18.1-scala_2.12-java11
@@ -8,25 +8,24 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /opt/flink
 
-# Install some useful tools
-RUN apt-get update && \
+
+RUN "--> Echo Install some useful tools" && \
+    apt-get update && \
     apt-get install -y neovim tree lnav unzip
 
-# Create CLI lib folder
-RUN echo "-> Creating directories"; \
-    mkdir -p /opt/sql-client/conf;
+    
+RUN "--> Set up Hive config" && \
+    COPY flink/conf/hive-site.xml ./conf/hive-site.xml
 
-# Copy CLI script
-COPY sql-client/bin/sql-client.sh /opt/sql-client/
 
-# Copy configuration
-COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
-COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+RUN "--> Enable SQL Client to find the job manager when running it from this image" && \
+    sed -i "s/jobmanager.rpc.address: localhost/jobmanager.rpc.address: devlab-flink-jobmanager/g" ./conf/flink-conf.yaml
 
 # Install JARs
 # See https://repo.maven.apache.org/maven2/org/apache/flink/
 
-RUN echo "-> Install JARs: Flink's Kafka connector" && \
+
+RUN echo "--> Install JARs: Flink's Kafka connector" && \
     mkdir -p ./lib/kafka && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.2.0-1.18/flink-sql-connector-kafka-3.2.0-1.18.jar -O && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-jdbc/3.2.0-1.18/flink-connector-jdbc-3.2.0-1.18.jar -O && \
@@ -36,24 +35,52 @@ RUN echo "-> Install JARs: Flink's Kafka connector" && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.18.1/flink-sql-avro-confluent-registry-1.18.1.jar -O && \
     popd
 
-RUN echo "-> Install JARs: Flink's HDFS connector (Catalogs)" && \
+
+RUN echo "--> Install JARs: Flink's HDFS connector (Catalogs)" && \
     mkdir -p ./lib/hive && pushd $_ && \
     curl https://repository.apache.org/snapshots/org/apache/paimon/paimon-flink-1.18/0.9-SNAPSHOT/ -O && \
     curl https://repository.apache.org/snapshots/org/apache/paimon/paimon-flink-action/0.9-SNAPSHOT/ -O && \
     popd
 
-RUN echo "-> Install JARs: Flink Hadoop classes" && \
+
+RUN echo "--> Install JARs: Flink HIVE dependencies" && \
+    mkdir -p ./lib/hive && pushd $_ && \
+    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/1.19.1/flink-sql-connector-hive-3.1.3_2.12-1.19.1.jar && \
+    popd
+
+
+RUN echo "--> Install JARs: Flink's Hive connector" && \
+    mkdir -p ./lib/hive && pushd $_ && \
+    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-hive_2.12-1.19.1/???/flink-connector-hive_2.12-1.19.1.jar && \
+    popd
+
+
+RUN echo "--> Install JARs: Hive dependencies" && \
+    mkdir -p ./lib/hive && pushd $_ && \
+    curl https://repo.maven.apache.org/maven2/org/apache/flink/hive-exec-3.1.0./???/hive-exec-3.1.0.jar && \
+    curl https://repo.maven.apache.org/maven2/org/apache/flink/libfb303-0.9.3/???/libfb303-0.9.3.jar && \
+    popd
+
+
+RUN echo "--> Install JARs: add antlr-runtime if you need to use hive dialect" && \
+    mkdir -p ./lib/hive && pushd $_ && \
+    curl https://repo.maven.apache.org/maven2/org/apache/???/antlr-runtime-3.5.2/???/antlr-runtime-3.5.2.jar && \
+    popd
+
+
+RUN echo "--> Install JARs: Flink Hadoop classes" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-9.0/flink-shaded-hadoop-2-uber-2.8.3-9.0.jar && \
     popd
 
 
-RUN echo "-> Install JARs: AWS / AWS Bundled classes:" && \
+RUN echo "--> Install JARs: AWS / AWS Bundled classes:" && \
     mkdir -p ./lib/aws-bundle && pushd $_ && \
     curl https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.26.9/bundle-2.26.9.jar && \
     popd
 
-RUN echo "-> Install JARs: Hadoop" && \
+
+RUN echo "--> Install JARs: Hadoop" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.1.1/commons-configuration2-2.1.1.jar -O && \
     curl https://repo1.maven.org/maven2/commons-logging/commons-logging/1.1.3/commons-logging-1.1.3.jar -O && \
@@ -67,16 +94,10 @@ RUN echo "-> Install JARs: Hadoop" && \
     popd
 
 
-RUN echo "Purge apt artifacts" && \
-    apt-get purge -y --auto-remove $build_deps && \
+RUN echo "--> urge apt artifacts" && \
+    apt-get purge -y --auto-remove && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
-    
 
-WORKDIR /opt/sql-client
-ENV SQL_CLIENT_HOME /opt/sql-client
-
-COPY sql-client/docker-entrypoint.sh /
-RUN chmod +x /docker-entrypoint.sh
-ENTRYPOINT ["/docker-entrypoint.sh"]
-
+# Set the launch command
+CMD ./bin/start-cluster.sh && sleep infinity

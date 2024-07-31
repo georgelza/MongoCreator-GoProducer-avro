@@ -1,7 +1,9 @@
 FROM confluentinc/cp-kafka-connect-base:7.6.1
 
 ENV CONNECT_PLUGIN_PATH="/usr/share/java,/usr/share/confluent-hub-components"
-RUN echo "Installing Connector Plugins"
+
+RUN echo "--> Installing Connector Plugins"
+
 # Source - https://docs.confluent.io/kafka-connectors/spooldir/current/overview.html
 RUN confluent-hub install --no-prompt jcustenborder/kafka-connect-spooldir:2.0.43
 # Sink/Source - https://github.com/mongodb/mongo-kafka/blob/master/README.md
@@ -21,7 +23,6 @@ Run confluent-hub install --no-prompt confluentinc/kafka-connect-s3:latest
 
 # SINK - https://docs.confluent.io/kafka-connectors/hdfs/current/overview.html
 # RUN confluent-hub install --no-prompt confluentinc/kafka-connect-hdfs:latest
-
 # Source - https://debezium.io/documentation/reference/2.7/connectors/postgresql.html
 # RUN confluent-hub install --no-prompt debezium/debezium-connector-postgresql:latest
 # Source - https://debezium.io/documentation/reference/2.7/connectors/mongodb.html
@@ -29,9 +30,14 @@ Run confluent-hub install --no-prompt confluentinc/kafka-connect-s3:latest
 # Source - https://debezium.io/docs/connectors/mysql/
 # RUN confluent-hub install --no-prompt debezium/debezium-connector-mysql:latest
 
+
 USER root
-RUN wget -O /usr/share/java/kafka/mysql-connector-j-9.0.0.jar \
+
+
+RUN echo "--> Installing Database Connector Plugins" && \
+    wget -O /usr/share/java/kafka/mysql-connector-j-9.0.0.jar \
     https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar
+
 
 USER appuser
 

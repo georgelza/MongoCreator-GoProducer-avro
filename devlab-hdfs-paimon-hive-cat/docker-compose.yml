@@ -304,9 +304,6 @@ services:
   # The Namenode UI can be accessed at http://localhost:9870/⁠ and 
   # the ResourceManager UI can be accessed at http://localhost:8088/⁠
   namenode:
-    build:
-      context: .
-      dockerfile: hdfs/Dockerfile
     image: hadoop:3.3.5
     container_name: namenode
     hostname: namenode

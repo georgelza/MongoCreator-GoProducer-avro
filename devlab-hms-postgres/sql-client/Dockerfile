@@ -8,25 +8,30 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /opt/flink
 
-# Install some useful tools
-RUN apt-get update && \
+
+RUN echo "--> Install some useful tools" && \
+    apt-get update && \
     apt-get install -y neovim tree lnav unzip
 
-# used to interface with minio store.
-RUN wget https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-aarch64.zip \
-    && unzip duckdb_cli-linux-aarch64.zip -d /usr/local/bin \
-    && rm duckdb_cli-linux-aarch64.zip
 
-# Create CLI lib folder
-RUN echo "-> Creating directories"; \
-    mkdir -p /opt/sql-client/conf;
+RUN echo "--> used to interface with minio store." && \
+    wget https://github.com/duckdb/duckdb/releases/download/v1.0.0/duckdb_cli-linux-aarch64.zip && \
+    unzip duckdb_cli-linux-aarch64.zip -d /usr/local/bin && \
+    rm duckdb_cli-linux-aarch64.zip
 
-# Copy CLI script
-COPY sql-client/bin/sql-client.sh /opt/sql-client/
 
-# Copy configuration
-COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
-COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+RUN echo "--> Creating SQL Client directories" && \
+    mkdir -p /opt/sql-client/conf
+
+
+RUN echo "--> Copy SQL Client shell scripts" && \
+    COPY sql-client/bin/sql-client.sh /opt/sql-client/
+
+
+RUN echo "--> Copy configuration files" && \
+    COPY conf/flink-conf.yaml ./conf/flink-conf.yaml && \
+    COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+
 
 RUN echo "-> Install JARs: Flink's Kafka connector" && \
     mkdir -p ./lib/kafka && pushd $_ && \
@@ -39,34 +44,40 @@ RUN echo "-> Install JARs: Flink's Kafka connector" && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.18.1/flink-sql-avro-confluent-registry-1.18.1.jar -O && \
     popd
 
-RUN echo "-> Install JARs: Flink's Hive connector (Catalogs)" && \
+
+RUN echo "--> Install JARs: Flink's Hive connector (Catalogs)" && \
     mkdir -p ./lib/hive && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/1.18.1/flink-sql-connector-hive-3.1.3_2.12-1.18.1.jar -O && \
     curl https://repo.maven.apache.org/maven2/org/apache/hive/hive-exec/3.1.3/hive-exec-3.1.3.jar -O && \
     curl https://repo.maven.apache.org/maven2/org/apache/hive/hive-metastore/3.1.3/hive-metastore-3.1.3.jar -O && \
     popd
 
-RUN echo "-> Install JARs: Runtime Dependencies for Iceberg" && \
+
+RUN echo "--> Install JARs: Runtime Dependencies for Iceberg" && \
     mkdir -p ./lib/iceberg && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-1.18/1.5.0/iceberg-flink-runtime-1.18-1.5.0.jar -O && \
     curl https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-aws-bundle/1.5.0/iceberg-aws-bundle-1.5.0.jar-O && \
     popd
 
-RUN echo "-> Install JARs: AWS / Hadoop S3" && \
+
+RUN echo "--> Install JARs: AWS / Hadoop S3" && \
     mkdir -p ./lib/aws && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -O && \
     curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.648/aws-java-sdk-bundle-1.12.648.jar -O  && \
     popd
 
-RUN echo "-> Install JARs: Hadoop AWS classes" && \
+
+RUN echo "--> Install JARs: Hadoop AWS classes" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-9.0/flink-shaded-hadoop-2-uber-2.8.3-9.0.jar && \
     popd
     
-RUN echo "-> Install JARs: AWS / AWS Bundled classes:" && \
+
+RUN echo "--> Install JARs: AWS / AWS Bundled classes:" && \
     mkdir -p ./lib/aws-bundle && pushd $_ && \
     curl https://repo1.maven.org/maven2/software/amazon/awssdk/bundle/2.26.9/bundle-2.26.9.jar && \
     popd
+
 
 RUN echo "-> Install JARs: Hadoop" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
@@ -90,8 +101,9 @@ RUN echo "-> Install JARs: Hadoop" && \
 #    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-protobuf/1.18.1/flink-sql-protobuf-1.18.1.jar -O && \
 #    popd
 
-RUN echo "Purge apt artifacts" && \
-    apt-get purge -y --auto-remove $build_deps && \
+
+RUN echo "--> Purge apt artifacts" && \
+    apt-get purge -y --auto-remove && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
     

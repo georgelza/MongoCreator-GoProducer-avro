@@ -29,7 +29,7 @@
 
   <property>
     <name>hive.metastore.warehouse.dir</name>
-    <value>hdfs:///paimon/hdfs</value>
+    <value>hdfs:///namenode:9000/warehouse</value>
   </property>
 
 </configuration>

@@ -8,30 +8,35 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /opt/flink
 
-# Install some useful tools
-RUN apt-get update && \
+
+RUN echo "--> Install some useful tools" && \
+    apt-get update && \
     apt-get install -y neovim tree lnav unzip
 
-RUN echo "Add Flink S3 Plugin" && \
+
+RUN echo "--> Add Flink S3 Plugin" && \
     mkdir ./plugins/s3-fs-hadoop && \
     cp ./opt/flink-s3-fs-hadoop-1.18.1.jar ./plugins/s3-fs-hadoop/
 
-RUN echo "Purge apt artifacts" && \
+
+RUN echo "--> Purge apt artifacts" && \
     apt-get purge -y --auto-remove $build_deps && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
     
 
-# Create CLI lib folder
-RUN echo "-> Creating directories"; \
-    mkdir -p /opt/sql-client/conf;
+RUN echo "--> Creating SQL Client directories" && \
+    mkdir -p /opt/sql-client/conf
 
-# Copy CLI script
-COPY sql-client/bin/sql-client.sh /opt/sql-client/
 
-# Copy configuration
-COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
-COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+RUN echo "--> Copy SQL Client shell scripts" && \
+    COPY sql-client/bin/sql-client.sh /opt/sql-client/
+
+
+RUN echo "--> Copy configuration files" && \
+    COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml && \
+    COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+
 
 RUN echo "-> Install JARs: Flink's Kafka connector" && \
     mkdir -p ./lib/kafka && pushd $_ && \
@@ -43,10 +48,12 @@ RUN echo "-> Install JARs: Flink's Kafka connector" && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.18.1/flink-sql-avro-confluent-registry-1.18.1.jar -O && \
     popd
 
+
 RUN echo "-> Install JARs: Flink's Hive connector (Catalogs)" && \
     mkdir -p ./lib/hive && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/1.18.1/flink-sql-connector-hive-3.1.3_2.12-1.18.1.jar -O && \
     popd
+
 
 RUN echo "-> Install JARs: Dependencies for Iceberg" && \
     mkdir -p ./lib/iceberg && pushd $_ && \
@@ -59,6 +66,7 @@ RUN echo "-> Install JARs: AWS / Hadoop S3" && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -O && \
     curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.648/aws-java-sdk-bundle-1.12.648.jar -O  && \
     popd
+
 
 RUN echo "-> Install JARs: Hadoop" && \
     mkdir -p ./lib/hadoop && pushd $_ && \

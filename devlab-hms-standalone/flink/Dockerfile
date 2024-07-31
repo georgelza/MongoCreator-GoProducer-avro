@@ -8,27 +8,30 @@ SHELL ["/bin/bash", "-c"]
 
 WORKDIR /opt/flink
 
-# Install some useful tools
-RUN apt-get update && \
+
+RUN echo "--> Install some useful tools" && \
+    apt-get update && \
     apt-get install -y neovim tree lnav unzip
 
 
-RUN echo "Add Flink S3 Plugin" && \
+RUN echo "--> Add Flink S3 Plugin" && \
     mkdir ./plugins/s3-fs-hadoop && \
     cp ./opt/flink-s3-fs-hadoop-1.18.1.jar ./plugins/s3-fs-hadoop/
 
 
-# Set up Hive config
-COPY flink/conf/hive-site.xml ./conf/hive-site.xml
+RUN echo "--> Set up Hive config" && \
+    COPY flink/conf/hive-site.xml ./conf/hive-site.xml
 
-# Enable SQL Client to find the job manager when running it from this image
-RUN sed -i "s/jobmanager.rpc.address: localhost/jobmanager.rpc.address: devlab-flink-jobmanager/g" ./conf/flink-conf.yaml
+
+RUN echo "--> Enable SQL Client to find the job manager when running it from this image" && \
+    sed -i "s/jobmanager.rpc.address: localhost/jobmanager.rpc.address: devlab-flink-jobmanager/g" ./conf/flink-conf.yaml
+
 
 # Install JARs
 # See https://repo.maven.apache.org/maven2/org/apache/flink/
 
 
-RUN echo "-> Install JARs: Flink's Kafka connector" && \
+RUN echo "--> Install JARs: Flink's Kafka connector" && \
     mkdir -p ./lib/kafka && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.2.0-1.18/flink-sql-connector-kafka-3.2.0-1.18.jar -O && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-jdbc/3.2.0-1.18/flink-connector-jdbc-3.2.0-1.18.jar -O && \
@@ -38,24 +41,27 @@ RUN echo "-> Install JARs: Flink's Kafka connector" && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-avro-confluent-registry/1.18.1/flink-sql-avro-confluent-registry-1.18.1.jar -O && \
     popd
 
-RUN echo "-> Install JARs: Flink's Hive connector (Catalogs)" && \
+
+RUN echo "--> Install JARs: Flink's Hive connector (Catalogs)" && \
     mkdir -p ./lib/hive && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/1.18.1/flink-sql-connector-hive-3.1.3_2.12-1.18.1.jar -O && \
     popd
 
-RUN echo "-> Install JARs: Dependencies for Iceberg" && \
+
+RUN echo "--> Install JARs: Dependencies for Iceberg" && \
     mkdir -p ./lib/iceberg && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/iceberg/iceberg-flink-runtime-1.18/1.5.0/iceberg-flink-runtime-1.18-1.5.0.jar -O && \
     popd
 
 
-RUN echo "-> Install JARs: AWS / Hadoop S3" && \
+RUN echo "--> Install JARs: AWS / Hadoop S3" && \
     mkdir -p ./lib/aws && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -O && \
     curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.648/aws-java-sdk-bundle-1.12.648.jar -O  && \
     popd
 
-RUN echo "-> Install JARs: Hadoop" && \
+
+RUN echo "--> Install JARs: Hadoop" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/commons/commons-configuration2/2.1.1/commons-configuration2-2.1.1.jar -O && \
     curl https://repo1.maven.org/maven2/commons-logging/commons-logging/1.1.3/commons-logging-1.1.3.jar -O && \
@@ -68,8 +74,9 @@ RUN echo "-> Install JARs: Hadoop" && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-client-core/3.3.4/hadoop-mapreduce-client-core-3.3.4.jar -O  && \
     popd
 
-RUN echo "Purge apt artifacts" && \
-    apt-get purge -y --auto-remove $build_deps && \
+    
+RUN echo "--> Purge apt artifacts" && \
+    apt-get purge -y --auto-remove && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
