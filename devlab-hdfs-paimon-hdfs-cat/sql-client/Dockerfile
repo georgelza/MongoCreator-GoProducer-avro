@@ -14,7 +14,7 @@ RUN echo "--> Install some useful tools" && \
     apt-get install -y neovim tree lnav unzip
 
 
-RUN echo "--> Creating SQL Client directories"&& \
+RUN echo "--> Creating SQL Client directories" && \
     mkdir -p /opt/sql-client/conf
 
 

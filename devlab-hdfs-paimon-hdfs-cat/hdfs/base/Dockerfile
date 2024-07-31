@@ -2,7 +2,7 @@ FROM ubuntu20.04arm64-openjdk11:1.0.0
 
 USER root
 
-COPY stage/hadoop-3.3.5-aarch64.tar.gz /tmp
+COPY /Users/george/Desktop/MongoCreater/goProd-avro/devlab-hdfs-paimon-hdfs-cat/stage/hadoop-3.3.5-aarch64.tar.gz /tmp
 
 WORKDIR /tmp/
 
