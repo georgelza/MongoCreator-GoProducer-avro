@@ -14,21 +14,14 @@
 # Password/Credentials
 .pwd
 .pwdloc
-connect/.pwdmongolocal
-connect/.pwdmongoatlas
+creConnect/.pwdmongolocal
+creConnect/.pwdmongoatlas
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
 .DS_Store
 .idea/
 .vscode/
-
-# Folders
-bin/
-democerts/
-sitcerts/
-distribute/
-old/
 
 # Folders where jar files will be staged, not tpo be included in git sync.
 devlab-hdfs-paimon-hdfs-cat/stage
