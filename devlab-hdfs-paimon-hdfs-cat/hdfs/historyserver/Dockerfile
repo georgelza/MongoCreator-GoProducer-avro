@@ -1,6 +1,6 @@
 FROM hadoop-base:3.3.5-java11
 
-RUN echo "--> Build Hadoop HDFS History server" && \
+RUN echo "--> Build Hadoop HDFS History server"
 
 HEALTHCHECK CMD curl -f http://localhost:8188/ || exit 1
 

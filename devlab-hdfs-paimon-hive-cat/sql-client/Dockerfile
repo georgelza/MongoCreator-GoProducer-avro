@@ -18,13 +18,13 @@ RUN echo "--> Creating SQL Client directories"&& \
     mkdir -p /opt/sql-client/conf
 
 
-RUN echo "--> Copy SQL Client shell scripts" && \
-    COPY sql-client/bin/sql-client.sh /opt/sql-client/
+RUN echo "--> Copy SQL Client shell scripts"
+COPY sql-client/bin/sql-client.sh /opt/sql-client/
 
 
-RUN echo "--> Copy configuration files" && \
-    COPY conf/flink-conf.yaml ./conf/flink-conf.yaml && \
-    COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+RUN echo "--> Copy configuration files"
+COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
+COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
 # Install JARs
 # See https://repo.maven.apache.org/maven2/org/apache/flink/

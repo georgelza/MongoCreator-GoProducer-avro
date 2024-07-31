@@ -18,12 +18,12 @@ RUN echo "--> Creating SQL Client directories" && \
     mkdir -p /opt/sql-client/conf
 
 
-RUN echo "--> Copy SQL Client shell script" && \ 
-    COPY sql-client/bin/sql-client.sh /opt/sql-client/
+RUN echo "--> Copy SQL Client shell script" 
+COPY sql-client/bin/sql-client.sh /opt/sql-client/
 
 
-RUN echo "--> Copy Flink configuration" && \
-    COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
+RUN echo "--> Copy Flink configuration"
+COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
 
     
 # Install JARs

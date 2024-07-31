@@ -13,11 +13,11 @@ RUN echo "--> install hadoop 3.3.5" && \
 
 RUN ln -s /opt/hadoop-3.3.5/etc/hadoop /etc/hadoop
 
-RUN echo "--> make directories" && \
+RUN echo "--> make Hadoop directories" && \
     mkdir /opt/hadoop-3.3.5/logs && \
     mkdir /hadoop-data
 
-RUN echo "--> set environment variable"
+RUN echo "--> set environment variables"
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
 ENV HADOOP_VERSION=3.3.5
 

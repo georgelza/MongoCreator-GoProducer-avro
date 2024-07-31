@@ -1,6 +1,6 @@
 FROM hadoop-base:3.3.5-java11
 
-RUN echo "--> Build Hadoop HDFS Namenode" && \
+RUN echo "--> Build Hadoop HDFS Namenode"
 
 HEALTHCHECK CMD curl -f http://localhost:9870/ || exit 1
 

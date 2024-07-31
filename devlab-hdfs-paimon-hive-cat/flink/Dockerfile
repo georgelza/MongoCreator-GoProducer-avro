@@ -14,8 +14,8 @@ RUN "--> Echo Install some useful tools" && \
     apt-get install -y neovim tree lnav unzip
 
     
-RUN "--> Set up Hive config" && \
-    COPY flink/conf/hive-site.xml ./conf/hive-site.xml
+RUN "--> Set up Hive config"
+COPY flink/conf/hive-site.xml ./conf/hive-site.xml
 
 
 RUN "--> Enable SQL Client to find the job manager when running it from this image" && \

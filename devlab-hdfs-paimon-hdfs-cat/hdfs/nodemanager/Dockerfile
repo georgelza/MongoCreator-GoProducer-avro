@@ -1,6 +1,6 @@
 FROM hadoop-base:3.3.5-java11
 
-RUN echo "--> Build Hadoop HDFS Nodemanager" && \
+RUN echo "--> Build Hadoop HDFS Nodemanager"
 
 HEALTHCHECK CMD curl -f http://localhost:8042/ || exit 1
 
