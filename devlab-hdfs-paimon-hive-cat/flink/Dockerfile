@@ -10,8 +10,9 @@ WORKDIR /opt/flink
 
 
 RUN "--> Echo Install some useful tools" && \
+    buil_deps="neovim tree lnav unzip" && \
     apt-get update && \
-    apt-get install -y neovim tree lnav unzip
+    apt-get install -y $buil_deps
 
     
 RUN "--> Set up Hive config"
@@ -95,7 +96,7 @@ RUN echo "--> Install JARs: Hadoop" && \
 
 
 RUN echo "--> urge apt artifacts" && \
-    apt-get purge -y --auto-remove && \
+    apt-get purge -y --auto-remove $buil_deps && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

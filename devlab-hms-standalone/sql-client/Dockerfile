@@ -10,8 +10,9 @@ WORKDIR /opt/flink
 
 
 RUN echo "--> Install some useful tools" && \
+    build_deps="neovim tree lnav unzip" && \
     apt-get update && \
-    apt-get install -y neovim tree lnav unzip
+    apt-get install -y $build_deps
 
 
 RUN echo "--> Add Flink S3 Plugin" && \
@@ -29,13 +30,13 @@ RUN echo "--> Creating SQL Client directories" && \
     mkdir -p /opt/sql-client/conf
 
 
-RUN echo "--> Copy SQL Client shell scripts" && \
-    COPY sql-client/bin/sql-client.sh /opt/sql-client/
+RUN echo "--> Copy SQL Client shell scripts" 
+COPY sql-client/bin/sql-client.sh /opt/sql-client/
 
 
-RUN echo "--> Copy configuration files" && \
-    COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml && \
-    COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+RUN echo "--> Copy configuration files" 
+COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
+COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
 
 RUN echo "-> Install JARs: Flink's Kafka connector" && \

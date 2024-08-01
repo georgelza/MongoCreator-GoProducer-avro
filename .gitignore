@@ -24,6 +24,9 @@ creConnect/.pwdmongoatlas
 .vscode/
 
 # Folders where jar files will be staged, not tpo be included in git sync.
+stage/
+
+devlab-hdfs-paimon-hdfs-cat/hdfs/base/stage
 devlab-hdfs-paimon-hdfs-cat/stage
 devlab-hdfs-paimon-hdfs-cat/data
 

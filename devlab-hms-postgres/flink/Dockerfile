@@ -9,8 +9,9 @@ SHELL ["/bin/bash", "-c"]
 WORKDIR /opt/flink
 
 RUN echo "--> Install some useful tools" && \
+    build_dep="neovim tree lnav unzip" && \
     apt-get update && \
-    apt-get install -y neovim tree lnav unzip
+    apt-get install -y $build_dep
 
 
 RUN echo "--> Install Duckdb client" && \
@@ -24,8 +25,8 @@ RUN echo "--> Install JARs: Flink's S3 plugin" && \
     cp ./opt/flink-s3-fs-hadoop-1.18.1.jar ./plugins/s3-fs-hadoop/
 
 
-RUN echo "--> Set up Hive config" && \
-    COPY flink/conf/hive-site.xml ./conf/hive-site.xml
+RUN echo "--> Set up Hive config"
+COPY flink/conf/hive-site.xml ./conf/hive-site.xml
 
 
 RUN echo "--> Enable SQL Client to find the job manager when running it from this image" && \
@@ -106,7 +107,7 @@ RUN echo "--> Install JARs: Hadoop" && \
 
 
 RUN echo "--> Purge apt artifacts" && \
-    apt-get purge -y --auto-remove && \
+    apt-get purge -y --auto-remove $build_dep && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 

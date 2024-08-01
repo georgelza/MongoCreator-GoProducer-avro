@@ -1,5 +1,5 @@
-FROM hadoop-base:3.3.5-java11
-
+FROM hadoop-base-3.3.5-java11:1.0.0
+ 
 RUN echo "--> Build Hadoop HDFS Datanode"
 
 HEALTHCHECK CMD curl -f http://localhost:9864/ || exit 1

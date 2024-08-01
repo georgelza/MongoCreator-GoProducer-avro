@@ -3,7 +3,7 @@
 echo -e "\n"
 
 # schematool --initSchema -dbType derby
-schematool -dbType postgres --initSchema 
+schematool -dbType postgres --initSchema
 
 #schematool -info -dbType postgres -userName hive -passWord hive -verbose
 
