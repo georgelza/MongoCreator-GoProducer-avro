@@ -213,8 +213,8 @@ services:
     container_name: minio
     hostname: minio
     environment:
-      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
-      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
+      - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
+      - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
     ports:
       - 9001:9001  # Web console
       - 9000:9000  # api address
@@ -263,8 +263,8 @@ services:
   # https://hub.docker.com/r/naushadh/hive-metastore
   # https://github.com/naushadh/hive-metastore
 
-  hive-metastore:
-    image: naushadh/hive-metastore:latest
+  hive-metastore:  # Hive Metastore
+    image: naushadh/hive-metastore:latest   # https://github.com/naushadh/hive-metastore/tree/main
     container_name: hms
     hostname: hms
     depends_on:
@@ -282,8 +282,7 @@ services:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     ports:
-      - '9083:9083'
-
+      - 9083:9083
 
   # Iceberg Python Client
   pyiceberg:
