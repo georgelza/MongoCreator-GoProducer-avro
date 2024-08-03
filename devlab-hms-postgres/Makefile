@@ -5,7 +5,7 @@ define HELP
 
 Available commands:
 
-- build: Build this project
+- run: Run this project
 
 endef
 
@@ -14,6 +14,6 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-build:
-	sudo docker build -t hms-standalone-s3:1.0.0 .
+run:
+	docker compose -p devlab up -d
 

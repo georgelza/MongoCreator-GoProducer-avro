@@ -10,8 +10,9 @@ WORKDIR /opt/flink
 
 
 RUN echo "--> Install some useful tools" && \
+    build_deps= "neovim tree lnav unzip" && \
     apt-get update && \
-    apt-get install -y neovim tree lnav unzip
+    apt-get install -y $build_deps
 
 
 RUN echo "--> Creating SQL Client directories" && \
@@ -19,7 +20,7 @@ RUN echo "--> Creating SQL Client directories" && \
 
 
 RUN echo "--> Copy SQL Client shell script" 
-COPY sql-client/bin/sql-client.sh /opt/sql-client/
+COPY bin/sql-client.sh /opt/sql-client/
 
 
 RUN echo "--> Copy Flink configuration"
@@ -82,7 +83,7 @@ RUN echo "--> Purge apt artifacts" && \
 WORKDIR /opt/sql-client
 ENV SQL_CLIENT_HOME /opt/sql-client
 
-COPY sql-client/docker-entrypoint.sh /
+ADD bin/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
 
 ENTRYPOINT ["/docker-entrypoint.sh"]

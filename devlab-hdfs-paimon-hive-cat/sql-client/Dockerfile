@@ -20,12 +20,12 @@ RUN echo "--> Creating SQL Client directories"&& \
 
 
 RUN echo "--> Copy SQL Client shell scripts"
-COPY sql-client/bin/sql-client.sh /opt/sql-client/
+COPY bin/sql-client.sh /opt/sql-client/
 
 
 RUN echo "--> Copy configuration files"
 COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
-COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
 # Install JARs
 # See https://repo.maven.apache.org/maven2/org/apache/flink/
@@ -82,7 +82,8 @@ RUN echo "--> Purge apt artifacts" && \
 WORKDIR /opt/sql-client
 ENV SQL_CLIENT_HOME /opt/sql-client
 
-COPY sql-client/docker-entrypoint.sh /
+ADD bin/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
 

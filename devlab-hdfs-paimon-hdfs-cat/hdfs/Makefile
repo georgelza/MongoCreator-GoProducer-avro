@@ -1,3 +1,5 @@
+.DEFAULT_GOAL := help
+
 HADOOP_VERSION = 3.3.5-java11
 VERSION=1.0.0
 

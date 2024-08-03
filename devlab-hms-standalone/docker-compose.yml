@@ -249,7 +249,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: hms-standalone-s3/Dockerfile
-    image: hms-standalone-s3:1.0
+    image: hms-standalone-s3:1.0.0
     container_name: hms
     hostname: hms
     ports:
@@ -306,3 +306,4 @@ services:
 networks:
   default:
      name: ${COMPOSE_PROJECT_NAME}
+     external: true

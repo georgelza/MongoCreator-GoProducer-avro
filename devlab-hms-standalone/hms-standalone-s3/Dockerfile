@@ -14,7 +14,7 @@ RUN echo "--> Install Hive Metastore Libraries" && \
 
 
 RUN echo "--> Copy Hive Site xml file"
-COPY hms-standalone-s3/conf/hive-site.xml /opt/hive-metastore/conf/hive-site.xml
+COPY conf/hive-site.xml /opt/hive-metastore/conf/hive-site.xml
 
 
 RUN echo "--> Install Derby DB Libraries" && \

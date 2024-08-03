@@ -1,5 +1,5 @@
 
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := help
 
 define HELP
 

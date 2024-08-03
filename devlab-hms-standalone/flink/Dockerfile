@@ -20,7 +20,7 @@ RUN echo "--> Add Flink S3 Plugin" && \
 
 
 RUN echo "--> Set up Hive config" 
-COPY flink/conf/hive-site.xml ./conf/hive-site.xml
+COPY conf/hive-site.xml ./conf/hive-site.xml
 
 
 RUN echo "--> Enable SQL Client to find the job manager when running it from this image" && \
