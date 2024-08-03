@@ -17,3 +17,8 @@ help:
 run:
 	docker compose -p devlab up -d
 
+down:
+	docker compose down
+
+stop:
+	docker compose stop

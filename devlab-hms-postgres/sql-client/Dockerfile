@@ -10,8 +10,9 @@ WORKDIR /opt/flink
 
 
 RUN echo "--> Install some useful tools" && \
+    build_deps="neovim tree lnav unzip" && \
     apt-get update && \
-    apt-get install -y neovim tree lnav unzip
+    apt-get install -y $build_deps
 
 
 RUN echo "--> used to interface with minio store." && \
@@ -24,13 +25,13 @@ RUN echo "--> Creating SQL Client directories" && \
     mkdir -p /opt/sql-client/conf
 
 
-RUN echo "--> Copy SQL Client shell scripts" && \
-    COPY sql-client/bin/sql-client.sh /opt/sql-client/
+RUN echo "--> Copy SQL Client shell scripts"
+COPY bin/sql-client.sh /opt/sql-client/
 
 
-RUN echo "--> Copy configuration files" && \
-    COPY conf/flink-conf.yaml ./conf/flink-conf.yaml && \
-    COPY flink/conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+RUN echo "--> Copy configuration files"
+COPY conf/flink-conf.yaml ./conf/flink-conf.yaml 
+COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
 
 RUN echo "-> Install JARs: Flink's Kafka connector" && \
@@ -103,15 +104,18 @@ RUN echo "-> Install JARs: Hadoop" && \
 
 
 RUN echo "--> Purge apt artifacts" && \
-    apt-get purge -y --auto-remove && \
+    apt-get purge -y --auto-remove $build_deps && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
     
 
 WORKDIR /opt/sql-client
-ENV SQL_CLIENT_HOME /opt/sql-client
+ENV SQL_CLIENT_HOME=/opt/sql-client
 
-COPY sql-client/docker-entrypoint.sh /
+USER root
+
+ADD bin/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh
+
 ENTRYPOINT ["/docker-entrypoint.sh"]
 

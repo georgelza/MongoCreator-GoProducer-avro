@@ -355,4 +355,5 @@ services:
 # https://github.com/TrivadisPF/platys-modern-data-platform/issues/231
 networks:
   default:
-     name: ${COMPOSE_PROJECT_NAME}
+    name: ${COMPOSE_PROJECT_NAME}
+    external: true

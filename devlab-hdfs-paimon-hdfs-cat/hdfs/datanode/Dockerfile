@@ -8,7 +8,7 @@ ENV HDFS_CONF_dfs_datanode_data_dir=file:///hadoop/dfs/warehouse
 RUN mkdir -p /hadoop/dfs/warehouse
 VOLUME /hadoop/dfs/warehouse
 
-ADD run.sh /run.sh
+ADD bin/run.sh /run.sh
 RUN chmod a+x /run.sh
 
 EXPOSE 9864
