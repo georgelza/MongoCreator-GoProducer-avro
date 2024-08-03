@@ -207,7 +207,7 @@ services:
   # The Namenode UI can be accessed at http://localhost:9870/⁠ and 
   # the ResourceManager UI can be accessed at http://localhost:8089/⁠
   namenode:
-    image: hadoop-namenode:3.3.5-java11 
+    image: hadoop-namenode-3.3.5-java11:1.0.0
     container_name: namenode
     volumes:
       - ./data/hdfs/namenode:/hadoop/dfs/name
@@ -219,7 +219,7 @@ services:
       - "9870:9870"  # NameNode Web UI
 
   resourcemanager:
-    image: hadoop-resourcemanager:3.3.5-java11 
+    image: hadoop-resourcemanager-3.3.5-java11:1.0.0
     container_name: resourcemanager
     restart: on-failure
     depends_on:
@@ -237,7 +237,7 @@ services:
       - "8089:8088" # Resource Manager Web UI
   
   historyserver:
-    image: hadoop-historyserver:3.3.5-java11 
+    image: hadoop-historyserver-3.3.5-java11:1.0.0
     container_name: historyserver
     depends_on:
       - namenode
@@ -253,7 +253,7 @@ services:
       - "8188:8188"
   
   nodemanager1:
-    image: hadoop-nodemanager:3.3.5-java11 
+    image: hadoop-nodemanager-3.3.5-java11:1.0.0
     container_name: nodemanager1
     depends_on:
       - namenode
@@ -267,7 +267,7 @@ services:
       - "8042:8042"   # NodeManager Web UI
   
   datanode1:
-    image: hadoop-datanode:3.3.5-java11 
+    image: hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode1
     depends_on:
       - namenode
@@ -279,7 +279,7 @@ services:
       - ./hdfs/hadoop.env
   
   datanode2:
-    image: hadoop-datanode:3.3.5-java11 
+    image: hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode2
     depends_on:
       - namenode
@@ -291,7 +291,7 @@ services:
       - ./hdfs/hadoop.env
   
   datanode3:
-    image: hadoop-datanode:3.3.5-java11 
+    image: hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode3
     depends_on:
       - namenode
@@ -303,7 +303,7 @@ services:
       - ./hdfs/hadoop.env
 
   datanode4:
-    image: hadoop-datanode:3.3.5-java11 
+    image: hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode4
     depends_on:
       - namenode
@@ -315,7 +315,7 @@ services:
       - ./hdfs/hadoop.env
       
   datanode5:
-    image: hadoop-datanode:3.3.5-java11 
+    image: hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode5
     depends_on:
       - namenode
