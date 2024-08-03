@@ -1,6 +1,21 @@
 HADOOP_VERSION = 3.3.5-java11
 VERSION=1.0.0
 
+define HELP
+
+Available commands:
+
+- buildbase: Build the base image project
+
+- build: Build this project
+
+endef
+
+export HELP
+help:
+	@echo "$$HELP"
+.PHONY: help
+
 buildbase:
 	sudo docker build -t hadoop-base-$(HADOOP_VERSION):$(VERSION) ./base
 
