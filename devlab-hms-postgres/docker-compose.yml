@@ -158,9 +158,6 @@ services:
 
   # Apache Flink bits    
   flink-jobmanager:
-    # build:
-    #   context: .
-    #   dockerfile: flink/Dockerfile
     image: apacheflink:1.18.1-scala_2.12-java11-b
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
@@ -190,9 +187,6 @@ services:
         taskmanager.numberOfTaskSlots: 10
 
   flink-sql-client:
-    # build:
-    #   context: .
-    #   dockerfile: sql-client/Dockerfile
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
@@ -244,8 +238,9 @@ services:
       tail -f /dev/null
       " 
 
+  # Datastore for Hive Metastore - Standalone 
   postgres:
-    image: postgres:14-alpine
+    image: postgres-12.0:1.0.0
     container_name: postgres
     hostname: postgres
     environment:
@@ -258,13 +253,13 @@ services:
     #   - ./data/postgres:/var/lib/postgresql/data
 
 
-
   # Catalog for Flink
   # https://hub.docker.com/r/naushadh/hive-metastore
   # https://github.com/naushadh/hive-metastore
 
-  hive-metastore:  # Hive Metastore
-    image: naushadh/hive-metastore:latest   # https://github.com/naushadh/hive-metastore/tree/main
+  # https://github.com/naushadh/hive-metastore/tree/main
+  hive-metastore:
+    image: naushadh/hive-metastore:latest
     container_name: hms
     hostname: hms
     depends_on:
@@ -283,6 +278,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
     ports:
       - 9083:9083
+
 
   # Iceberg Python Client
   pyiceberg:
@@ -331,5 +327,4 @@ services:
 # https://github.com/TrivadisPF/platys-modern-data-platform/issues/231
 networks:
   default:
-     name: ${COMPOSE_PROJECT_NAME}
-     external: true
+    name: ${COMPOSE_PROJECT_NAME}

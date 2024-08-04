@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 
-HADOOP_VERSION = 3.3.5-java11
+HADOOP_VERSION=3.3.5-java11
 VERSION=1.0.0
 
 define HELP
@@ -27,3 +27,18 @@ build:
 	sudo docker build -t hadoop-resourcemanager-$(HADOOP_VERSION):$(VERSION) ./resourcemanager
 	sudo docker build -t hadoop-nodemanager-$(HADOOP_VERSION):$(VERSION) ./nodemanager
 	sudo docker build -t hadoop-historyserver-$(HADOOP_VERSION):$(VERSION) ./historyserver
+
+run:
+	docker compose -p devlab up -d
+
+stop:
+	docker compose stop
+
+down:
+	docker compose down
+
+logs:
+	docker compose logs
+
+ps:
+	docker compose ps

@@ -23,8 +23,9 @@ RUN echo "--> Copy SQL Client shell script"
 COPY bin/sql-client.sh /opt/sql-client/
 
 
-RUN echo "--> Copy Flink configuration"
-COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
+RUN echo "--> Copy configuration files"
+COPY conf/flink-conf.yaml ./conf/flink-conf.yaml 
+COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
     
 # Install JARs
@@ -41,14 +42,29 @@ RUN echo "--> Install JARs: Flink's Kafka connector" && \
     popd
 
 
-RUN echo "--> Install JARs: Flink's HDFS connector (Catalogs)" && \
+RUN echo "--> Install JARs: Flink's Hive connector (Catalogs)" && \
+    mkdir -p ./lib/hive && pushd $_ && \
+    curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-hive-3.1.3_2.12/1.18.1/flink-sql-connector-hive-3.1.3_2.12-1.18.1.jar -O && \
+    curl https://repo.maven.apache.org/maven2/org/apache/hive/hive-exec/3.1.3/hive-exec-3.1.3.jar -O && \
+    curl https://repo.maven.apache.org/maven2/org/apache/hive/hive-metastore/3.1.3/hive-metastore-3.1.3.jar -O && \
+    popd
+
+
+RUN echo "--> Install JARs: Flink's Paimon HDFS connector (Catalogs)" && \
     mkdir -p ./lib/hive && pushd $_ && \
     curl https://repository.apache.org/content/groups/snapshots/org/apache/paimon/paimon-flink-1.18/0.9-SNAPSHOT/paimon-flink-1.18-0.9-20240727.002140-43.jar -O && \
     curl https://repository.apache.org/content/groups/snapshots/org/apache/paimon/paimon-flink-action/0.9-SNAPSHOT/paimon-flink-action-0.9-20240727.002140-43.jar -O && \
     popd
 
 
-RUN echo "--> Install JARs: Flink Hadoop classes" && \
+RUN echo "--> Install JARs: AWS / Hadoop S3" && \
+    mkdir -p ./lib/aws && pushd $_ && \
+    curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-aws/3.3.4/hadoop-aws-3.3.4.jar -O && \
+    curl https://repo1.maven.org/maven2/com/amazonaws/aws-java-sdk-bundle/1.12.648/aws-java-sdk-bundle-1.12.648.jar -O  && \
+    popd
+
+
+RUN echo "--> Install JARs: Hadoop AWS classes" && \
     mkdir -p ./lib/hadoop && pushd $_ && \
     curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-shaded-hadoop-2-uber/2.8.3-9.0/flink-shaded-hadoop-2-uber-2.8.3-9.0.jar && \
     popd
@@ -74,6 +90,16 @@ RUN echo "--> Install JARs: Hadoop" && \
     popd
 
 
+# RUN echo "-> Install JARs: DBs" && \
+#    mkdir -p ./lib/dbs && pushd $_ && \
+#    curl https://jdbc.postgresql.org/download/postgresql-42.7.3.jar -O && \
+#    curl https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar -O && \
+#    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-elasticsearch7/3.0.1-1.17/flink-sql-connector-elasticsearch7-3.0.1-1.18.jar -O && \
+#    curl https://github.com/knaufk/flink-faker/releases/download/v0.5.3/flink-faker-0.5.3.jar -O && \
+#    curl https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-protobuf/1.18.1/flink-sql-protobuf-1.18.1.jar -O && \
+#    popd
+
+
 RUN echo "--> Purge apt artifacts" && \
     apt-get purge -y --auto-remove $build_deps && \
     apt-get clean && \
@@ -81,7 +107,9 @@ RUN echo "--> Purge apt artifacts" && \
     
 
 WORKDIR /opt/sql-client
-ENV SQL_CLIENT_HOME /opt/sql-client
+ENV SQL_CLIENT_HOME=/opt/sql-client
+
+USER root
 
 ADD bin/docker-entrypoint.sh /
 RUN chmod +x /docker-entrypoint.sh

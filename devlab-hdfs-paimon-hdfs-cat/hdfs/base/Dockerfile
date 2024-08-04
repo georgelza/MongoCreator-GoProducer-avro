@@ -1,4 +1,4 @@
-FROM ubuntu20.04arm64-openjdk11:1.0.0
+FROM ubuntu20.04-openjdk11:1.0.0
 
 USER root
 

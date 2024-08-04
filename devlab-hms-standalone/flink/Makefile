@@ -15,5 +15,5 @@ help:
 .PHONY: help
 
 build:
-	sudo docker build -t apacheflink:1.18.1-scala_2.12-java11 .
+	sudo docker build -t apacheflink:1.18.1-scala_2.12-java11-a .
 

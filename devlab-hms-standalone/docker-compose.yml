@@ -159,7 +159,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: flink/Dockerfile
-    image: apacheflink:1.18.1-scala_2.12-java11
+    image: apacheflink:1.18.1-scala_2.12-java11-a
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     depends_on:
@@ -174,7 +174,7 @@ services:
         rest.flamegraph.enabled: true
 
   flink-taskmanager:
-    image: apacheflink:1.18.1-scala_2.12-java11
+    image: apacheflink:1.18.1-scala_2.12-java11-a
     hostname: ${COMPOSE_PROJECT_NAME}-flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -191,7 +191,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: sql-client/Dockerfile
-    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11
+    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-a
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     depends_on:

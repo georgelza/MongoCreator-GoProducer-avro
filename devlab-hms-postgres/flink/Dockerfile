@@ -6,7 +6,9 @@
 FROM arm64v8/flink:1.18.1-scala_2.12-java11
 SHELL ["/bin/bash", "-c"]
 
+
 WORKDIR /opt/flink
+
 
 RUN echo "--> Install some useful tools" && \
     build_dep="neovim tree lnav unzip" && \

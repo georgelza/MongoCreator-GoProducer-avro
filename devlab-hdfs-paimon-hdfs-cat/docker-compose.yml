@@ -158,9 +158,6 @@ services:
 
   # Apache Flink bits    
   flink-jobmanager:
-    # build:
-    #   context: .
-    #   dockerfile: flink/Dockerfile
     image: apacheflink:1.18.1-scala_2.12-java11-c
     container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
     hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
@@ -188,9 +185,6 @@ services:
         taskmanager.numberOfTaskSlots: 10
 
   flink-sql-client:
-    # build:
-    #   context: .
-    #   dockerfile: sql-client/Dockerfile
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-c
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
     hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
@@ -327,14 +321,86 @@ services:
       - ./hdfs/hadoop.env
 
 
+  # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog
+  # https://www.decodable.co/blog/kafka-to-iceberg-with-flink
+  #
+  # S3-Amazon Compatible store, as storage for Iceberg
+  # http://localhost:9001/browser
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    hostname: minio
+    environment:
+      - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
+      - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - 9001:9001  # Web console
+      - 9000:9000  # api address
+    command: ["server", "/data", "--console-address", ":9001"]
+    volumes:
+      - ./data/minio:/data
 
-  # Apache Paimon
-  # https://github.com/apache/paimon
-  # https://docs.ververica.com/vvc/connectors-and-formats/built-in-connectors/paimon
-  # You should be able to navigate to the web UI at localhost:8081 to view the Flink dashboard and see that the cluster is up and running.
+
+  # https://hub.docker.com/r/minio/mc
+  # Minio Client
+  mc:
+    image: minio/mc:latest
+    container_name: mc
+    hostname: mc
+    depends_on:
+      - minio
+    environment:
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_REGION}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+    entrypoint: >
+      /bin/sh -c "
+      until (/usr/bin/mc config host add minio ${S3_ENDPOINT_URL} admin password) do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc rm -r --force minio/${S3_BUCKET};
+      /usr/bin/mc mb minio/${S3_BUCKET};
+      tail -f /dev/null
+      " 
 
 
+  # Datastore for Hive Metastore - Standalone
+  postgres:
+    image: postgres-12.0:1.0.0
+    container_name: postgres
+    hostname: postgres
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      - POSTGRES_DB=${DATABASE_DB}
+    ports:
+      - '5432:5432'
 
+
+  # Catalog for Flink
+  # https://hub.docker.com/r/naushadh/hive-metastore
+  # https://github.com/naushadh/hive-metastore
+
+  # https://github.com/naushadh/hive-metastore/tree/main
+  hive-metastore:
+    image: naushadh/hive-metastore:latest
+    container_name: hms
+    hostname: hms
+    depends_on:
+      - postgres
+      - minio
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - DATABASE_PORT=${DATABASE_PORT}
+      - DATABASE_DB=${DATABASE_DB}
+      - DATABASE_USER=${DATABASE_USER}
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - S3_ENDPOINT_URL=${S3_ENDPOINT_URL}
+      - S3_PREFIX=${S3_PREFIX}
+      - S3_BUCKET=${S3_BUCKET}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    ports:
+      - 9083:9083
 
     
   # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
@@ -356,4 +422,3 @@ services:
 networks:
   default:
     name: ${COMPOSE_PROJECT_NAME}
-    external: true

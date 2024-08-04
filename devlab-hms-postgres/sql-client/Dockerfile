@@ -34,6 +34,9 @@ COPY conf/flink-conf.yaml ./conf/flink-conf.yaml
 COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
 
+# Install JARs
+# See https://repo.maven.apache.org/maven2/org/apache/flink/
+
 RUN echo "-> Install JARs: Flink's Kafka connector" && \
     mkdir -p ./lib/kafka && pushd $_ && \
     curl https://repo1.maven.org/maven2/org/apache/flink/flink-sql-connector-kafka/3.2.0-1.18/flink-sql-connector-kafka-3.2.0-1.18.jar -O && \
@@ -93,6 +96,7 @@ RUN echo "-> Install JARs: Hadoop" && \
     curl https://repo1.maven.org/maven2/org/apache/hadoop/hadoop-mapreduce-client-core/3.3.4/hadoop-mapreduce-client-core-3.3.4.jar -O  && \
     popd
 
+    
 # RUN echo "-> Install JARs: DBs" && \
 #     mkdir -p ./lib/dbs && pushd $_ && \
 #     curl https://jdbc.postgresql.org/download/postgresql-42.7.1.jar -O && \

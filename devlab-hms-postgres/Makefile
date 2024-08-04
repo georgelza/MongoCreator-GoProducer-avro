@@ -5,7 +5,17 @@ define HELP
 
 Available commands:
 
-- run: Run this project
+- run: Run the project
+
+- stop: Stop the project
+
+- down: Down the project
+
+- ps: Show all running containers
+
+- logs: Show logs
+
+- watch: Watch logs
 
 endef
 
@@ -17,8 +27,17 @@ help:
 run:
 	docker compose -p devlab up -d
 
-down:
-	docker compose down
-
 stop:
 	docker compose stop
+
+down:	
+	docker compose down
+
+ps:
+	docker compose ps
+
+logs:
+	docker compose logs
+
+watch:
+	watch docker compose ps
