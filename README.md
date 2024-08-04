@@ -8,6 +8,8 @@ Golang app that generate fake sales (maybe split as a basket onto one kafka topi
 At this point I want to show a 2nd stream to it all, and do it via Python. was thinking…
 maybe based on data sinked into the MongoDB store, do a trigger… with a do a source connector out of Mongo onto Kafka (some aggregating) and then consume that via the Python app and for simplistic just echo this to the console (implying it can be pushed somewhere further)
 
+See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as a multi part article.
+
 ## Using the app.
 
 This application generates fake data (salesbaskets), how that is done is controlled by the *_app.json configuration file that configures the run environment. The *_seed.json in which seed data is provided is used to generate the fake basket + basket items and the associated payments (salespayments) documents.
@@ -19,7 +21,7 @@ a similar bat file can be configured on Windows
 
 The User can always start up multiple copies, specify/hard code the store, and configure one store to have small baskets, low quantity per basket and configure a second run to have larger baskets, more quantity per product, thus higher value baskets.
 
-## Note: Not included in the repo is a file called .pwd
+## Note: Not included in the repo is a 2 files called ./*.pwd
 
 This file would be located in the project root folder next to the runs_**.sh filesystem
 Example: 
@@ -32,7 +34,7 @@ This files is executed via the runs_*.sh file, reading the values into local env
 
 ## Overview/plan.
 
-See example/MongoCreatorProject *.jpg for a visual diagram if the thinking.
+See example/MongoCreatorProject ./blog-doc/diagrams/*.jpg for visual diagrams of the thinking.
 
 1. Create salesbaskets and salespayments documents (Golang app).
 2. Push salesbaskets and salespayments onto 2 Kafka topics.
@@ -58,7 +60,12 @@ See example/MongoCreatorProject *.jpg for a visual diagram if the thinking.
 
 Note: all by hour group'ing on Kafka/kSQL is done at the moment using emit final, which means we wait for the window to complete and then emit the aggregated value... Another option would be to emit changes which means as the number increases then a new record is released - point of self research... is this new record key'd in such a way as as to upsert into a target database, other words replace previous record in a ktable.
 
-Note: all/most subdirectories have local README.md files with some more local topic specific comments.
+Note: 
+
+1. all/most subdirectories have local README.md files with some more local topic specific comments.
+2. See infrastructure directory for supporting container creates. Each infrastructure directory have a local Makefile.
+    See blog-doc/diagrams/ImageAncestry.png for high level order of creation.
+
 
 ## Credits... due.
 
