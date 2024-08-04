@@ -1,6 +1,6 @@
 # MongoCreator - GoTransactionProducer
 
-https://github.com/georgelza/MongoCreator-GoProducer-pb
+https://github.com/georgelza/MongoCreator-GoProducer-avro
 
 ## Basic idea.
 

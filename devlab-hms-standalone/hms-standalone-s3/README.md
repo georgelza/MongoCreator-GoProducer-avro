@@ -4,6 +4,7 @@ Original from: https://github.com/joshuarobinson/presto-on-k8s/blob/1c91f0b97c3b
 
 see https://hadoop.apache.org/releases.html
 
+Simple single node Hiverserver and metastore.
 
 ## Published images
 - [dockerhub](https://hub.docker.com/...)
