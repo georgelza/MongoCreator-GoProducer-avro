@@ -5,6 +5,10 @@
 *.so
 *.dylib
 
+# Everything under any ./stage directory
+*.tar.gz
+*.jar
+
 # Test binary, built with `go test -c`
 *.test
 
@@ -23,7 +27,8 @@ creConnect/.pwdmongoatlas
 .idea/
 .vscode/
 
-# Folders where jar files will be staged, not tpo be included in git sync.
+# Folders where jar and *.tar.gz files will be staged, not to be included in git sync.
+# also excluding these via *.tar.gz and *.jar definitions higher up.
 stage/
 
 devlab-hdfs-paimon-hdfs-cat/hdfs/base/stage

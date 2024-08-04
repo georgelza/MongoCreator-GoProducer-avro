@@ -45,14 +45,15 @@ See example/MongoCreatorProject *.jpg for a visual diagram if the thinking.
         Added Apache Hive catalog in standalone with a internal DerbyDB back-end. 
         Changed to Apache Hive catalog with a PostgreSql back-end.
     b.  Push from Flink to Paimon on Hadoop/hdfs
-        Added Apache Hadoop Cluster 
+        Added Apache Hadoop Cluster (3.3.5)
         Changed to Apache Hive catalog on HDFS back-end.
         Changed to Apache Hive catalog with a PostgreSql back end.
+        (Using the stand alone Hive metastore for convenience, see infrastructure sub directory for a distributed Hive deployment the in works).
 8. Using Kafka Sink connector sink the sales per store per terminal per hour onto MongoDB collection.
-9. On MongoDB Atlas cluster merge the salesbaskets and salespayments collection feeds into a salescompleted collection.
-10. Using Mongo Aggregation calculate sales by brand by hours and sales by product by hour into 2 new collections.
-11. Using Kafka source connector extract 4 Mongo collections onto 4 new Kafka topics.
-12. Using 4 Python applications echo the messages from the 4 topics onto the terminal. 
+9. On MongoDB Atlas cluster merge the salesbaskets and salespayments collection feeds into a salescompleted collection. TooDo
+10. Using Mongo Aggregation calculate sales by brand by hours and sales by product by hour into 2 new collections. ToDo
+11. Using Kafka source connector extract 4 Mongo collections onto 4 new Kafka topics. ToDo
+12. Using 4 Python applications echo the messages from the 4 topics onto the terminal. ToDo
 
 
 Note: all by hour group'ing on Kafka/kSQL is done at the moment using emit final, which means we wait for the window to complete and then emit the aggregated value... Another option would be to emit changes which means as the number increases then a new record is released - point of self research... is this new record key'd in such a way as as to upsert into a target database, other words replace previous record in a ktable.

@@ -1,6 +1,6 @@
 # Some docker-compose Notes
 
-This directory includes a docker-compose.yml file which can be used to spin :
+This directory includes a docker compose.yml file which can be used to spin :
 
 - Confluent Platform Cluster as
 - Confluent Platform Broker

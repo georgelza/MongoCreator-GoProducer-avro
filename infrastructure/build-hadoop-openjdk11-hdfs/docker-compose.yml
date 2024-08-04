@@ -1,0 +1,165 @@
+# docker-compose -p my-project up -d --build
+# or
+# export COMPOSE_PROJECT_NAME=my-project
+# docker-compose up -d --build
+#
+# inspect network: docker network inspect devlab
+#
+services:
+      
+  # First we will start with a local (HDFS) file based Catalog for Apache Paimon
+
+  #### Hadoop / HDFS ####
+  #
+  # The Namenode UI can be accessed at http://localhost:9870/⁠ and 
+  # the ResourceManager UI can be accessed at http://localhost:8089/⁠
+  namenode:
+    image: hadoop-namenode-3.3.5-java11:1.0.0
+    container_name: namenode
+    volumes:
+      - ./data/hdfs/namenode:/hadoop/dfs/name
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    env_file:
+      - ./hdfs/hadoop.env
+    ports:
+      - "9870:9870"  # NameNode Web UI
+
+  resourcemanager:
+    image: hadoop-resourcemanager-3.3.5-java11:1.0.0
+    container_name: resourcemanager
+    restart: on-failure
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+      - datanode3
+      - datanode4
+      - datanode5
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    env_file:
+      - ./hdfs/hadoop.env
+    ports:
+      - "8089:8088" # Resource Manager Web UI
+  
+  historyserver:
+    image: hadoop-historyserver-3.3.5-java11:1.0.0
+    container_name: historyserver
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    volumes:
+      - ./data/hdfs/historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hdfs/hadoop.env
+    ports:
+      - "8188:8188"
+  
+  nodemanager1:
+    image: hadoop-nodemanager-3.3.5-java11:1.0.0
+    container_name: nodemanager1
+    depends_on:
+      - namenode
+      - datanode1
+      - datanode2
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    env_file:
+      - ./hdfs/hadoop.env
+    ports:
+      - "8042:8042"   # NodeManager Web UI
+  
+  datanode1:
+    image: hadoop-datanode-3.3.5-java11:1.0.0
+    container_name: datanode1
+    depends_on:
+      - namenode
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    volumes:
+      - ./data/hdfs/datanode1:/hadoop/dfs/data
+    env_file:
+      - ./hdfs/hadoop.env
+  
+  datanode2:
+    image: hadoop-datanode-3.3.5-java11:1.0.0
+    container_name: datanode2
+    depends_on:
+      - namenode
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    volumes:
+      - ./data/hdfs/datanode2:/hadoop/dfs/data
+    env_file:
+      - ./hdfs/hadoop.env
+  
+  datanode3:
+    image: hadoop-datanode-3.3.5-java11:1.0.0
+    container_name: datanode3
+    depends_on:
+      - namenode
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    volumes:
+      - ./data/hdfs/datanode3:/hadoop/dfs/data
+    env_file:
+      - ./hdfs/hadoop.env
+
+  datanode4:
+    image: hadoop-datanode-3.3.5-java11:1.0.0
+    container_name: datanode4
+    depends_on:
+      - namenode
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}
+    volumes:
+      - ./data/hdfs/datanode4:/hadoop/dfs/data
+    env_file:
+      - ./hdfs/hadoop.env
+      
+  datanode5:
+    image: hadoop-datanode-3.3.5-java11:1.0.0
+    container_name: datanode5
+    depends_on:
+      - namenode
+    environment:
+      - CLUSTER_NAME=${CLUSTER_NAME}  
+    volumes:
+      - ./data/hdfs/datanode5:/hadoop/dfs/data
+    env_file:
+      - ./hdfs/hadoop.env
+
+
+
+  # Apache Paimon
+  # https://github.com/apache/paimon
+  # https://docs.ververica.com/vvc/connectors-and-formats/built-in-connectors/paimon
+  # You should be able to navigate to the web UI at localhost:8081 to view the Flink dashboard and see that the cluster is up and running.
+
+
+
+
+    
+  # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
+  # shadowtraffic:
+  #   image: shadowtraffic/shadowtraffic:0.6.0
+  #   container_name: shadowtraffic
+  #   hostname: shadowtraffic
+  #     #    profiles: ["shadowtraffic"]
+  #   env_file:
+  #     - shadowtraffic/license.env
+  #   volumes:
+  #     - ./shadowtraffic:/data
+  #   command: --config /data/kafka-retail.json
+
+
+# Without a network explicitly defined, you hit this Hive/Thrift error
+# java.net.URISyntaxException Illegal character in hostname
+# https://github.com/TrivadisPF/platys-modern-data-platform/issues/231
+networks:
+  default:
+    name: ${COMPOSE_PROJECT_NAME}

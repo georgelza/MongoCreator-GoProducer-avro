@@ -246,9 +246,6 @@ services:
   # https://github.com/naushadh/hive-metastore 
 
   hive-metastore:
-    # build:
-    #   context: .
-    #   dockerfile: hms-standalone-s3/Dockerfile
     image: hms-standalone-s3:1.0.0
     container_name: hms
     hostname: hms
