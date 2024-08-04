@@ -1,6 +1,6 @@
 # Some docker-compose Notes
 
-This directory includes a docker-compose.yml file which can be used to spin up a local flink cluster in addition to a local.
+This directory includes a docker compose.yml file which can be used to spin up a local flink cluster in addition to a local.
 
 Pivoting here...
 
