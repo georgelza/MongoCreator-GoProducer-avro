@@ -10,27 +10,6 @@ maybe based on data sinked into the MongoDB store, do a trigger… with a do a s
 
 See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as a multi part article.
 
-## Using the app.
-
-This application generates fake data (salesbaskets), how that is done is controlled by the *_app.json configuration file that configures the run environment. The *_seed.json in which seed data is provided is used to generate the fake basket + basket items and the associated payments (salespayments) documents.
-
-the *_app.json contains comments to explain the impact of the value.
-
-on the Mac (and Linux) platform you can run the program by executing runs_avro.sh
-a similar bat file can be configured on Windows
-
-The User can always start up multiple copies, specify/hard code the store, and configure one store to have small baskets, low quantity per basket and configure a second run to have larger baskets, more quantity per product, thus higher value baskets.
-
-## Note: Not included in the repo is a 2 files called ./*.pwd
-
-This file would be located in the project root folder next to the runs_**.sh filesystem
-Example: 
-
-export Sasl_password=Vj8MASendaIs0j4r34rsdfe4Vc8LG6cZ1XWilAJjYS05bZIk7AaGx0Y49xb
-
-export Sasl_username=3MZ4dfgsdfdfIUUA
-
-This files is executed via the runs_*.sh file, reading the values into local environment, from where they are injested by a os.Getenv call, if this code is pushed into a docker container then these values can be pushed into a secret included in the environment.
 
 ## Overview/plan.
 
@@ -58,13 +37,58 @@ See example/MongoCreatorProject ./blog-doc/diagrams/*.jpg for visual diagrams of
 12. Using 4 Python applications echo the messages from the 4 topics onto the terminal. ToDo
 
 
-Note: all by hour group'ing on Kafka/kSQL is done at the moment using emit final, which means we wait for the window to complete and then emit the aggregated value... Another option would be to emit changes which means as the number increases then a new record is released - point of self research... is this new record key'd in such a way as as to upsert into a target database, other words replace previous record in a ktable.
+## Using the app.
 
-Note: 
+This application generates fake data (salesbaskets), how that is done is controlled by the *_app.json configuration file that configures the run environment. The *_seed.json in which seed data is provided is used to generate the fake basket + basket items and the associated payments (salespayments) documents.
+
+the *_app.json contains comments to explain the impact of the value.
+
+on the Mac (and Linux) platform you can run the program by executing runs_avro.sh
+a similar bat file can be configured on Windows
+
+The User can always start up multiple copies, specify/hard code the store, and configure one store to have small baskets, low quantity per basket and configure a second run to have larger baskets, more quantity per product, thus higher value baskets.
+
+
+## Note: Not included in the repo is a 2 files called ./*.pwd
+
+This file would be located in the project root folder next to the runs_**.sh filesystem
+Example: 
+
+export Sasl_password=Vj8MASendaIs0j4r34rsdfe4Vc8LG6cZ1XWilAJjYS05bZIk7AaGx0Y49xb
+
+export Sasl_username=3MZ4dfgsdfdfIUUA
+
+This files is executed via the runs_*.sh file, reading the values into local environment, from where they are injested by a os.Getenv call, if this code is pushed into a docker container then these values can be pushed into a secret included in the environment.
+
+
+## Note: 
+
+All by hour group'ing on Kafka/kSQL is done at the moment using emit final, which means we wait for the window to complete and then emit the aggregated value... 
+
+Another option would be to emit changes which means as the number increases then a new record is released - point of self research... is this new record key'd in such a way as as to upsert into a target database, other words replace previous record in a ktable.
+
+## Note: 
 
 1. all/most subdirectories have local README.md files with some more local topic specific comments.
+
 2. See infrastructure directory for supporting container creates. Each infrastructure directory have a local Makefile.
     See blog-doc/diagrams/ImageAncestry.png for high level order of creation.
+
+
+## Deployable Sections/Sub projects:
+
+The project is broken down into the following sections, the Blog will be aligned with these sections.
+
+1. devlab-mongodb : Firstly we publish messages onto the 2 Kafka topics, which is in turn directly sinked into out MongoDB Atlast collections, from where we then MongoDB Change Stream process the records, after which they are persisted into a new collections which can then be consumed by Apache Kafka via source connectors.
+
+2. devlab-hms-standalone : With the introduction of Apache Flink, the first iteration utilizeda hms in stand alone, with a internet DerbyDB back-end. this is deployed.
+
+3. devlab-hms-postgres : Next up we migrated the internetl DerbyDB database workload into a external Postgresql datastore.
+    For both 1 and 2 we pushed the data to a Apache Iceberg table format stored on a AWS S3 bucket, hosted inside MinIO.
+
+4. devlab-hdfs-paimon-hdfs-cat : For the 3rd version we now going to persist the data onto Apache Paimon format hosted on a Apache Hadoop DFS. As Apache Flink is still involved we still have the HMS with postgres backend for the Flink object persistence/Catalog. The Paimon on HDFS is cataloged by creating catalog objects on hdfs as a file store.
+
+5. devlab-hdfs-paimon-hms-cat : As we are now using Apache Paimon, we can now use the Hive metastore as the catalog for the Flink and Paimon object persistence, backed by a Postgresql database. In this last iteration we move the catalog into the Apache Hive catalog.
 
 
 ## Credits... due.
@@ -89,11 +113,3 @@ Without these guys and their willingness to entertain allot of questions and som
         Apache Kafka, Apache Flink, streaming and stuff (as he calls it)
         A good friend, thats always great to chat to... and we seldom stick to original topic.
         https://confluentcommunity.slack.com/team/U03R0RG6CHZ
-
-
-## Some Version notes.
-0.2	- 10/01/2024	Pushing/posting basket docs and associated payment docs onto Kafka.
-
-0.3	- 24/01/2024	To "circumvent" Confluent Kafka cluster "unavailability" at this time I'm modifying the code here to insert directly into Mongo Atlas into 2 collections. This will allow the Creator community to interface with the inbound docs on the Atlas environment irrespective how they got there.
-
-... Just look at the top of main.go... 
