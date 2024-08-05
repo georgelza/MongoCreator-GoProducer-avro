@@ -58,7 +58,7 @@ services:
       - connect
       - ksqldb-server
     ports:
-      - "9021:9021"
+      - "9021:9021"     # -> Web UI console
     environment:
       CONTROL_CENTER_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
       CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: '${COMPOSE_PROJECT_NAME}-connect:8083'
@@ -164,7 +164,7 @@ services:
     depends_on:
       - hive-metastore
     ports:
-      - 8081:8081
+      - 8081:8081     # -> Web UI console
     command: jobmanager
     environment:
       - |
@@ -210,7 +210,7 @@ services:
       - MINIO_ROOT_USER=${AWS_ACCESS_KEY_ID}
       - MINIO_ROOT_PASSWORD=${AWS_SECRET_ACCESS_KEY}
     ports:
-      - 9001:9001  # Web console
+      - 9001:9001  # Web UI console
       - 9000:9000  # api address
     command: ["server", "/data", "--console-address", ":9001"]
     volumes:

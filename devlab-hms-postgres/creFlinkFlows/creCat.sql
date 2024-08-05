@@ -21,10 +21,14 @@ CREATE DATABASE c_hive.db01;
 USE c_hive.db01;
 SHOW TABLES;
 
+use catalog default_catalog;
+
+
+-- => http://minio:9000/warehouse/dev/db/*
 CREATE CATALOG c_iceberg WITH (
        'type' = 'iceberg',
        'catalog-type'='hive',
-       'warehouse' = 's3a://warehouse',
+       'warehouse' = 's3a://iceberg',
        'hive-conf-dir' = './conf'
 );
 
@@ -34,9 +38,6 @@ CREATE DATABASE c_iceberg.dev;
 
 USE c_iceberg.dev;
 SHOW TABLES;
-
-
-
 
 
 

@@ -24,7 +24,14 @@
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
-CREATE or replace TABLE c_hive.db01.t_k_avro_salesbaskets_x (
+-- Set checkpoint to happen every minute
+SET 'execution.checkpointing.interval' = '60sec';
+-- Set this so that the operators are separate in the Flink WebUI.
+SET 'pipeline.operator-chaining.enabled' = 'false';
+-- display mode
+SET 'sql-client.execution.result-mode' = 'table';
+
+CREATE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -65,6 +72,22 @@ CREATE TABLE c_iceberg.dev.t_i_avro_salesbaskets_x AS
     `saleTimestamp_WM`
   FROM c_hive.db01.t_k_avro_salesbaskets_x;
 
+
+-- INSERT INTO c_iceberg.dev.t_i_avro_salesbaskets_x
+--   SELECT 
+--     `invoiceNumber`,
+--     `saleDateTime_Ltz`,
+--     `saleTimestamp_Epoc`,
+--     `terminalPoint`,
+--     `nett`,
+--     `vat`,
+--     `total`,
+--     `store`,
+--     `clerk`,
+--     `basketItems`,
+--     `saleTimestamp_WM`
+--   FROM c_hive.db01.t_k_avro_salesbaskets_x;
+
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
 CREATE TABLE c_hive.db01.t_k_avro_salespayments_x (
@@ -99,6 +122,16 @@ CREATE TABLE c_iceberg.dev.t_i_avro_salespayments_x AS
     `payTimestamp_WM`
   FROM c_hive.db01.t_k_avro_salespayments_x;
 
+
+-- Insert into c_iceberg.dev.t_i_avro_salespayments_x
+--   SELECT 
+--     `invoiceNumber`,
+--     `payDateTime_Ltz`,
+--     `payTimestamp_Epoc`,
+--     `paid`,
+--     `finTransactionId`,
+--     `payTimestamp_WM`
+--   FROM c_hive.db01.t_k_avro_salespayments_x;
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
@@ -181,6 +214,26 @@ CREATE TABLE c_iceberg.dev.t_i_avro_salescompleted_x AS
     `saleTimestamp_WM`
    FROM c_hive.db01.t_f_avro_salescompleted_x;
 
+-- INSERT INTO c_iceberg.dev.t_i_avro_salescompleted_x
+--   SELECT 
+--     `invoiceNumber`,
+--     `saleDateTime_Ltz`,
+--     `saleTimestamp_Epoc`,
+--     `terminalPoint`,
+--     `nett`,
+--     `vat`,
+--     `total`,
+--     `store`,
+--     `clerk`,
+--     `basketItems`,     
+--     `payDateTime_Ltz`,
+--     `payTimestamp_Epoc`,
+--     `paid`,
+--     `finTransactionId`,
+--     `payTimestamp_WM`,
+--     `saleTimestamp_WM`
+--    FROM c_hive.db01.t_f_avro_salescompleted_x;
+
 --- unest the salesBasket
 
 CREATE TABLE c_hive.db01.t_f_unnested_sales (
@@ -219,14 +272,6 @@ SELECT
     CROSS JOIN UNNEST(`basketItems`) AS bi;
 
 
--- Set checkpoint to happen every minute
-SET 'execution.checkpointing.interval' = '60sec';
--- Set this so that the operators are separate in the Flink WebUI.
-SET 'pipeline.operator-chaining.enabled' = 'false';
--- display mode
-SET 'sql-client.execution.result-mode' = 'table';
-
-
 -- Create Iceberg target table, data pulled from hive catalogged table
 
 CREATE TABLE c_iceberg.dev.t_i_unnested_sales AS
@@ -240,6 +285,17 @@ CREATE TABLE c_iceberg.dev.t_i_unnested_sales AS
       `saleTimestamp_Epoc`
   FROM c_hive.db01.t_f_unnested_sales;
 
+
+-- INSERT INTO c_iceberg.dev.t_i_unnested_sales AS
+--   SELECT 
+--       `store_id`,
+--       `product` ,
+--       `brand` ,
+--       `saleValue`,
+--       `category`,
+--       `saleDateTime_Ltz`,
+--       `saleTimestamp_Epoc`
+--   FROM c_hive.db01.t_f_unnested_sales;
 
 
 -- docker compose exec mc bash -c "mc ls -r minio/warehouse/"

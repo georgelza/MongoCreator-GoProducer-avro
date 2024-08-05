@@ -41,3 +41,10 @@ logs:
 
 watch:
 	watch docker compose ps
+
+ksql:
+	docker compose exec ksqldb-cli ksql http://ksqldb-server:8088
+
+fsql:
+	docker compose exec flink-sql-client sql-client.sh
+
