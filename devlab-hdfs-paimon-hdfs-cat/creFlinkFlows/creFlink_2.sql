@@ -55,7 +55,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     'value.fields-include' = 'ALL'
 );
 
--- Create Iceberg target table, data pulled from hive catalogged table
+-- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH ('file.format' = 'avro')
   AS SELECT 
@@ -110,7 +110,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
     'value.fields-include' = 'ALL'
 );
 
--- Create Iceberg target table, data pulled from hive catalogged table
+-- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH ('file.format' = 'avro') 
   AS SELECT 
@@ -192,7 +192,7 @@ SELECT
     AND b.saleTimestamp_WM > (b.saleTimestamp_WM - INTERVAL '1' HOUR);
 
 
--- Create Iceberg target table, data pulled from hive catalogged table
+-- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH ('file.format' = 'avro')
   AS SELECT 
@@ -274,7 +274,7 @@ SELECT
     CROSS JOIN UNNEST(`basketItems`) AS bi;
 
 
--- Create Iceberg target table, data pulled from hive catalogged table
+-- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH ('file.format' = 'avro')
   AS SELECT 
