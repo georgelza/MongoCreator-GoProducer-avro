@@ -32,11 +32,13 @@ creConnect/.pwdmongoatlas
 stage/
 
 devlab-hdfs-paimon-hdfs-cat/hdfs/base/stage
-devlab-hdfs-paimon-hdfs-cat/stage
-devlab-hdfs-paimon-hdfs-cat/data
+devlab-hdfs-paimon-hdfs-cat/stage/*
+devlab-hdfs-paimon-hdfs-cat/data/*
 
-devlab-hms-postgres/stage
-devlab-hms-postgres/data
+devlab-hdfs-paimon-hms-cat/hdfs/base/stage*
+devlab-hdfs-paimon-hms-cat/data/*
+devlab-hdfs-paimon-hms-cat/stage/*
 
-devlab-hms-standalone/stage
-devlab-hms-standalone/data
+devlab-hms-postgres/data/*
+
+devlab-hms-standalone/data/*

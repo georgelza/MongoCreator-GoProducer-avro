@@ -5,11 +5,13 @@ define HELP
 
 Available commands:
 
-- run: Run the project
+- build: Build all the images from the downloaded infrastructure components.
+
+- run: This will startup the compose project and create the required kafka, kSql and Flink objects.
 
 - stop: Stop the project
 
-- down: Down the project
+- down: Tear down the project, clean directories
 
 - ps: Show all running containers
 
@@ -31,20 +33,28 @@ help:
 build:
 	cd connect; make build
 	cd flink; make build;
-# cd hdfs; make buildbase
-# cd hdfs; make build
-# cd sql-client; make build
+	cd hdfs; make buildbase
+	cd hdfs; make build
+	cd sql-client; make build
 
 run:
 	docker compose -p devlab up -d
-	./creTopics/creTopics.sh
-	docker compose exec ksqldb-cli ksql -f ../crelSqlFlows/creStreams.sql  http://ksqldb-server:8088
+	sleep 5
+	cd ../creTopics; ./creTopics.sh
+	sleep 5
+	docker compose exec ksqldb-cli ksql -f /sql/creStreams.sql  http://ksqldb-server:8088
+	sleep 5
+	docker compose exec flink-sql-client sql-client.sh -f /sql/creCat.sql
+	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_1.sql
+	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_2.sql
 
 stop:
 	docker compose stop
 
 down:	
 	docker compose down
+	cd data; cd hdfs; rm -rf * ;rm -rf .DS*
+	cd data; cd minio; rm -rf * ;rm -rf .minio.sys ;rm -rf .DS*
 
 ps:
 	docker compose ps

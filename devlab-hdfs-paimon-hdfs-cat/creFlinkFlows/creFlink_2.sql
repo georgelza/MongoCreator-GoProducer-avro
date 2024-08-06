@@ -29,7 +29,7 @@ SET 'execution.checkpointing.interval' = '60sec';
 -- Set this so that the operators are separate in the Flink WebUI.
 SET 'pipeline.operator-chaining.enabled' = 'false';
 -- display mode
-SET 'sql-client.execution.result-mode' = 'table';
+-- SET 'sql-client.execution.result-mode' = 'table';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
@@ -70,24 +70,23 @@ CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH ('file.format' = 'avro')
     `clerk`,
     `basketItems`,
     `saleTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salesbaskets_x 
-  where 1=2;
+  FROM c_hive.db01.t_k_avro_salesbaskets_x;
 
 -- Now cancel the created insert, and replace with below.
-INSERT INTO c_paimon.dev.t_p_avro_salesbaskets_x
-  SELECT 
-    `invoiceNumber`,
-    `saleDateTime_Ltz`,
-    `saleTimestamp_Epoc`,
-    `terminalPoint`,
-    `nett`,
-    `vat`,
-    `total`,
-    `store`,
-    `clerk`,
-    `basketItems`,
-    `saleTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salesbaskets_x;
+-- INSERT INTO c_paimon.dev.t_p_avro_salesbaskets_x
+--   SELECT 
+--     `invoiceNumber`,
+--     `saleDateTime_Ltz`,
+--     `saleTimestamp_Epoc`,
+--     `terminalPoint`,
+--     `nett`,
+--     `vat`,
+--     `total`,
+--     `store`,
+--     `clerk`,
+--     `basketItems`,
+--     `saleTimestamp_WM`
+--   FROM c_hive.db01.t_k_avro_salesbaskets_x;
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
@@ -113,7 +112,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
 
 -- Create Iceberg target table, data pulled from hive catalogged table
 
-CREATE OR REPLACE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH ('file.format' = 'avro') 
+CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH ('file.format' = 'avro') 
   AS SELECT 
     `invoiceNumber`,
     `payDateTime_Ltz`,
@@ -121,19 +120,18 @@ CREATE OR REPLACE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH ('file.format
     `paid`,
     `finTransactionId`,
     `payTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salespayments_x
-  where 1=2;
-
-
-Insert into c_paimon.dev.t_p_avro_salespayments_x
-  SELECT 
-    `invoiceNumber`,
-    `payDateTime_Ltz`,
-    `payTimestamp_Epoc`,
-    `paid`,
-    `finTransactionId`,
-    `payTimestamp_WM`
   FROM c_hive.db01.t_k_avro_salespayments_x;
+
+
+-- INSERT INTO c_paimon.dev.t_p_avro_salespayments_x
+--   SELECT 
+--     `invoiceNumber`,
+--     `payDateTime_Ltz`,
+--     `payTimestamp_Epoc`,
+--     `paid`,
+--     `finTransactionId`,
+--     `payTimestamp_WM`
+--   FROM c_hive.db01.t_k_avro_salespayments_x;
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
@@ -170,8 +168,8 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
 
 -- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
 
-Insert into c_hive.db01.t_f_avro_salescompleted_x
-select
+INSERT INTO c_hive.db01.t_f_avro_salescompleted_x
+SELECT
         b.invoiceNumber,
         b.saleDateTime_Ltz,
         b.saleTimestamp_Epoc,
@@ -196,7 +194,7 @@ select
 
 -- Create Iceberg target table, data pulled from hive catalogged table
 
-CREATE OR REPLACE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH ('file.format' = 'avro')
+CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH ('file.format' = 'avro')
   AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
@@ -214,30 +212,29 @@ CREATE OR REPLACE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH ('file.forma
     `finTransactionId`,
     `payTimestamp_WM`,
     `saleTimestamp_WM`
-   FROM c_hive.db01.t_f_avro_salescompleted_x  
-   where 1=2;
+   FROM c_hive.db01.t_f_avro_salescompleted_x;
 
 -- Now cancel the created insert, and replace with below.
 
-INSERT INTO c_paimon.dev.t_p_avro_salescompleted_x
-  SELECT 
-    `invoiceNumber`,
-    `saleDateTime_Ltz`,
-    `saleTimestamp_Epoc`,
-    `terminalPoint`,
-    `nett`,
-    `vat`,
-    `total`,
-    `store`,
-    `clerk`,
-    `basketItems`,     
-    `payDateTime_Ltz`,
-    `payTimestamp_Epoc`,
-    `paid`,
-    `finTransactionId`,
-    `payTimestamp_WM`,
-    `saleTimestamp_WM`
-   FROM c_hive.db01.t_f_avro_salescompleted_x;
+-- INSERT INTO c_paimon.dev.t_p_avro_salescompleted_x
+--   SELECT 
+--     `invoiceNumber`,
+--     `saleDateTime_Ltz`,
+--     `saleTimestamp_Epoc`,
+--     `terminalPoint`,
+--     `nett`,
+--     `vat`,
+--     `total`,
+--     `store`,
+--     `clerk`,
+--     `basketItems`,     
+--     `payDateTime_Ltz`,
+--     `payTimestamp_Epoc`,
+--     `paid`,
+--     `finTransactionId`,
+--     `payTimestamp_WM`,
+--     `saleTimestamp_WM`
+--    FROM c_hive.db01.t_f_avro_salescompleted_x;
 
 --- unest the salesBasket
 
@@ -264,7 +261,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
 
 -- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
 
-insert into c_hive.db01.t_f_unnested_sales
+INSERT INTO c_hive.db01.t_f_unnested_sales
 SELECT
       `store`.`id` as `store_id`,
       bi.`name` AS `product`,
@@ -279,21 +276,8 @@ SELECT
 
 -- Create Iceberg target table, data pulled from hive catalogged table
 
-CREATE OR REPLACE TABLE c_paimon.dev.t_p_unnested_sales WITH ('file.format' = 'avro')
+CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH ('file.format' = 'avro')
   AS SELECT 
-      `store_id`,
-      `product` ,
-      `brand` ,
-      `saleValue`,
-      `category`,
-      `saleDateTime_Ltz`,
-      `saleTimestamp_Epoc`
-  FROM c_hive.db01.t_f_unnested_sales  
-  where 1=2;
-
--- Now cancel the created insert, and replace with below.
-INSERT INTO c_paimon.dev.t_p_unnested_sales 
-  SELECT 
       `store_id`,
       `product` ,
       `brand` ,
@@ -303,11 +287,24 @@ INSERT INTO c_paimon.dev.t_p_unnested_sales
       `saleTimestamp_Epoc`
   FROM c_hive.db01.t_f_unnested_sales;
 
+-- Now cancel the created insert, and replace with below.
+
+-- INSERT INTO c_paimon.dev.t_p_unnested_sales 
+--   SELECT 
+--       `store_id`,
+--       `product` ,
+--       `brand` ,
+--       `saleValue`,
+--       `category`,
+--       `saleDateTime_Ltz`,
+--       `saleTimestamp_Epoc`
+--   FROM c_hive.db01.t_f_unnested_sales;
+
 
 -- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
 
 -- Sales per store per brand per 5 min - output table
-CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
   `brand` STRING,
   window_start  TIMESTAMP(3),
@@ -325,7 +322,7 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
     'value.fields-include' = 'ALL'
 );
 
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
 SELECT 
     store_id,
     brand,
@@ -339,7 +336,7 @@ SELECT
 
 
 -- Sales per store per product per 5 min - output table
-CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
   `product` STRING,
   window_start  TIMESTAMP(3),
@@ -357,7 +354,7 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
     'value.fields-include' = 'ALL'
 );
 
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
 SELECT 
     store_id,
     product,
@@ -370,7 +367,7 @@ SELECT
   GROUP BY store_id, product, window_start, window_end;
 
 -- Sales per store per category per 5 min - output table
-CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
   `category` STRING,
   window_start  TIMESTAMP(3),
@@ -388,7 +385,7 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
     'value.fields-include' = 'ALL'
 );
 
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x
 SELECT 
     store_id,
     category,
@@ -402,7 +399,7 @@ SELECT
 
 -- Create sales per store per terminal per 5 min output table - dev purposes
 
-CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
     `terminalPoint` STRING,
     window_start  TIMESTAMP(3),
@@ -423,7 +420,7 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
 -- Calculate sales per store per terminal per 5 min - dev purposes
 -- Aggregate query/worker
 
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x
 SELECT 
     `store`.`id` as `store_id`,
     terminalPoint,
@@ -438,7 +435,7 @@ SELECT
 
 -- Create sales per store per terminal per hour output table
 
-CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x (
     `store_id` STRING,
     `terminalPoint` STRING,
     window_start  TIMESTAMP(3),
@@ -458,7 +455,7 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x (
 
 -- Calculate sales per store per terminal per hour
 
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x
 SELECT 
     `store`.`id` as `store_id`,
     terminalPoint,

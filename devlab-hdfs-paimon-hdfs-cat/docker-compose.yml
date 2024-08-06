@@ -5,6 +5,16 @@
 #
 # inspect network: docker network inspect devlab
 #
+configs:
+  sql_stream:
+    file: ../crekSqlFlows/creStreams.sql
+  creCat:
+    file: ./creFlinkFlows/creCat.sql
+  creFlink_1:
+    file: ./creFlinkFlows/creFlink_1.sql
+  creFlink_2:
+    file: ./creFlinkFlows/creFlink_2.sql
+
 services:
   # Core Confluent Kafka bits
   broker:
@@ -103,8 +113,6 @@ services:
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
       CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
       CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
-#    volumes:
-#      - ./data/connect:/data
 
 
   # Confluent ksql server
@@ -141,9 +149,10 @@ services:
       - ksqldb-server
     entrypoint: /bin/sh
     tty: true
-    volumes:
-      - ./data/ksqldb:/data
-    
+    configs:
+      - source: sql_stream
+        target: /sql/creStreams.sql
+        mode: 444
 
   kcat:
     image: confluentinc/cp-kcat:7.6.1
@@ -184,6 +193,7 @@ services:
         jobmanager.rpc.address: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
 
+
   flink-sql-client:
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-c
     container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
@@ -193,7 +203,18 @@ services:
       - flink-taskmanager
     environment:
       FLINK_JOBMANAGER_HOST: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
-      
+    configs:
+      - source: creCat
+        target: /sql/creCat.sql
+        mode: 444
+      - source: creFlink_1
+        target: /sql/creFlink_1.sql
+        mode: 444
+      - source: creFlink_2
+        target: /sql/creFlink_2.sql
+        mode: 444
+
+
   # First we will start with a local (HDFS) file based Catalog for Apache Paimon
 
   #### Hadoop / HDFS ####

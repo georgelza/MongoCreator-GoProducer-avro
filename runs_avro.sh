@@ -26,8 +26,8 @@
 #
 # *_mongo.json & -> See .pws
 
-#go run -v cmd/main.go avro
-cmd/main $1
+go run -v cmd/main.go avro
+#cmd/main $1
 
 
 # https://docs.confluent.io/platform/current/app-development/kafkacat-usage.html
