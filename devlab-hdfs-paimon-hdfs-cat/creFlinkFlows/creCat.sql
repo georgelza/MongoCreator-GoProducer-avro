@@ -1,24 +1,48 @@
 
 -- https://paimon.apache.org/docs/0.7/how-to/creating-catalogs/#creating-a-catalog-with-filesystem-metastore
 
-CREATE CATALOG my_catalog WITH (
-    'type' = 'paimon',
-    'warehouse' = 'hdfs:///path/to/warehouse'
-);
--- With above the table storage type is defined at CTAS time
-OR
 
-CREATE CATALOG hdfs_paimon WITH (
-  'type'='paimon',
-  'catalog-type'='hadoop',     
-  'warehouse'='hdfs://namenode:9000/warehouse/',
-  'property-version'='1'
+CREATE CATALOG c_hive WITH (
+  'type'          = 'hive',
+  'hive-conf-dir' = './conf'
 );
+
+use catalog c_hive;
+
+CREATE DATABASE c_hive.db01;
+
+USE c_hive.db01;
+SHOW TABLES;
+
+use catalog default_catalog;
+
+
+CREATE CATALOG c_paimon WITH (
+  'type'            = 'paimon',
+  'warehouse'       = 'hdfs://namenode:9000/paimon/',
+);
+
+-- OR With above the table storage type is defined at CTAS time
+
+CREATE CATALOG c_paimon WITH (
+  'type'            = 'paimon',
+  'catalog-type'    = 'hadoop',     
+  'warehouse'       = 'hdfs://namenode:9000/paimon/',
+  'property-version'= '1'
+);
+
 -- With above we just create table on storage, table inherites type from catalog definition
 
-USE CATALOG hdfs_paimon;
+USE CATALOG c_paimon;
+SHOW DATABASES;
 
--- Create Database db01
+-- Create Database db02
+CREATE DATABASE c_paimon.dev;
 
--- Create database dev
+USE c_paimon.dev;
+SHOW TABLES;
+
+use catalog default_catalog;
+
+
 

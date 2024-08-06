@@ -17,6 +17,10 @@ Available commands:
 
 - watch: Watch logs
 
+- ksql: Open KSql
+
+- fsql: Open Flink Sql
+
 endef
 
 export HELP

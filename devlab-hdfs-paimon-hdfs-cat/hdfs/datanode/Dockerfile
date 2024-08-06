@@ -4,9 +4,9 @@ RUN echo "--> Build Hadoop HDFS Datanode"
 
 HEALTHCHECK CMD curl -f http://localhost:9864/ || exit 1
 
-ENV HDFS_CONF_dfs_datanode_data_dir=file:///hadoop/dfs/warehouse
-RUN mkdir -p /hadoop/dfs/warehouse
-VOLUME /hadoop/dfs/warehouse
+ENV HDFS_CONF_dfs_datanode_data_dir=file:///hadoop/dfs/data
+RUN mkdir -p /hadoop/dfs/data
+VOLUME /hadoop/dfs/data
 
 ADD bin/run.sh /run.sh
 RUN chmod a+x /run.sh

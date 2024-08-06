@@ -1,8 +1,10 @@
 
 {
     "EchoConfig": 2,                                                        # Note EchoConfig from General setup must == 0  for this to be considered
-    "Bootstrapservers": "localhost:9092",
-    "SchemaRegistryURL": "http://localhost:9081",                           # Default port change 8081->9081 as not to conflict with Flink/Jobmanager
+#    "Bootstrapservers": "localhost:9092",
+    "Bootstrapservers": "broker:9092",
+#    "SchemaRegistryURL": "http://localhost:9081",                           # Default port change 8081->9081 as not to conflict with Flink/Jobmanager
+    "SchemaRegistryURL": "http://schema-registry:9081",                           # Default port change 8081->9081 as not to conflict with Flink/Jobmanager
     "Security_protocol": "",
     "Sasl_mechanisms": "",
     "BasketTopicname": "avro_salesbaskets",

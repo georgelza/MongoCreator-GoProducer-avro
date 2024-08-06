@@ -70,23 +70,24 @@ CREATE TABLE c_iceberg.dev.t_i_avro_salesbaskets_x AS
     `clerk`,
     `basketItems`,
     `saleTimestamp_WM`
+  FROM c_hive.db01.t_k_avro_salesbaskets_x 
+  where 1=2;
+
+-- Now cancel the created insert, and replace with below.
+INSERT INTO c_iceberg.dev.t_i_avro_salesbaskets_x
+  SELECT 
+    `invoiceNumber`,
+    `saleDateTime_Ltz`,
+    `saleTimestamp_Epoc`,
+    `terminalPoint`,
+    `nett`,
+    `vat`,
+    `total`,
+    `store`,
+    `clerk`,
+    `basketItems`,
+    `saleTimestamp_WM`
   FROM c_hive.db01.t_k_avro_salesbaskets_x;
-
-
--- INSERT INTO c_iceberg.dev.t_i_avro_salesbaskets_x
---   SELECT 
---     `invoiceNumber`,
---     `saleDateTime_Ltz`,
---     `saleTimestamp_Epoc`,
---     `terminalPoint`,
---     `nett`,
---     `vat`,
---     `total`,
---     `store`,
---     `clerk`,
---     `basketItems`,
---     `saleTimestamp_WM`
---   FROM c_hive.db01.t_k_avro_salesbaskets_x;
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
@@ -212,27 +213,30 @@ CREATE TABLE c_iceberg.dev.t_i_avro_salescompleted_x AS
     `finTransactionId`,
     `payTimestamp_WM`,
     `saleTimestamp_WM`
-   FROM c_hive.db01.t_f_avro_salescompleted_x;
+   FROM c_hive.db01.t_f_avro_salescompleted_x  
+   where 1=2;
 
--- INSERT INTO c_iceberg.dev.t_i_avro_salescompleted_x
---   SELECT 
---     `invoiceNumber`,
---     `saleDateTime_Ltz`,
---     `saleTimestamp_Epoc`,
---     `terminalPoint`,
---     `nett`,
---     `vat`,
---     `total`,
---     `store`,
---     `clerk`,
---     `basketItems`,     
---     `payDateTime_Ltz`,
---     `payTimestamp_Epoc`,
---     `paid`,
---     `finTransactionId`,
---     `payTimestamp_WM`,
---     `saleTimestamp_WM`
---    FROM c_hive.db01.t_f_avro_salescompleted_x;
+-- Now cancel the created insert, and replace with below.
+
+INSERT INTO c_iceberg.dev.t_i_avro_salescompleted_x
+  SELECT 
+    `invoiceNumber`,
+    `saleDateTime_Ltz`,
+    `saleTimestamp_Epoc`,
+    `terminalPoint`,
+    `nett`,
+    `vat`,
+    `total`,
+    `store`,
+    `clerk`,
+    `basketItems`,     
+    `payDateTime_Ltz`,
+    `payTimestamp_Epoc`,
+    `paid`,
+    `finTransactionId`,
+    `payTimestamp_WM`,
+    `saleTimestamp_WM`
+   FROM c_hive.db01.t_f_avro_salescompleted_x;
 
 --- unest the salesBasket
 
@@ -283,19 +287,20 @@ CREATE TABLE c_iceberg.dev.t_i_unnested_sales AS
       `category`,
       `saleDateTime_Ltz`,
       `saleTimestamp_Epoc`
+  FROM c_hive.db01.t_f_unnested_sales  
+  where 1=2;
+
+-- Now cancel the created insert, and replace with below.
+INSERT INTO c_iceberg.dev.t_i_unnested_sales AS
+  SELECT 
+      `store_id`,
+      `product` ,
+      `brand` ,
+      `saleValue`,
+      `category`,
+      `saleDateTime_Ltz`,
+      `saleTimestamp_Epoc`
   FROM c_hive.db01.t_f_unnested_sales;
-
-
--- INSERT INTO c_iceberg.dev.t_i_unnested_sales AS
---   SELECT 
---       `store_id`,
---       `product` ,
---       `brand` ,
---       `saleValue`,
---       `category`,
---       `saleDateTime_Ltz`,
---       `saleTimestamp_Epoc`
---   FROM c_hive.db01.t_f_unnested_sales;
 
 
 -- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
