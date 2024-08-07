@@ -35,6 +35,10 @@ SET 'pipeline.operator-chaining.enabled' = 'false';
 -- display mode
 -- SET 'sql-client.execution.result-mode' = 'table';
 
+SET 'execution.runtime-mode' = ''streaming;
+
+SET 'pipeline.name' = 'Sales Basket Injestion';
+
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
@@ -94,6 +98,8 @@ CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH (
 --   FROM c_hive.db01.t_k_avro_salesbaskets_x;
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
+
+SET 'pipeline.name' = 'Sales Payments Injestion';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
     `invoiceNumber` STRING,
@@ -174,6 +180,8 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
 
 -- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
 
+SET 'pipeline.name' = 'Sales Completion Injestion';
+
 INSERT INTO c_hive.db01.t_f_avro_salescompleted_x
 SELECT
         b.invoiceNumber,
@@ -244,6 +252,8 @@ CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
 --    FROM c_hive.db01.t_f_avro_salescompleted_x;
 
 --- unest the salesBasket
+
+SET 'pipeline.name' = 'Unnesting Sales Baskets';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
     `store_id` STRING,
@@ -316,6 +326,9 @@ CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
 -- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
 
 -- Sales per store per brand per 5 min - output table
+
+SET 'pipeline.name' = 'Sales Per Store Per Brand per X';
+
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
   `brand` STRING,
@@ -348,6 +361,9 @@ SELECT
 
 
 -- Sales per store per product per 5 min - output table
+
+SET 'pipeline.name' = 'Sales Per Store Per Product per X';
+
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
   `product` STRING,
@@ -379,6 +395,9 @@ SELECT
   GROUP BY store_id, product, window_start, window_end;
 
 -- Sales per store per category per 5 min - output table
+
+SET 'pipeline.name' = 'Sales Per Store Per Category per X';
+
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
   `category` STRING,
@@ -410,6 +429,8 @@ SELECT
   GROUP BY store_id, category, window_start, window_end;
 
 -- Create sales per store per terminal per 5 min output table - dev purposes
+
+SET 'pipeline.name' = 'Sales Per Store Per Terminal per X';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
