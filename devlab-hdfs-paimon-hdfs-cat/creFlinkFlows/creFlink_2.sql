@@ -16,18 +16,22 @@
 -- pull (INPUT) the avro_salesbaskets topic into Flink into avro_salesbaskets_x
 
 -- Add sink to Paimon on HDFS
--- Originates from Robbin Moffat's : https://www.decodable.co/blog/kafka-to-iceberg-with-flink blog post.
 
 -- Our avro_salescompleted_x (OUTPUT) table which will push values to the CP Kafka topic.
 -- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
+
+
+-- Change the file.format='pick option' to change the file version. options are Avro, ORC or Parquet.
 
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
 -- Set checkpoint to happen every minute
 SET 'execution.checkpointing.interval' = '60sec';
+
 -- Set this so that the operators are separate in the Flink WebUI.
 SET 'pipeline.operator-chaining.enabled' = 'false';
+
 -- display mode
 -- SET 'sql-client.execution.result-mode' = 'table';
 
