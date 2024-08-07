@@ -3,6 +3,11 @@
 # export COMPOSE_PROJECT_NAME=my-project
 # docker-compose up -d --build
 #
+
+configs:
+  sql_stream:
+    file: ../crekSqlFlows/creStreams.sql
+
 services:
   # Core Confluent Kafka bits
   broker:
@@ -139,8 +144,10 @@ services:
       - ksqldb-server
     entrypoint: /bin/sh
     tty: true
-    volumes:
-      - ./data/ksqldb:/data
+    configs:
+      - source: sql_stream
+        target: /sql/creStreams.sql
+        mode: 444
     
   kcat:
     image: confluentinc/cp-kcat:7.6.1

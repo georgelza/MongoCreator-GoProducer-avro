@@ -3,6 +3,17 @@
 # export COMPOSE_PROJECT_NAME=my-project
 # docker-compose up -d --build
 #
+
+configs:
+  sql_stream:
+    file: ../crekSqlFlows/creStreams.sql
+  creCat:
+    file: ./creFlinkFlows/creCat.sql
+  creFlink_1:
+    file: ./creFlinkFlows/creFlink_1.sql
+  creFlink_2:
+    file: ./creFlinkFlows/creFlink_2.sql
+
 services:
   # Core Confluent Kafka bits
   broker:
@@ -139,8 +150,10 @@ services:
       - ksqldb-server
     entrypoint: /bin/sh
     tty: true
-    volumes:
-      - ./data/ksqldb:/data
+    configs:
+      - source: sql_stream
+        target: /sql/creStreams.sql
+        mode: 444
     
 
   kcat:
@@ -193,7 +206,16 @@ services:
       - flink-taskmanager
     environment:
       FLINK_JOBMANAGER_HOST: flink-jobmanager
-      
+    configs:
+      - source: creCat
+        target: /sql/creCat.sql
+        mode: 444
+      - source: creFlink_1
+        target: /sql/creFlink_1.sql
+        mode: 444
+      - source: creFlink_2
+        target: /sql/creFlink_2.sql
+        mode: 444     
 
   # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog
   # https://www.decodable.co/blog/kafka-to-iceberg-with-flink

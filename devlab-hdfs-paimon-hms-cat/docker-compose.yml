@@ -1,0 +1,16 @@
+# docker-compose -p my-project up -d --build
+# or
+# export COMPOSE_PROJECT_NAME=my-project
+# docker-compose up -d --build
+#
+configs:
+  sql_stream:
+    file: ../crekSqlFlows/creStreams.sql
+  creCat:
+    file: ./creFlinkFlows/creCat.sql
+  creFlink_1:
+    file: ./creFlinkFlows/creFlink_1.sql
+  creFlink_2:
+    file: ./creFlinkFlows/creFlink_2.sql
+
+
