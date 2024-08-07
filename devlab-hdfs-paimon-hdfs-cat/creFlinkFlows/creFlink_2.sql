@@ -282,7 +282,8 @@ SELECT
 
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
-
+-- CTAS does not support PARTITIONED BY (`store_id`) in statement yet... will need to manually/correct create table, partitioned and then
+-- use a insert into statement. 
 CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
     'file.format' = 'avro',
     'bucket'      = '2',
@@ -296,6 +297,7 @@ CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
       `saleDateTime_Ltz`,
       `saleTimestamp_Epoc`
   FROM c_hive.db01.t_f_unnested_sales;
+
 
 -- Now cancel the created insert, and replace with below.
 
