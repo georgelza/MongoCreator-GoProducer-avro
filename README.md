@@ -81,7 +81,7 @@ The project is broken down into the following sections, the Blog will be aligned
 
 1. devlab-mongodb : Firstly we publish messages onto the 2 Kafka topics, which is in turn directly sinked into out MongoDB Atlast collections, from where we then MongoDB Change Stream process the records, after which they are persisted into a new collections which can then be consumed by Apache Kafka via source connectors.
 
-2. devlab-hms-standalone : With the introduction of Apache Flink, the first iteration utilizeda hms in stand alone, with a internet DerbyDB back-end. this is deployed.
+2. devlab-hms-standalone : With the introduction of Apache Flink, the first iteration utilized hms in stand alone, with a internet DerbyDB back-end. this is deployed.
 
 3. devlab-hms-postgres : Next up we migrated the internetl DerbyDB database workload into a external Postgresql datastore.
     For both 1 and 2 we pushed the data to a Apache Iceberg table format stored on a AWS S3 bucket, hosted inside MinIO.

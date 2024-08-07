@@ -24,7 +24,7 @@ COPY conf/hive-site.xml ./conf/hive-site.xml
 
 
 RUN echo "--> Enable SQL Client to find the job manager when running it from this image" && \
-    sed -i "s/jobmanager.rpc.address: localhost/jobmanager.rpc.address: devlab-flink-jobmanager/g" ./conf/flink-conf.yaml
+    sed -i "s/jobmanager.rpc.address: localhost/jobmanager.rpc.address: flink-jobmanager/g" ./conf/flink-conf.yaml
 
 
 # Install JARs
