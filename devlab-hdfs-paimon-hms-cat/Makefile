@@ -5,17 +5,25 @@ define HELP
 
 Available commands:
 
-- run: Run the project
+- build: Build all the images from the downloaded infrastructure components.
+
+- run: This will startup the compose project 
+
+- deploy: This will create all the catalogs, tables, flink inserts etc.
 
 - stop: Stop the project
 
-- down: Down the project
+- down: Tear down the project, clean directories
 
 - ps: Show all running containers
 
 - logs: Show logs
 
 - watch: Watch logs
+
+- ksql: Open KSql
+
+- fsql: Open Flink Sql
 
 endef
 
@@ -27,13 +35,15 @@ help:
 build:
 	cd connect; make build
 	cd flink; make build;
-#	cd hms-standalone-s3; make build
+	cd hdfs; make buildbase
+	cd hdfs; make build
+#	cd hive; make build
 	cd sql-client; make build
 
 run:
 	docker compose -p devlab up -d
 
-make deploy: createcat createtopics deployksql deployflink1 deployflink2
+deploy: createcat createtopics deployksql deployflink1 deployflink2
 
 createtopics:
 	cd ../creTopics; ./creTopics.sh
@@ -51,6 +61,8 @@ stop:
 
 down:	
 	docker compose down
+	cd data; cd hdfs; rm -rf * ;rm -rf .DS*
+	cd data; cd minio; rm -rf * ;rm -rf .minio.sys ;rm -rf .DS*
 
 ps:
 	docker compose ps

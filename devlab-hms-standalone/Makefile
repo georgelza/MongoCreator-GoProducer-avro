@@ -5,6 +5,12 @@ define HELP
 
 Available commands:
 
+- build: Build all the images from the downloaded infrastructure components.
+
+- run: This will startup the compose project 
+
+- deploy: This will create all the catalogs, tables, flink inserts etc.
+
 - run: Run the project
 
 - stop: Stop the project
@@ -33,7 +39,7 @@ build:
 run:
 	docker compose -p devlab up -d
 
-make deploy: createcat createtopics deployksql deployflink1 deployflink2
+deploy: createcat createtopics deployksql deployflink1 deployflink2
 
 createtopics:
 	cd ../creTopics; ./creTopics.sh
@@ -53,7 +59,6 @@ down:
 	docker compose down
 	cd data; cd hdfs; rm -rf * ;rm -rf .DS*
 	cd data; cd minio; rm -rf * ;rm -rf .minio.sys ;rm -rf .DS*
-
 
 stop:
 	docker compose stop

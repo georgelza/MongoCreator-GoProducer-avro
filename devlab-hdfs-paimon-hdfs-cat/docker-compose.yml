@@ -14,6 +14,14 @@ configs:
     file: ./creFlinkFlows/creFlink_1.sql
   creFlink_2:
     file: ./creFlinkFlows/creFlink_2.sql
+  # Values pulled in as environment variables like the hadoop.env we can leave as is... as the entrypoint.sh reads the env values and output
+  # to relevant file, but it can also be replaced using the below. 
+  # parameters which we copy as a file into the container can be replaced using the below local file pointer and mounting the file into
+  # the desired directory inside the image.
+  flink_vars:
+    file: ./conf/flink-conf.yaml
+  hive_vars:
+    file: ./sql-client/conf/hive-site.xml
 
 services:
   # Core Confluent Kafka bits

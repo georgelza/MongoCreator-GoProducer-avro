@@ -7,7 +7,9 @@ Available commands:
 
 - build: Build all the images from the downloaded infrastructure components.
 
-- run: This will startup the compose project and create the required kafka, kSql and Flink objects.
+- run: This will startup the compose project 
+
+- deploy: This will create all the catalogs, tables, flink inserts etc.
 
 - stop: Stop the project
 
@@ -40,7 +42,7 @@ build:
 run:
 	docker compose -p devlab up -d
 
-make deploy: createcat createtopics deployksql deployflink1 deployflink2
+deploy: createcat createtopics deployksql deployflink1 deployflink2
 
 createtopics:
 	cd ../creTopics; ./creTopics.sh
