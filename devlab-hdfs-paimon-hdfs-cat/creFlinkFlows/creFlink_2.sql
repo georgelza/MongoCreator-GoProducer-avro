@@ -284,9 +284,9 @@ SELECT
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
-    'file.format' = 'avro'
+    'file.format' = 'avro',
     'bucket'      = '2',
-    'bucket-key'  ='store_id'
+    'bucket-key'  = 'store_id'
   ) AS SELECT 
       `store_id`,
       `product` ,
