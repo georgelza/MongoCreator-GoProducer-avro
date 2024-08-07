@@ -7,8 +7,8 @@ services:
   # Core Confluent Kafka bits
   broker:
     image: confluentinc/cp-kafka:7.6.1
-    container_name: ${COMPOSE_PROJECT_NAME}-broker
-    hostname: ${COMPOSE_PROJECT_NAME}-broker
+    container_name: broker
+    hostname: broker
     ports:
       - "9092:9092"
       - "9101:9101"
@@ -16,7 +16,7 @@ services:
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: 'CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT'
-      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${COMPOSE_PROJECT_NAME}-broker:29092,PLAINTEXT_HOST://localhost:9092'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://broker:29092,PLAINTEXT_HOST://localhost:9092'
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
@@ -24,8 +24,8 @@ services:
       KAFKA_JMX_PORT: 9101
       KAFKA_JMX_HOSTNAME: localhost
       KAFKA_PROCESS_ROLES: 'broker,controller'
-      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@${COMPOSE_PROJECT_NAME}-broker:29093'
-      KAFKA_LISTENERS: 'PLAINTEXT://${COMPOSE_PROJECT_NAME}-broker:29092,CONTROLLER://${COMPOSE_PROJECT_NAME}-broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
+      KAFKA_CONTROLLER_QUORUM_VOTERS: '1@broker:29093'
+      KAFKA_LISTENERS: 'PLAINTEXT://broker:29092,CONTROLLER://broker:29093,PLAINTEXT_HOST://0.0.0.0:9092'
       KAFKA_INTER_BROKER_LISTENER_NAME: 'PLAINTEXT'
       KAFKA_CONTROLLER_LISTENER_NAMES: 'CONTROLLER'
       KAFKA_LOG_DIRS: '/tmp/kraft-combined-logs'
@@ -35,21 +35,21 @@ services:
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.1
-    container_name: ${COMPOSE_PROJECT_NAME}-schema-registry
-    hostname: ${COMPOSE_PROJECT_NAME}-schema-registry
+    container_name: schema-registry
+    hostname: schema-registry
     depends_on:
       - broker
     ports:
       - "9081:9081"
     environment:
-      SCHEMA_REGISTRY_HOST_NAME: ${COMPOSE_PROJECT_NAME}-schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:9081
       
   control-center:
     image: confluentinc/cp-enterprise-control-center:7.6.1
-    container_name: ${COMPOSE_PROJECT_NAME}-control-center
-    hostname: ${COMPOSE_PROJECT_NAME}-control-center
+    container_name: control-center
+    hostname: control-center
     depends_on:
       - broker
       - schema-registry
@@ -58,12 +58,12 @@ services:
     ports:
       - "9021:9021"
     environment:
-      CONTROL_CENTER_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
-      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: '${COMPOSE_PROJECT_NAME}-connect:8083'
+      CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: 'connect:8083'
       CONTROL_CENTER_CONNECT_HEALTHCHECK_ENDPOINT: '/connectors'
-      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://${COMPOSE_PROJECT_NAME}-ksqldb-server:8088"
+      CONTROL_CENTER_KSQL_KSQLDB1_URL: "http://ksqldb-server:8088"
       CONTROL_CENTER_KSQL_KSQLDB1_ADVERTISED_URL: "http://localhost:8088"
-      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:9081"
+      CONTROL_CENTER_SCHEMA_REGISTRY_URL: "http://schema-registry:9081"
       CONTROL_CENTER_REPLICATION_FACTOR: 1
       CONTROL_CENTER_INTERNAL_TOPICS_PARTITIONS: 1
       CONTROL_CENTER_MONITORING_INTERCEPTOR_TOPIC_PARTITIONS: 1
@@ -75,16 +75,16 @@ services:
     #   context: .
     #   dockerfile: connect/Dockerfile
     image: kafka-connect-custom:1.2
-    container_name: ${COMPOSE_PROJECT_NAME}-connect
-    hostname: ${COMPOSE_PROJECT_NAME}-connect
+    container_name: connect
+    hostname: connect
     depends_on:
       - broker
       - schema-registry
     ports:
       - "8083:8083"
     environment:
-      CONNECT_BOOTSTRAP_SERVERS: '${COMPOSE_PROJECT_NAME}-broker:29092'
-      CONNECT_REST_ADVERTISED_HOST_NAME: ${COMPOSE_PROJECT_NAME}-connect
+      CONNECT_BOOTSTRAP_SERVERS: 'broker:29092'
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
       CONNECT_GROUP_ID: compose-connect-group
       CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
@@ -95,7 +95,7 @@ services:
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
       CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://${COMPOSE_PROJECT_NAME}-schema-registry:9081
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:9081
       # CLASSPATH required due to CC-2422
       CLASSPATH: /usr/share/java/monitoring-interceptors/monitoring-interceptors-7.6.1.jar
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
@@ -108,8 +108,8 @@ services:
   # Confluent ksql server
   ksqldb-server:
     image: confluentinc/cp-ksqldb-server:7.6.1
-    container_name: ${COMPOSE_PROJECT_NAME}-ksqldb-server
-    hostname: ${COMPOSE_PROJECT_NAME}-ksqldb-server
+    container_name: ksqldb-server
+    hostname: ksqldb-server
     depends_on:
       - broker
       - connect
@@ -117,22 +117,22 @@ services:
       - "8088:8088"
     environment:
       KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_BOOTSTRAP_SERVERS: "${COMPOSE_PROJECT_NAME}-broker:29092"
-      KSQL_HOST_NAME: ${COMPOSE_PROJECT_NAME}-ksqldb-server
+      KSQL_BOOTSTRAP_SERVERS: "broker:29092"
+      KSQL_HOST_NAME: ksqldb-server
       KSQL_LISTENERS: "http://0.0.0.0:8088"
       KSQL_CACHE_MAX_BYTES_BUFFERING: 0
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://${COMPOSE_PROJECT_NAME}-schema-registry:9081"
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:9081"
       KSQL_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
       KSQL_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
-      KSQL_KSQL_CONNECT_URL: "http://${COMPOSE_PROJECT_NAME}-connect:8083"
+      KSQL_KSQL_CONNECT_URL: "http://connect:8083"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_REPLICATION_FACTOR: 1
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: 'true'
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: 'true'
 
   ksqldb-cli:
     image: confluentinc/cp-ksqldb-cli:7.6.1
-    container_name: ${COMPOSE_PROJECT_NAME}-ksqldb-cli
-    hostname: ${COMPOSE_PROJECT_NAME}-ksqldb-cli
+    container_name: ksqldb-cli
+    hostname: ksqldb-cli
     depends_on:
       - broker
       - connect
@@ -145,8 +145,8 @@ services:
 
   kcat:
     image: confluentinc/cp-kcat:7.6.1
-    container_name: ${COMPOSE_PROJECT_NAME}-kcat
-    hostname: ${COMPOSE_PROJECT_NAME}-kcat
+    container_name: kcat
+    hostname: kcat
     depends_on:
       - broker
       - schema-registry
@@ -156,12 +156,9 @@ services:
 
   # Core Apache Flink bits    
   flink-jobmanager:
-    # build:
-    #   context: .
-    #   dockerfile: flink/Dockerfile
     image: apacheflink:1.18.1-scala_2.12-java11-a
-    container_name: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
-    hostname: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+    container_name: flink-jobmanager
+    hostname: flink-jobmanager
     depends_on:
       - hive-metastore
     ports:
@@ -170,12 +167,12 @@ services:
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+        jobmanager.rpc.address: flink-jobmanager
         rest.flamegraph.enabled: true
 
   flink-taskmanager:
     image: apacheflink:1.18.1-scala_2.12-java11-a
-    hostname: ${COMPOSE_PROJECT_NAME}-flink-taskmanager
+    hostname: flink-taskmanager
     depends_on:
       - flink-jobmanager
     command: taskmanager
@@ -184,21 +181,18 @@ services:
     environment:
       - |
         FLINK_PROPERTIES=
-        jobmanager.rpc.address: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+        jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
 
   flink-sql-client:
-    # build:
-    #   context: .
-    #   dockerfile: sql-client/Dockerfile
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-a
-    container_name: ${COMPOSE_PROJECT_NAME}-flink-sql-client
-    hostname: ${COMPOSE_PROJECT_NAME}-flink-sql-client
+    container_name: flink-sql-client
+    hostname: flink-sql-client
     depends_on:
       - flink-jobmanager
       - flink-taskmanager
     environment:
-      FLINK_JOBMANAGER_HOST: ${COMPOSE_PROJECT_NAME}-flink-jobmanager
+      FLINK_JOBMANAGER_HOST: flink-jobmanager
       
 
   # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog

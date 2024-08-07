@@ -19,7 +19,7 @@ RUN confluent-hub install --no-prompt confluentinc/kafka-connect-datagen:latest
 # Sink - https://docs.confluent.io/kafka-connectors/redis/current/index.html
 RUN confluent-hub install --no-prompt jcustenborder/kafka-connect-redis:latest
 # Sink - https://docs.confluent.io/kafka-connectors/s3-sink/current/overview.html
-Run confluent-hub install --no-prompt confluentinc/kafka-connect-s3:latest
+RUN confluent-hub install --no-prompt confluentinc/kafka-connect-s3:latest
 
 # SINK - https://docs.confluent.io/kafka-connectors/hdfs/current/overview.html
 # RUN confluent-hub install --no-prompt confluentinc/kafka-connect-hdfs:latest

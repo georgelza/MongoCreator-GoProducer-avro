@@ -15,7 +15,7 @@ RUN ln -s /opt/hadoop-3.3.5/etc/hadoop /etc/hadoop
 
 RUN echo "--> make Apache Hadoop directories" && \
     mkdir /opt/hadoop-3.3.5/logs && \
-    mkdir /hadoop-data
+    mkdir -p /hadoop/dfs/data
 
 RUN echo "--> set environment variable"
 ENV JAVA_HOME=/usr/lib/jvm/java-11-openjdk-arm64
