@@ -49,20 +49,21 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `saleTimestamp_WM` as TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
     WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_salesbaskets',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
+    'connector'                       = 'kafka',
+    'topic'                           = 'avro_salesbaskets',
+    'properties.bootstrap.servers'    = 'broker:29092',
+    'properties.group.id'             = 'testGroup',
+    'scan.startup.mode'               = 'earliest-offset',
+    'value.format'                    = 'avro-confluent',
     'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'value.fields-include'            = 'ALL'
 );
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
-CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH ('file.format' = 'avro')
-  AS SELECT 
+CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH (
+    'file.format' = 'avro' 
+  ) AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
     `saleTimestamp_Epoc`,
@@ -103,21 +104,22 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
     `payTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`payTimestamp_Epoc` AS BIGINT) / 1000)),
     WATERMARK FOR `payTimestamp_WM` AS `payTimestamp_WM`
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_salespayments',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081', 
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_salespayments',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081', 
     'value.avro-confluent.properties.use.latest.version' = 'true',
-    'value.fields-include' = 'ALL'
+    'value.fields-include'          = 'ALL'
 );
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
-CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH ('file.format' = 'avro') 
-  AS SELECT 
+CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH (
+    'file.format' = 'avro'
+  ) AS SELECT 
     `invoiceNumber`,
     `payDateTime_Ltz`,
     `payTimestamp_Epoc`,
@@ -158,14 +160,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
     WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_salescompleted_x',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_salescompleted_x',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
     'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'value.fields-include'          = 'ALL'
 );
 
 -- the fields in the select is case sensitive, needs to match the previous created tables which match the definitions in the struct/avro schema's.
@@ -198,8 +200,9 @@ SELECT
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
-CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH ('file.format' = 'avro')
-  AS SELECT 
+CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
+    'file.format' = 'avro'
+  ) AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
     `saleTimestamp_Epoc`,
@@ -253,14 +256,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
     `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
       WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'unnested_sales',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'kafka',
+    'topic'                         = 'unnested_sales',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 -- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
@@ -280,8 +283,11 @@ SELECT
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
-CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH ('file.format' = 'avro')
-  AS SELECT 
+CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
+    'file.format' = 'avro'
+    'bucket'      = '2',
+    'bucket-key'  ='store_id'
+  ) AS SELECT 
       `store_id`,
       `product` ,
       `brand` ,
@@ -316,14 +322,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_
   `salesperbrand` BIGINT,
   `totalperbrand` DOUBLE
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_sales_per_store_per_brand_per_5min_x',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_sales_per_store_per_brand_per_5min_x',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
@@ -348,14 +354,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5mi
   `salesperproduct` BIGINT,
   `totalperproduct` DOUBLE
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_sales_per_store_per_product_per_5min_x',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_sales_per_store_per_product_per_5min_x',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
@@ -379,14 +385,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5m
   `salesperproduct` BIGINT,
   `totalperproduct` DOUBLE
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_sales_per_store_per_category_per_5min_x',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_sales_per_store_per_category_per_5min_x',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x
@@ -411,14 +417,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5m
     `salesperterminal` BIGINT,
     `totalperterminal` DOUBLE
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_sales_per_store_per_terminal_per_5min_x',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_sales_per_store_per_terminal_per_5min_x',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 -- Calculate sales per store per terminal per 5 min - dev purposes
@@ -447,14 +453,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_ho
     `salesperterminal` BIGINT,
     `totalperterminal` DOUBLE
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_sales_per_store_per_terminal_per_hour_x',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_sales_per_store_per_terminal_per_hour_x',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 -- Calculate sales per store per terminal per hour
