@@ -23,7 +23,6 @@ SHOW TABLES;
 
 use catalog default_catalog;
 
-
 -- => http://minio:9000/warehouse/dev/db/*
 CREATE CATALOG c_iceberg WITH (
        'type' = 'iceberg',

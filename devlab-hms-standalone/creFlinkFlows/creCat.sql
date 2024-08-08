@@ -21,6 +21,8 @@ CREATE DATABASE c_hive.db01;
 USE c_hive.db01;
 SHOW TABLES;
 
+use catalog default_catalog;
+
 CREATE CATALOG c_iceberg WITH (
        'type' = 'iceberg',
        'catalog-type'='hive',

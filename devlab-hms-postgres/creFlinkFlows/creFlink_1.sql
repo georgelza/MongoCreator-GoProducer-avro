@@ -8,16 +8,16 @@
 
 -- After this we do a simple aggregate on sales per store per terminal per 5min and per hour (these values are at the root of the avro_salesbaskets table).
 
+-- First Create a Catalog using our defined hms and backing S3.
 
--- AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
+-- -- AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
 -- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table.
 
 
--- INTERESTING, things written to the c_hive catalog is only recorded as existing in the hive catalog, but not persisted to Minio/S3... 
--- The persistence in this case comes from salescompleted writing out to Kafka topic. 
+-- INTERESTING, things written to the c_hive catalog is only recorded as existing in the hive catalog, but not persisted to Minio/S3... The persistence in this case
+-- comes from salescompleted writing out to Kafka. 
 
-
--- Create data Source, pulling data from Kafka topic, recorded in our hive catalog
+SET 'pipeline.name' = 'Sales completed Injestion - Kafka Source';
 
 CREATE TABLE c_hive.db01.t_k_avro_salescompleted (
     INVNUMBER STRING,
@@ -47,12 +47,12 @@ CREATE TABLE c_hive.db01.t_k_avro_salescompleted (
     'value.fields-include' = 'ALL'
 );
 
--- NEW OUTPUT Aggregation Tables
+-- NEW OUTPUT Tables
 --
 -- https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/queries/window-agg/
---
 -- We going to output the group by into this table, backed by topic which we will sink to MongoDB via connector
--- This table is catalogged in the hive catalog.
+
+SET 'pipeline.name' = 'Sales per store per terminal per X Injestion - Kafka Source';
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min (
     store_id STRING,
@@ -73,9 +73,7 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min (
     'value.fields-include' = 'ALL'
 );
 
--- Here we insert into the above output table, the group (aggregated) by results.
--- The data flows from a Kafka topic to a Kafka topic, persistence is via Kafka,
--- Hive catalog jsut records the fact that the table exists.
+-- Aggregate query/worker
 
 Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min
 SELECT 
@@ -89,9 +87,6 @@ SELECT
     TUMBLE(TABLE c_hive.db01.t_k_avro_salescompleted, DESCRIPTOR(SALESTIMESTAMP_WM), INTERVAL '5' MINUTES))
   GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end; 
 
-
--- We going to output the group by into this table, backed by topic which we will sink to MongoDB via connector
--- This table is catalogged in the hive catalog.
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour (
     store_id STRING,
@@ -112,7 +107,7 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour (
     'value.fields-include' = 'ALL'
 );
 
--- Here we insert into the above output table, the group (aggregated) by results.
+-- Aggregate query/workers
 
 Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour
 SELECT 

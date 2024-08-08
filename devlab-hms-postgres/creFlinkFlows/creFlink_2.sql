@@ -18,20 +18,9 @@
 -- Add sink to Iceberg
 -- Originates from Robbin Moffat's : https://www.decodable.co/blog/kafka-to-iceberg-with-flink blog post.
 
--- Our avro_salescompleted_x (OUTPUT) table which will push values to the CP Kafka topic.
--- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
+SET 'pipeline.name' = 'Sales Basket Injestion - Kafka Source';
 
-
--- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
-
--- Set checkpoint to happen every minute
-SET 'execution.checkpointing.interval' = '60sec';
--- Set this so that the operators are separate in the Flink WebUI.
-SET 'pipeline.operator-chaining.enabled' = 'false';
--- display mode
-SET 'sql-client.execution.result-mode' = 'table';
-
-CREATE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
+CREATE or replace TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -55,41 +44,14 @@ CREATE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     'value.fields-include' = 'ALL'
 );
 
--- Create Iceberg target table, data pulled from hive catalogged table
+SET 'pipeline.name' = 'Sales Basket Injestion - Iceberg Target';
 
 CREATE TABLE c_iceberg.dev.t_i_avro_salesbaskets_x AS
-  SELECT 
-    `invoiceNumber`,
-    `saleDateTime_Ltz`,
-    `saleTimestamp_Epoc`,
-    `terminalPoint`,
-    `nett`,
-    `vat`,
-    `total`,
-    `store`,
-    `clerk`,
-    `basketItems`,
-    `saleTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salesbaskets_x 
-  where 1=2;
+  SELECT * FROM c_hive.db01.t_k_avro_salesbaskets_x;
 
--- Now cancel the created insert, and replace with below.
-INSERT INTO c_iceberg.dev.t_i_avro_salesbaskets_x
-  SELECT 
-    `invoiceNumber`,
-    `saleDateTime_Ltz`,
-    `saleTimestamp_Epoc`,
-    `terminalPoint`,
-    `nett`,
-    `vat`,
-    `total`,
-    `store`,
-    `clerk`,
-    `basketItems`,
-    `saleTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salesbaskets_x;
+-- pull (INPUT) the avro_salespayments topic into Flink (avro_salespayments_x)
 
--- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
+SET 'pipeline.name' = 'Sales Payment Injestion - Kafka Source';
 
 CREATE TABLE c_hive.db01.t_k_avro_salespayments_x (
     `invoiceNumber` STRING,
@@ -111,30 +73,15 @@ CREATE TABLE c_hive.db01.t_k_avro_salespayments_x (
     'value.fields-include' = 'ALL'
 );
 
--- Create Iceberg target table, data pulled from hive catalogged table
+SET 'pipeline.name' = 'Sales Payment Injestion - Iceberg Target';
 
 CREATE TABLE c_iceberg.dev.t_i_avro_salespayments_x AS
-  SELECT 
-    `invoiceNumber`,
-    `payDateTime_Ltz`,
-    `payTimestamp_Epoc`,
-    `paid`,
-    `finTransactionId`,
-    `payTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salespayments_x;
+  SELECT * FROM c_hive.db01.t_k_avro_salespayments_x;
 
+-- Our avro_salescompleted_x (OUTPUT) table which will push values to the CP Kafka topic.
+-- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
 
--- Insert into c_iceberg.dev.t_i_avro_salespayments_x
---   SELECT 
---     `invoiceNumber`,
---     `payDateTime_Ltz`,
---     `payTimestamp_Epoc`,
---     `paid`,
---     `finTransactionId`,
---     `payTimestamp_WM`
---   FROM c_hive.db01.t_k_avro_salespayments_x;
-
--- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
+SET 'pipeline.name' = 'Sales Completed Injestion - Kafka Target';
 
 CREATE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     `invoiceNumber` STRING,
@@ -165,9 +112,15 @@ CREATE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     'value.fields-include' = 'ALL'
 );
 
--- the fields in the select is case sensitive, needs to match the previous created tables which match the definitions in the struct/avro schema's.
+SET 'pipeline.name' = 'Sales Completed Injestion - Iceberg Target';
 
--- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
+CREATE TABLE c_iceberg.dev.t_i_avro_salescompleted_x AS
+  SELECT * FROM c_hive.db01.t_f_avro_salescompleted_x;
+
+-- the fields in the select is case sensitive, needs to match theprevious create tables which match the definitions in the struct/avro sections.
+SET 'execution.runtime-mode' = 'streaming';
+
+SET 'pipeline.name' = 'Sales Completed Injestion - Kafka Target';
 
 Insert into c_hive.db01.t_f_avro_salescompleted_x
 select
@@ -193,52 +146,9 @@ select
     AND b.saleTimestamp_WM > (b.saleTimestamp_WM - INTERVAL '1' HOUR);
 
 
--- Create Iceberg target table, data pulled from hive catalogged table
-
-CREATE TABLE c_iceberg.dev.t_i_avro_salescompleted_x AS
-  SELECT 
-    `invoiceNumber`,
-    `saleDateTime_Ltz`,
-    `saleTimestamp_Epoc`,
-    `terminalPoint`,
-    `nett`,
-    `vat`,
-    `total`,
-    `store`,
-    `clerk`,
-    `basketItems`,     
-    `payDateTime_Ltz`,
-    `payTimestamp_Epoc`,
-    `paid`,
-    `finTransactionId`,
-    `payTimestamp_WM`,
-    `saleTimestamp_WM`
-   FROM c_hive.db01.t_f_avro_salescompleted_x  
-   where 1=2;
-
--- Now cancel the created insert, and replace with below.
-
-INSERT INTO c_iceberg.dev.t_i_avro_salescompleted_x
-  SELECT 
-    `invoiceNumber`,
-    `saleDateTime_Ltz`,
-    `saleTimestamp_Epoc`,
-    `terminalPoint`,
-    `nett`,
-    `vat`,
-    `total`,
-    `store`,
-    `clerk`,
-    `basketItems`,     
-    `payDateTime_Ltz`,
-    `payTimestamp_Epoc`,
-    `paid`,
-    `finTransactionId`,
-    `payTimestamp_WM`,
-    `saleTimestamp_WM`
-   FROM c_hive.db01.t_f_avro_salescompleted_x;
-
 --- unest the salesBasket
+
+SET 'pipeline.name' = 'Sales Unnested Basket Injestion - Kafka Target';
 
 CREATE TABLE c_hive.db01.t_f_unnested_sales (
     `store_id` STRING,
@@ -261,8 +171,6 @@ CREATE TABLE c_hive.db01.t_f_unnested_sales (
     'value.fields-include' = 'ALL'
 );
 
--- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
-
 insert into c_hive.db01.t_f_unnested_sales
 SELECT
       `store`.`id` as `store_id`,
@@ -276,36 +184,26 @@ SELECT
     CROSS JOIN UNNEST(`basketItems`) AS bi;
 
 
--- Create Iceberg target table, data pulled from hive catalogged table
+-- Set checkpoint to happen every minute
+SET 'execution.checkpointing.interval' = '60sec';
+-- Set this so that the operators are separate in the Flink WebUI.
+SET 'pipeline.operator-chaining.enabled' = 'false';
+-- display mode
+SET 'sql-client.execution.result-mode' = 'table';
+
+SET 'pipeline.name' = 'Sales Unnested Basket Injestion - Iceberg Target';
 
 CREATE TABLE c_iceberg.dev.t_i_unnested_sales AS
-  SELECT 
-      `store_id`,
-      `product` ,
-      `brand` ,
-      `saleValue`,
-      `category`,
-      `saleDateTime_Ltz`,
-      `saleTimestamp_Epoc`
-  FROM c_hive.db01.t_f_unnested_sales  
-  where 1=2;
+  SELECT * FROM c_hive.db01.t_f_unnested_sales;
 
--- Now cancel the created insert, and replace with below.
-INSERT INTO c_iceberg.dev.t_i_unnested_sales AS
-  SELECT 
-      `store_id`,
-      `product` ,
-      `brand` ,
-      `saleValue`,
-      `category`,
-      `saleDateTime_Ltz`,
-      `saleTimestamp_Epoc`
-  FROM c_hive.db01.t_f_unnested_sales;
 
 
 -- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
 
 -- Sales per store per brand per 5 min - output table
+
+SET 'pipeline.name' = 'Sales per store per X Injestion - Kafka Target';
+
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
   `brand` STRING,
@@ -338,6 +236,9 @@ SELECT
 
 
 -- Sales per store per product per 5 min - output table
+
+SET 'pipeline.name' = 'Sales per store per product per X Injestion - Kafka Target';
+
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
   `product` STRING,
@@ -369,6 +270,9 @@ SELECT
   GROUP BY store_id, product, window_start, window_end;
 
 -- Sales per store per category per 5 min - output table
+
+SET 'pipeline.name' = 'Sales per store per category per X Injestion - Kafka Target';
+
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
   `category` STRING,
@@ -400,6 +304,8 @@ SELECT
   GROUP BY store_id, category, window_start, window_end;
 
 -- Create sales per store per terminal per 5 min output table - dev purposes
+
+SET 'pipeline.name' = 'Sales per store per terminal per X Injestion - Kafka Target';
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
