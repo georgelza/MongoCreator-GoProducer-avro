@@ -139,8 +139,10 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
 
 SET 'pipeline.name' = 'Sales Basket Source - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salesbaskets AS
-  SELECT 
+CREATE TABLE c_paimon.dev.t_parquet_salesbaskets WITH (
+    'file.format' = 'avro'
+  )
+  AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
     `saleTimestamp_Epoc`,
@@ -168,7 +170,7 @@ CREATE TABLE c_paimon.dev.t_parquet_salespayments AS
 
 SET 'pipeline.name' = 'Sales Completed Join - Output to Kafka Topic';
 
-INSERT INTO c_hive.db01.t_f_avro_salescompleted
+INSERT INTO c_hive.db01.t_f_avro_salescompleted 
   SELECT
         b.invoiceNumber,
         b.saleDateTime_Ltz,
@@ -198,8 +200,9 @@ INSERT INTO c_hive.db01.t_f_avro_salescompleted
 
 SET 'pipeline.name' = 'Sales Completed - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salescompleted AS
-  SELECT 
+CREATE TABLE c_paimon.dev.t_parquet_salescompleted WITH (
+    'file.format' = 'avro'
+  ) AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
     `saleTimestamp_Epoc`,
@@ -242,8 +245,10 @@ INSERT INTO c_hive.db01.t_f_unnested_sales
 
 SET 'pipeline.name' = 'Unnested Sales Baskets - Output to Paimon Target';
 
-CREATE TABLE c_paimon.dev.t_parquet_unnested_sales AS
-  SELECT 
+CREATE TABLE c_paimon.dev.t_parquet_unnested_sales WITH (
+    'bucket'      = '4',
+    'bucket-key'  = 'store_id'
+  ) AS SELECT 
       `store_id`,
       `product` ,
       `brand` ,
