@@ -139,8 +139,8 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
 
 SET 'pipeline.name' = 'Sales Basket Source - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salesbaskets 
-  AS SELECT 
+CREATE TABLE c_paimon.dev.t_parquet_salesbaskets AS
+  SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
     `saleTimestamp_Epoc`,
@@ -156,8 +156,8 @@ CREATE TABLE c_paimon.dev.t_parquet_salesbaskets
 
 SET 'pipeline.name' = 'Sales Payments Source - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salespayments 
-  AS SELECT 
+CREATE TABLE c_paimon.dev.t_parquet_salespayments AS
+  SELECT 
     `invoiceNumber`,
     `payDateTime_Ltz`,
     `payTimestamp_Epoc`,
@@ -198,8 +198,8 @@ INSERT INTO c_hive.db01.t_f_avro_salescompleted
 
 SET 'pipeline.name' = 'Sales Completed - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salescompleted  
-  AS SELECT 
+CREATE TABLE c_paimon.dev.t_parquet_salescompleted AS
+  SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
     `saleTimestamp_Epoc`,
@@ -224,7 +224,7 @@ CREATE TABLE c_paimon.dev.t_parquet_salescompleted
 SET 'pipeline.name' = 'Unnested Sales Baskets - Output to Kafka Topic';
 
 INSERT INTO c_hive.db01.t_f_unnested_sales
-SELECT
+  SELECT
       `store`.`id` as `store_id`,
       bi.`name` AS `product`,
       bi.`brand` AS `brand`,
@@ -242,11 +242,8 @@ SELECT
 
 SET 'pipeline.name' = 'Unnested Sales Baskets - Output to Paimon Target';
 
-CREATE TABLE c_paimon.dev.t_parquet_unnested_sales WITH (
-    'file.format' = 'parquet',
-    'bucket'      = '2',
-    'bucket-key'  = 'store_id'
-  ) AS SELECT 
+CREATE TABLE c_paimon.dev.t_parquet_unnested_sales AS
+  SELECT 
       `store_id`,
       `product` ,
       `brand` ,
@@ -356,7 +353,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_ho
 
 -- Push to Paimon
 
-SET 'pipeline.name' = 'Sales Per Store Per Brand per X - Output to Kafka Topic';
+SET 'pipeline.name' = 'Sales Per Store Per Brand per 5min - Output to Kafka Topic';
 
 INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
 SELECT 
@@ -371,7 +368,7 @@ SELECT
   GROUP BY store_id, brand, window_start, window_end;
 
 
-SET 'pipeline.name' = 'Sales Per Store Per Product per X - Output to Kafka Topic';
+SET 'pipeline.name' = 'Sales Per Store Per Product per 5min - Output to Kafka Topic';
 
 INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
 SELECT 
