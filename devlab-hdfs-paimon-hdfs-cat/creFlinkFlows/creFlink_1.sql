@@ -11,15 +11,16 @@
 -- First Create a Catalog using our defined hms and backing S3.
 
 -- -- AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
--- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table.
 
+-- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table using output from out streak 
+-- processing/query created in crekSqlFlows/creStreams.sql
 
 -- INTERESTING, things written to the c_hive catalog is only recorded as existing in the hive catalog, but not persisted to Minio/S3... The persistence in this case
 -- comes from salescompleted writing out to Kafka. 
 
 SET 'pipeline.name' = 'Sales completed Injestion - Kafka Topic Source';
 
-CREATE TABLE c_hive.db01.t_k_avro_salescompleted (
+CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salescompleted (
     INVNUMBER STRING,
     SALEDATETIME_LTZ STRING,
     SALETIMESTAMP_EPOC STRING,

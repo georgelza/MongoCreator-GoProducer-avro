@@ -38,9 +38,9 @@ SET 'pipeline.operator-chaining.enabled' = 'false';
 -- SET 'execution.runtime-mode' = ''streaming;
 -- SET 'execution.runtime-mode' = ''batch;
 
-SET 'pipeline.name' = 'Sales Basket Injestion - Kafka Topic Source';
+use c_paimon.dev;
 
-CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -64,47 +64,8 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     'value.fields-include'            = 'ALL'
 );
 
--- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
-SET 'pipeline.name' = 'Sales Basket Injestion - Paimon Target';
-
-CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH (
-    'file.format' = 'parquet' 
-  ) AS SELECT 
-    `invoiceNumber`,
-    `saleDateTime_Ltz`,
-    `saleTimestamp_Epoc`,
-    `terminalPoint`,
-    `nett`,
-    `vat`,
-    `total`,
-    `store`,
-    `clerk`,
-    `basketItems`,
-    `saleTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salesbaskets_x;
-
--- Now cancel the created insert, and replace with below.
--- INSERT INTO c_paimon.dev.t_p_avro_salesbaskets_x
---   SELECT 
---     `invoiceNumber`,
---     `saleDateTime_Ltz`,
---     `saleTimestamp_Epoc`,
---     `terminalPoint`,
---     `nett`,
---     `vat`,
---     `total`,
---     `store`,
---     `clerk`,
---     `basketItems`,
---     `saleTimestamp_WM`
---   FROM c_hive.db01.t_k_avro_salesbaskets_x;
-
--- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
-
-SET 'pipeline.name' = 'Sales Payments Injestion - Kafka Topic Source';
-
-CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments (
     `invoiceNumber` STRING,
     `payDateTime_Ltz` STRING,
     `payTimestamp_Epoc` STRING,
@@ -124,37 +85,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
     'value.fields-include'          = 'ALL'
 );
 
--- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
-
-SET 'pipeline.name' = 'Sales Payments Injestion - Paimon Target';
-
-CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH (
-    'file.format' = 'parquet'
-  ) AS SELECT 
-    `invoiceNumber`,
-    `payDateTime_Ltz`,
-    `payTimestamp_Epoc`,
-    `paid`,
-    `finTransactionId`,
-    `payTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salespayments_x;
-
-
--- INSERT INTO c_paimon.dev.t_p_avro_salespayments_x
---   SELECT 
---     `invoiceNumber`,
---     `payDateTime_Ltz`,
---     `payTimestamp_Epoc`,
---     `paid`,
---     `finTransactionId`,
---     `payTimestamp_WM`
---   FROM c_hive.db01.t_k_avro_salespayments_x;
-
--- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
-
-SET 'pipeline.name' = 'Sales Completed Injestion - Kafka Topic Target';
-
-CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -174,7 +105,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
 ) WITH (
     'connector'                     = 'kafka',
-    'topic'                         = 'avro_salescompleted_x',
+    'topic'                         = 't_f_avro_salescompleted',
     'properties.bootstrap.servers'  = 'broker:29092',
     'properties.group.id'           = 'testGroup',
     'scan.startup.mode'             = 'earliest-offset',
@@ -183,12 +114,62 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     'value.fields-include'          = 'ALL'
 );
 
--- the fields in the select is case sensitive, needs to match the previous created tables which match the definitions in the struct/avro schema's.
+CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
+    `store_id` STRING,
+    `product` STRING,
+    `brand` STRING,
+    `saleValue` DOUBLE,
+    `category` STRING,
+    `saleDateTime_Ltz` STRING,
+    `saleTimestamp_Epoc` STRING,
+    `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
+      WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
+) WITH (
+    'connector'                     = 'kafka',
+    'topic'                         = 't_f_unnested_sales',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
+);
 
--- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
+-- Create Paimon target tables, stored on HDFS, data pulled from hive catalogged table/source, either as a HIVE computer table or from Kafka.
 
-INSERT INTO c_hive.db01.t_f_avro_salescompleted_x
-SELECT
+SET 'pipeline.name' = 'Sales Basket Source - Output to Paimon Table';
+
+CREATE TABLE c_paimon.dev.t_parquet_salesbaskets 
+  AS SELECT 
+    `invoiceNumber`,
+    `saleDateTime_Ltz`,
+    `saleTimestamp_Epoc`,
+    `terminalPoint`,
+    `nett`,
+    `vat`,
+    `total`,
+    `store`,
+    `clerk`,
+    `basketItems`,
+    `saleTimestamp_WM`
+  FROM c_hive.db01.t_k_avro_salesbaskets;
+
+SET 'pipeline.name' = 'Sales Payments Source - Output to Paimon Table';
+
+CREATE TABLE c_paimon.dev.t_parquet_salespayments 
+  AS SELECT 
+    `invoiceNumber`,
+    `payDateTime_Ltz`,
+    `payTimestamp_Epoc`,
+    `paid`,
+    `finTransactionId`,
+    `payTimestamp_WM`
+  FROM c_hive.db01.t_k_avro_salespayments;
+
+SET 'pipeline.name' = 'Sales Completed Join - Output to Kafka Topic';
+
+INSERT INTO c_hive.db01.t_f_avro_salescompleted
+  SELECT
         b.invoiceNumber,
         b.saleDateTime_Ltz,
         b.saleTimestamp_Epoc,
@@ -204,20 +185,21 @@ SELECT
         a.paid,
         a.finTransactionId
     FROM 
-        c_hive.db01.t_k_avro_salespayments_x a,
-        c_hive.db01.t_k_avro_salesbaskets_x b
+        c_hive.db01.t_k_avro_salespayments a,
+        c_hive.db01.t_k_avro_salesbaskets b
     WHERE a.invoiceNumber = b.invoiceNumber
     AND a.payTimestamp_WM > b.saleTimestamp_WM 
     AND b.saleTimestamp_WM > (b.saleTimestamp_WM - INTERVAL '1' HOUR);
 
 
--- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
-SET 'pipeline.name' = 'Sales Completed Injestion - Paimon Target';
+-- the fields in the select is case sensitive, needs to match the previous created tables which match the definitions in the struct/avro schema's.
 
-CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
-    'file.format' = 'parquet'
-  ) AS SELECT 
+
+SET 'pipeline.name' = 'Sales Completed - Output to Paimon Table';
+
+CREATE TABLE c_paimon.dev.t_parquet_salescompleted  
+  AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
     `saleTimestamp_Epoc`,
@@ -234,56 +216,12 @@ CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
     `finTransactionId`,
     `payTimestamp_WM`,
     `saleTimestamp_WM`
-   FROM c_hive.db01.t_f_avro_salescompleted_x;
+   FROM c_hive.db01.t_f_avro_salescompleted;
 
--- Now cancel the created insert, and replace with below.
 
--- INSERT INTO c_paimon.dev.t_p_avro_salescompleted_x
---   SELECT 
---     `invoiceNumber`,
---     `saleDateTime_Ltz`,
---     `saleTimestamp_Epoc`,
---     `terminalPoint`,
---     `nett`,
---     `vat`,
---     `total`,
---     `store`,
---     `clerk`,
---     `basketItems`,     
---     `payDateTime_Ltz`,
---     `payTimestamp_Epoc`,
---     `paid`,
---     `finTransactionId`,
---     `payTimestamp_WM`,
---     `saleTimestamp_WM`
---    FROM c_hive.db01.t_f_avro_salescompleted_x;
+--- unnest the salesBasket
 
---- unest the salesBasket
-
-SET 'pipeline.name' = 'Unnesting Sales Baskets - Kafka Topic Target';
-
-CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
-    `store_id` STRING,
-    `product` STRING,
-    `brand` STRING,
-    `saleValue` DOUBLE,
-    `category` STRING,
-    `saleDateTime_Ltz` STRING,
-    `saleTimestamp_Epoc` STRING,
-    `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
-      WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
-) WITH (
-    'connector'                     = 'kafka',
-    'topic'                         = 'unnested_sales',
-    'properties.bootstrap.servers'  = 'broker:29092',
-    'properties.group.id'           = 'testGroup',
-    'scan.startup.mode'             = 'earliest-offset',
-    'value.format'                  = 'avro-confluent',
-    'value.avro-confluent.url'      = 'http://schema-registry:9081',
-    'value.fields-include'          = 'ALL'
-);
-
--- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
+SET 'pipeline.name' = 'Unnested Sales Baskets - Output to Kafka Topic';
 
 INSERT INTO c_hive.db01.t_f_unnested_sales
 SELECT
@@ -294,7 +232,7 @@ SELECT
       bi.`category` AS `category`,
       `saleDateTime_Ltz` as saleDateTime_Ltz,
       `saleTimestamp_Epoc` as saleTimestamp_Epoc
-    FROM c_hive.db01.t_f_avro_salescompleted_x  -- assuming avro_salescompleted_x is a table function
+    FROM c_hive.db01.t_f_avro_salescompleted  -- assuming avro_salescompleted_x is a table function
     CROSS JOIN UNNEST(`basketItems`) AS bi;
 
 
@@ -302,9 +240,9 @@ SELECT
 -- CTAS does not support PARTITIONED BY (`store_id`) in statement yet... will need to manually/correct create table, partitioned and then
 -- use a insert into statement. 
 
-SET 'pipeline.name' = 'Unnesting Sales Baskets - Paimon Target';
+SET 'pipeline.name' = 'Unnested Sales Baskets - Output to Paimon Target';
 
-CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
+CREATE TABLE c_paimon.dev.t_parquet_unnested_sales WITH (
     'file.format' = 'parquet',
     'bucket'      = '2',
     'bucket-key'  = 'store_id'
@@ -319,25 +257,9 @@ CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
   FROM c_hive.db01.t_f_unnested_sales;
 
 
--- Now cancel the created insert, and replace with below.
-
--- INSERT INTO c_paimon.dev.t_p_unnested_sales 
---   SELECT 
---       `store_id`,
---       `product` ,
---       `brand` ,
---       `saleValue`,
---       `category`,
---       `saleDateTime_Ltz`,
---       `saleTimestamp_Epoc`
---   FROM c_hive.db01.t_f_unnested_sales;
-
-
 -- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
 
--- Sales per store per brand per 5 min - output table
-
-SET 'pipeline.name' = 'Sales Per Store Per Brand per X - Kafka Topic Target';
+-- some aggregations
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
@@ -357,22 +279,6 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_
     'value.fields-include'          = 'ALL'
 );
 
-INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
-SELECT 
-    store_id,
-    brand,
-    window_start,
-    window_end,
-    COUNT(*) as `salesperbrand`,
-    SUM(saleValue) as `totalperbrand`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
-  GROUP BY store_id, brand, window_start, window_end;
-
-
--- Sales per store per product per 5 min - output table
-
-SET 'pipeline.name' = 'Sales Per Store Per Product per X - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
@@ -392,21 +298,6 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5mi
     'value.fields-include'          = 'ALL'
 );
 
-INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
-SELECT 
-    store_id,
-    product,
-    window_start,
-    window_end,
-    COUNT(*) as `salesperproduct`,
-    SUM(saleValue) as `totalperproduct`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
-  GROUP BY store_id, product, window_start, window_end;
-
--- Sales per store per category per 5 min - output table
-
-SET 'pipeline.name' = 'Sales Per Store Per Category per X - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
@@ -426,21 +317,6 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5m
     'value.fields-include'          = 'ALL'
 );
 
-INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x
-SELECT 
-    store_id,
-    category,
-    window_start,
-    window_end,
-    COUNT(*) as `salespercategory`,
-    SUM(saleValue) as `totalpercategory`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
-  GROUP BY store_id, category, window_start, window_end;
-
--- Create sales per store per terminal per 5 min output table - dev purposes
-
-SET 'pipeline.name' = 'Sales Per Store Per Terminal per X - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
@@ -460,24 +336,6 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5m
     'value.fields-include'          = 'ALL'
 );
 
--- Calculate sales per store per terminal per 5 min - dev purposes
--- Aggregate query/worker
-
-INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x
-SELECT 
-    `store`.`id` as `store_id`,
-    terminalPoint,
-    window_start,
-    window_end,
-    COUNT(*) as `salesperterminal`,
-    SUM(total) as `totalperterminal`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
-  GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
-
-
--- Create sales per store per terminal per hour output table
-
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x (
     `store_id` STRING,
     `terminalPoint` STRING,
@@ -496,7 +354,69 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_ho
     'value.fields-include'          = 'ALL'
 );
 
--- Calculate sales per store per terminal per hour
+-- Push to Paimon
+
+SET 'pipeline.name' = 'Sales Per Store Per Brand per X - Output to Kafka Topic';
+
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
+SELECT 
+    store_id,
+    brand,
+    window_start,
+    window_end,
+    COUNT(*) as `salesperbrand`,
+    SUM(saleValue) as `totalperbrand`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+  GROUP BY store_id, brand, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Product per X - Output to Kafka Topic';
+
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
+SELECT 
+    store_id,
+    product,
+    window_start,
+    window_end,
+    COUNT(*) as `salesperproduct`,
+    SUM(saleValue) as `totalperproduct`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+  GROUP BY store_id, product, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Category per 5min - Output to Kafka Topic';
+
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x
+SELECT 
+    store_id,
+    category,
+    window_start,
+    window_end,
+    COUNT(*) as `salespercategory`,
+    SUM(saleValue) as `totalpercategory`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+  GROUP BY store_id, category, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Terminal per 5min - Output to Kafka Topic';
+
+INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x
+SELECT 
+    `store`.`id` as `store_id`,
+    terminalPoint,
+    window_start,
+    window_end,
+    COUNT(*) as `salesperterminal`,
+    SUM(total) as `totalperterminal`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
+  GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Terminal per hour - Output to Kafka Topic';
 
 INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x
 SELECT 
@@ -507,5 +427,5 @@ SELECT
     COUNT(*) as `salesperterminal`,
     SUM(total) as `totalperterminal`
   FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '1' HOUR))
+    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted, DESCRIPTOR(saleTimestamp_WM), INTERVAL '1' HOUR))
   GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
