@@ -12,7 +12,14 @@
 
 -- -- AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(SALETIMESTAMP_EPOC AS BIGINT) / 1000)),
 -- The below builds a table avro_salescompleted, backed/sourced from the Kafka topic/kSql created table.
-CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salescompleted (
+
+
+-- INTERESTING, things written to the c_hive catalog is only recorded as existing in the hive catalog, but not persisted to Minio/S3... The persistence in this case
+-- comes from salescompleted writing out to Kafka. 
+
+SET 'pipeline.name' = 'Sales completed Injestion - Kafka Topic Source';
+
+CREATE TABLE c_hive.db01.t_k_avro_salescompleted (
     INVNUMBER STRING,
     SALEDATETIME_LTZ STRING,
     SALETIMESTAMP_EPOC STRING,
@@ -27,7 +34,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salescompleted (
     PAYDATETIME_LTZ STRING,
     PAYTIMESTAMP_EPOC STRING,
     PAID DOUBLE,
-    SALESTIMESTAMP_WM timestamp(3),
+    SALESTIMESTAMP_WM as TO_TIMESTAMP(FROM_UNIXTIME(CAST(`SALETIMESTAMP_EPOC` AS BIGINT) / 1000)),
     WATERMARK FOR SALESTIMESTAMP_WM AS SALESTIMESTAMP_WM
 ) WITH (
     'connector' = 'kafka',
@@ -45,7 +52,9 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salescompleted (
 -- https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/queries/window-agg/
 -- We going to output the group by into this table, backed by topic which we will sink to MongoDB via connector
 
-CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min (
+SET 'pipeline.name' = 'Sales per store per terminal per X Injestion - Kafka kTable Target';
+
+CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min (
     store_id STRING,
     terminalpoint STRING,
     window_start  TIMESTAMP(3),
@@ -66,7 +75,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5m
 
 -- Aggregate query/worker
 
-INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min
+Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min
 SELECT 
     `STORE`.`ID` as STORE_ID,
     TERMINALPOINT,
@@ -79,7 +88,7 @@ SELECT
   GROUP BY `STORE`.`ID`, TERMINALPOINT, window_start, window_end; 
 
 
-CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour (
+CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour (
     store_id STRING,
     terminalpoint STRING,
     window_start  TIMESTAMP(3),
@@ -100,7 +109,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_ho
 
 -- Aggregate query/workers
 
-INSERT INTO c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour
+Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour
 SELECT 
     `STORE`.`ID` as STORE_ID,
     TERMINALPOINT,

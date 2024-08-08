@@ -38,7 +38,7 @@ SET 'pipeline.operator-chaining.enabled' = 'false';
 -- SET 'execution.runtime-mode' = ''streaming;
 -- SET 'execution.runtime-mode' = ''batch;
 
-SET 'pipeline.name' = 'Sales Basket Injestion - Kafka Source';
+SET 'pipeline.name' = 'Sales Basket Injestion - Kafka Topic Source';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
@@ -102,7 +102,7 @@ CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH (
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
-SET 'pipeline.name' = 'Sales Payments Injestion - Kafka Source';
+SET 'pipeline.name' = 'Sales Payments Injestion - Kafka Topic Source';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
     `invoiceNumber` STRING,
@@ -152,7 +152,7 @@ CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH (
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
-SET 'pipeline.name' = 'Sales Completed Injestion - Kafka Target';
+SET 'pipeline.name' = 'Sales Completed Injestion - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     `invoiceNumber` STRING,
@@ -260,7 +260,7 @@ CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
 
 --- unest the salesBasket
 
-SET 'pipeline.name' = 'Unnesting Sales Baskets - Kafka Target';
+SET 'pipeline.name' = 'Unnesting Sales Baskets - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
     `store_id` STRING,
@@ -337,7 +337,7 @@ CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
 
 -- Sales per store per brand per 5 min - output table
 
-SET 'pipeline.name' = 'Sales Per Store Per Brand per X - Kafka Target';
+SET 'pipeline.name' = 'Sales Per Store Per Brand per X - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
@@ -372,7 +372,7 @@ SELECT
 
 -- Sales per store per product per 5 min - output table
 
-SET 'pipeline.name' = 'Sales Per Store Per Product per X - Kafka Target';
+SET 'pipeline.name' = 'Sales Per Store Per Product per X - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
@@ -406,7 +406,7 @@ SELECT
 
 -- Sales per store per category per 5 min - output table
 
-SET 'pipeline.name' = 'Sales Per Store Per Category per X - Kafka Target';
+SET 'pipeline.name' = 'Sales Per Store Per Category per X - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
@@ -440,7 +440,7 @@ SELECT
 
 -- Create sales per store per terminal per 5 min output table - dev purposes
 
-SET 'pipeline.name' = 'Sales Per Store Per Terminal per X - Kafka Target';
+SET 'pipeline.name' = 'Sales Per Store Per Terminal per X - Kafka Topic Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,

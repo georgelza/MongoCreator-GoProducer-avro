@@ -17,7 +17,7 @@
 -- INTERESTING, things written to the c_hive catalog is only recorded as existing in the hive catalog, but not persisted to Minio/S3... The persistence in this case
 -- comes from salescompleted writing out to Kafka. 
 
-SET 'pipeline.name' = 'Sales completed Injestion - Kafka Source';
+SET 'pipeline.name' = 'Sales completed Injestion - Kafka Topic Source';
 
 CREATE TABLE c_hive.db01.t_k_avro_salescompleted (
     INVNUMBER STRING,
@@ -52,7 +52,7 @@ CREATE TABLE c_hive.db01.t_k_avro_salescompleted (
 -- https://nightlies.apache.org/flink/flink-docs-master/docs/dev/table/sql/queries/window-agg/
 -- We going to output the group by into this table, backed by topic which we will sink to MongoDB via connector
 
-SET 'pipeline.name' = 'Sales per store per terminal per X Injestion - Kafka Source';
+SET 'pipeline.name' = 'Sales per store per terminal per X Injestion - Kafka kTable Target';
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min (
     store_id STRING,
