@@ -38,7 +38,7 @@ SET 'pipeline.operator-chaining.enabled' = 'false';
 -- SET 'execution.runtime-mode' = ''streaming;
 -- SET 'execution.runtime-mode' = ''batch;
 
-SET 'pipeline.name' = 'Sales Basket Injestion';
+SET 'pipeline.name' = 'Sales Basket Injestion - Kafka Source';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `invoiceNumber` STRING,
@@ -65,6 +65,8 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
 );
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
+
+SET 'pipeline.name' = 'Sales Basket Injestion - Paimon Target';
 
 CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH (
     'file.format' = 'parquet' 
@@ -100,7 +102,7 @@ CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH (
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
-SET 'pipeline.name' = 'Sales Payments Injestion';
+SET 'pipeline.name' = 'Sales Payments Injestion - Kafka Source';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
     `invoiceNumber` STRING,
@@ -123,6 +125,8 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
 );
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
+
+SET 'pipeline.name' = 'Sales Payments Injestion - Paimon Target';
 
 CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH (
     'file.format' = 'parquet'
@@ -148,7 +152,7 @@ CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH (
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
 
-SET 'pipeline.name' = 'Sales Completed Injestion';
+SET 'pipeline.name' = 'Sales Completed Injestion - Kafka Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     `invoiceNumber` STRING,
@@ -209,6 +213,8 @@ SELECT
 
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
+SET 'pipeline.name' = 'Sales Completed Injestion - Paimon Target';
+
 CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
     'file.format' = 'parquet'
   ) AS SELECT 
@@ -254,7 +260,7 @@ CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
 
 --- unest the salesBasket
 
-SET 'pipeline.name' = 'Unnesting Sales Baskets';
+SET 'pipeline.name' = 'Unnesting Sales Baskets - Kafka Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
     `store_id` STRING,
@@ -295,6 +301,9 @@ SELECT
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 -- CTAS does not support PARTITIONED BY (`store_id`) in statement yet... will need to manually/correct create table, partitioned and then
 -- use a insert into statement. 
+
+SET 'pipeline.name' = 'Unnesting Sales Baskets - Paimon Target';
+
 CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
     'file.format' = 'parquet',
     'bucket'      = '2',
@@ -328,7 +337,7 @@ CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
 
 -- Sales per store per brand per 5 min - output table
 
-SET 'pipeline.name' = 'Sales Per Store Per Brand per X';
+SET 'pipeline.name' = 'Sales Per Store Per Brand per X - Kafka Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
@@ -363,7 +372,7 @@ SELECT
 
 -- Sales per store per product per 5 min - output table
 
-SET 'pipeline.name' = 'Sales Per Store Per Product per X';
+SET 'pipeline.name' = 'Sales Per Store Per Product per X - Kafka Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
@@ -397,7 +406,7 @@ SELECT
 
 -- Sales per store per category per 5 min - output table
 
-SET 'pipeline.name' = 'Sales Per Store Per Category per X';
+SET 'pipeline.name' = 'Sales Per Store Per Category per X - Kafka Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
@@ -431,7 +440,7 @@ SELECT
 
 -- Create sales per store per terminal per 5 min output table - dev purposes
 
-SET 'pipeline.name' = 'Sales Per Store Per Terminal per X';
+SET 'pipeline.name' = 'Sales Per Store Per Terminal per X - Kafka Target';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
