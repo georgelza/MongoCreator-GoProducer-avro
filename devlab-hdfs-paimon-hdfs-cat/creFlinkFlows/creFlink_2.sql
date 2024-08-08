@@ -35,7 +35,8 @@ SET 'pipeline.operator-chaining.enabled' = 'false';
 -- display mode
 -- SET 'sql-client.execution.result-mode' = 'table';
 
-SET 'execution.runtime-mode' = ''streaming;
+-- SET 'execution.runtime-mode' = ''streaming;
+-- SET 'execution.runtime-mode' = ''batch;
 
 SET 'pipeline.name' = 'Sales Basket Injestion';
 
@@ -66,7 +67,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_avro_salesbaskets_x WITH (
-    'file.format' = 'avro' 
+    'file.format' = 'parquet' 
   ) AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
@@ -124,7 +125,7 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments_x (
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH (
-    'file.format' = 'avro'
+    'file.format' = 'parquet'
   ) AS SELECT 
     `invoiceNumber`,
     `payDateTime_Ltz`,
@@ -146,6 +147,8 @@ CREATE TABLE c_paimon.dev.t_p_avro_salespayments_x WITH (
 --   FROM c_hive.db01.t_k_avro_salespayments_x;
 
 -- Create a data Source, pulling data from Kafka topic, table definition recorded in our hive catalog
+
+SET 'pipeline.name' = 'Sales Completed Injestion';
 
 CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     `invoiceNumber` STRING,
@@ -180,8 +183,6 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted_x (
 
 -- populate hive catalogged table -> This is a flink table, that pushes data to Kafka
 
-SET 'pipeline.name' = 'Sales Completion Injestion';
-
 INSERT INTO c_hive.db01.t_f_avro_salescompleted_x
 SELECT
         b.invoiceNumber,
@@ -209,7 +210,7 @@ SELECT
 -- Create Paimon target table, stored on HDFS, data pulled from hive catalogged table
 
 CREATE TABLE c_paimon.dev.t_p_avro_salescompleted_x WITH (
-    'file.format' = 'avro'
+    'file.format' = 'parquet'
   ) AS SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
@@ -295,7 +296,7 @@ SELECT
 -- CTAS does not support PARTITIONED BY (`store_id`) in statement yet... will need to manually/correct create table, partitioned and then
 -- use a insert into statement. 
 CREATE TABLE c_paimon.dev.t_p_unnested_sales WITH (
-    'file.format' = 'avro',
+    'file.format' = 'parquet',
     'bucket'      = '2',
     'bucket-key'  = 'store_id'
   ) AS SELECT 
