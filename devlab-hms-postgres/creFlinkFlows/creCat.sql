@@ -25,10 +25,10 @@ use catalog default_catalog;
 
 -- => http://minio:9000/warehouse/dev/db/*
 CREATE CATALOG c_iceberg WITH (
-       'type' = 'iceberg',
-       'catalog-type'='hive',
-       'warehouse' = 's3a://iceberg',
-       'hive-conf-dir' = './conf'
+       'type'           = 'iceberg',
+       'catalog-type'   = 'hive',
+       'warehouse'      = 's3a://iceberg',
+       'hive-conf-dir'  = './conf'
 );
 
 use catalog c_iceberg;
