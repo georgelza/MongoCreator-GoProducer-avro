@@ -31,17 +31,17 @@ See example/MongoCreatorProject ./blog-doc/diagrams/*.jpg for visual diagrams of
 5. Using Kafka Stream processing and kSQL extract sales per store_id per hour into new topic.
 6. Sink sales per store per hour onto MongoDB collection using Kafka sink connector.
 7. Using Apache Flink processing calculate sales per store per terminal per hour into new kafka topic.
-    a.  Push from Apache Flink to Iceberg on S3
+    a.  Push from Apache Flink to Apache Iceberg on S3
         Added Apache Hive catalog in standalone with a internal DerbyDB back-end. 
         Changed to Apache Hive catalog with a PostgreSql back-end.
-    b.  Push from Flink to Paimon on Hadoop/hdfs
-        Added Apache Hadoop Cluster (3.3.5)
+    b.  Push from Apache Flink to Apache Paimon on Hadoop/HDFS.
+        Added a Apache Hadoop Cluster (3.3.5)
         Changed to Apache Hive catalog on HDFS back-end.
         Changed to Apache Hive catalog with a PostgreSql back end.
         (Using the stand alone Hive metastore for convenience, see infrastructure sub directory for a distributed Hive deployment the in works).
 8. Using Kafka Sink connector sink the sales per store per terminal per hour onto MongoDB collection.
 9. On MongoDB Atlas cluster merge the salesbaskets and salespayments collection feeds into a salescompleted collection. TooDo
-10. Using Mongo Aggregation calculate sales by brand by hours and sales by product by hour into 2 new collections. ToDo
+10. Using MongoDB Aggregation calculate sales by brand by hours and sales by product by hour into 2 new collections. ToDo
 11. Using Kafka source connector extract 4 Mongo collections onto 4 new Kafka topics. ToDo
 12. Using 4 Python applications echo the messages from the 4 topics onto the terminal. ToDo
 
