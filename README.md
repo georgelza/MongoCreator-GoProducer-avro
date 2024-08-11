@@ -10,6 +10,15 @@ maybe based on data sinked into the MongoDB store, do a trigger… with a do a s
 
 See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as a multi part article.
 
+## Medium Article
+
+- Part 1: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-1-e7c17d61b9d2
+- Part 2:
+- Part 3:
+- Part 4:
+- Part 5:
+- Part 6:
+
 
 ## Overview/plan.
 
