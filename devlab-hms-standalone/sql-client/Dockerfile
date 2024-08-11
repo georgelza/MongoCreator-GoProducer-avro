@@ -84,7 +84,7 @@ RUN echo "-> Install JARs: Hadoop" && \
     
 
 WORKDIR /opt/sql-client
-ENV SQL_CLIENT_HOME /opt/sql-client
+ENV SQL_CLIENT_HOME=/opt/sql-client
 
 USER root
 

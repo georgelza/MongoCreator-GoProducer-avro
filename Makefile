@@ -41,3 +41,4 @@ build_docker:
 
 push_docker:
 	sudo docker push georgelza/${BINARY_NAME}:${VERSION}
+

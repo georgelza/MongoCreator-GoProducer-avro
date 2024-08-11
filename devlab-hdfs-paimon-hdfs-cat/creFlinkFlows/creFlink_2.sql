@@ -38,7 +38,7 @@ SET 'pipeline.operator-chaining.enabled' = 'false';
 -- SET 'execution.runtime-mode' = ''streaming;
 -- SET 'execution.runtime-mode' = ''batch;
 
-use c_paimon.dev;
+USE c_paimon.dev;
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets (
     `invoiceNumber` STRING,
@@ -137,9 +137,15 @@ CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
 
 -- Create Paimon target tables, stored on HDFS, data pulled from hive catalogged table/source, either as a HIVE computer table or from Kafka.
 
+-- Our avro_salescompleted (OUTPUT) table which will push values to the CP Kafka topic.
+-- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
+
+
+-- the fields in the select is case sensitive, needs to match theprevious create tables which match the definitions in the struct/avro sections.
+
 SET 'pipeline.name' = 'Sales Basket Source - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salesbaskets WITH (
+CREATE TABLE c_paimon.dev.t_salesbaskets WITH (
     'file.format' = 'avro'
   )
   AS SELECT 
@@ -158,7 +164,7 @@ CREATE TABLE c_paimon.dev.t_parquet_salesbaskets WITH (
 
 SET 'pipeline.name' = 'Sales Payments Source - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salespayments AS
+CREATE TABLE c_paimon.dev.t_salespayments AS
   SELECT 
     `invoiceNumber`,
     `payDateTime_Ltz`,
@@ -200,7 +206,7 @@ INSERT INTO c_hive.db01.t_f_avro_salescompleted
 
 SET 'pipeline.name' = 'Sales Completed - Output to Paimon Table';
 
-CREATE TABLE c_paimon.dev.t_parquet_salescompleted WITH (
+CREATE TABLE c_paimon.dev.t_salescompleted WITH (
     'file.format' = 'avro'
   ) AS SELECT 
     `invoiceNumber`,
@@ -224,7 +230,7 @@ CREATE TABLE c_paimon.dev.t_parquet_salescompleted WITH (
 
 --- unnest the salesBasket
 
-SET 'pipeline.name' = 'Unnested Sales Baskets - Output to Kafka Topic';
+SET 'pipeline.name' = 'Sales Completed, Unnested Basket - Output to Kafka Topic';
 
 INSERT INTO c_hive.db01.t_f_unnested_sales
   SELECT
@@ -245,7 +251,7 @@ INSERT INTO c_hive.db01.t_f_unnested_sales
 
 SET 'pipeline.name' = 'Unnested Sales Baskets - Output to Paimon Target';
 
-CREATE TABLE c_paimon.dev.t_parquet_unnested_sales WITH (
+CREATE TABLE c_paimon.dev.t_unnested_sales WITH (
     'bucket'      = '4',
     'bucket-key'  = 'store_id'
   ) AS SELECT 
@@ -258,8 +264,6 @@ CREATE TABLE c_paimon.dev.t_parquet_unnested_sales WITH (
       `saleTimestamp_Epoc`
   FROM c_hive.db01.t_f_unnested_sales;
 
-
--- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
 
 -- some aggregations
 

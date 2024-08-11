@@ -52,6 +52,7 @@ flink:
 db:
 	docker pull postgres:12	
 	docker pull mongodb/mongodb-atlas-local:7.0.5
+	docker pull mongodb/mongodb-atlas-local:latest
 	docker pull mysql:9.0
 
 s3: 
@@ -66,10 +67,17 @@ iop:
 misc:
 # Used in hms-standalone
 	docker pull kulikoa/hms-standalone:latest
+	
+# Used for inspecting data in the various back end stores.
+	docker pull python:3.12-bookworm
+	docker pull codieplusplus/duckdb
+
 # Used in hms-postgres
 	docker pull naushadh/hive-metastore:latest
+
 # Used if desired to create fake JSON based data
 	docker pull shadowtraffic/shadowtraffic:0.6.0
+
 
 # Build images, not 100% all of whats needed, but these are all common images.
 buildos:

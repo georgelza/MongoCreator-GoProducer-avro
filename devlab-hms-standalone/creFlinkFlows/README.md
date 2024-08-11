@@ -26,19 +26,19 @@ Thinking was use a single catalog to store all table object definitions, and the
 
 Lets create our Iceberg based catalog.
 
-CREATE CATALOG c_iceberg_hive WITH (
+CREATE CATALOG c_iceberg WITH (
         'type'          = 'iceberg',
         'catalog-type'  = 'hive',
-        'warehouse'     = 's3a://warehouse',
+        'warehouse'     = 's3a://iceberg',
         'hive-conf-dir' = './conf');
 
-CREATE DATABASE `c_iceberg_hive`.`dev`;
-USE `c_iceberg_hive`.`dev`;
+CREATE DATABASE `c_iceberg`.`dev`;
+USE `c_iceberg`.`dev`;
 
 
 The following failed, my understanding is as the table to be created inherites the definition of the source, the source in this case includes the watermark hidden column, which is not allowed in the iceberg table/datalake, and the saleTimestamp_WM column which is computed column, also not allowed as it is currently not a capability of iceberg datalake.
 
-CREATE TABLE c_iceberg_hive.dev.t_i_avro_salesbaskets_x (
+CREATE TABLE c_iceberg.dev.t_salesbaskets (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -77,7 +77,7 @@ use catalog c_hive;
 
 CREATE DATABASE c_hive.db01;
 
-CREATE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
+CREATE TABLE c_hive.db01.t_k_avro_salesbaskets (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -104,25 +104,25 @@ CREATE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
 Now we "Attempt" to create the output table, the table where we want to push data to, this time we create it inside a catalog based on ICEBERG, with Iceberg persistence provide via a S3 based object store hosted inside a MinIO container.
 
 --> FAILED
-CREATE TABLE c_iceberg_hive.dev.t_i_avro_salesbaskets_x WITH (
+CREATE TABLE c_iceberg.dev.t_salesbaskets WITH (
 	  'connector'     = 'iceberg',
 	  'catalog-type'  = 'hive',
 	  'catalog-name'  = 'dev',
-	  'warehouse'     = 's3a://warehouse',
+	  'warehouse'     = 's3a://iceberg',
 	  'hive-conf-dir' = './conf')
-  AS SELECT * FROM c_hive.db01.t_k_avro_salesbaskets_x;
+  AS SELECT * FROM c_hive.db01.t_k_avro_salesbaskets;
 
 --> AND FAILED
-CREATE TABLE c_iceberg_hive.dev.t_i_avro_salesbaskets_x WITH (
+CREATE TABLE c_iceberg_hive.dev.t_salesbaskets WITH (
 	  'connector'     = 'iceberg',
 	  'catalog-type'  = 'hive',
 	  'catalog-name'  = 'dev',
 	  'warehouse'     = 's3a://warehouse',
 	  'hive-conf-dir' = './conf')
-  LIKE c_hive.db01.t_k_avro_salesbaskets_x;
+  LIKE c_hive.db01.t_k_avro_salesbaskets;
 
-INSERT INTO c_iceberg_hive.dev.t_i_avro_salesbaskets_x
-SELECT * FROM c_hive.db01.t_k_avro_salesbaskets_x;
+INSERT INTO c_iceberg_hive.dev.t_salesbaskets
+SELECT * FROM c_hive.db01.t_k_avro_salesbaskets;
 
 Both times complained about the same errors as previous, computed column not allowed currently.
 
@@ -130,7 +130,7 @@ Both times complained about the same errors as previous, computed column not all
 
 I even tried to create a table with the saleTimestamp_WM defined as a TIMESTAMP(3), then inserted records into it.
 
-CREATE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
+CREATE TABLE c_hive.db01.t_k_avro_salesbaskets (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -158,13 +158,13 @@ The above worked as the definition went into a Hive catalog.
 
 Then tried:
 
-INSERT INTO c_hive.db01.t_k_avro_salesbaskets_x 
+INSERT INTO c_hive.db01.t_k_avro_salesbaskets
 SELECT * FROM c_hive.db01.t_k_avro_salesbaskets;
 
 As the watermark column is hidden this works, but, there is a snag... See below.
 
-CREATE TABLE c_iceberg.dev.t_i_avro_salesbaskets_x AS
-  SELECT * FROM c_hive.db01.t_k_avro_salesbaskets_x;
+CREATE TABLE c_iceberg.dev.t_salesbaskets AS
+  SELECT * FROM c_hive.db01.t_k_avro_salesbaskets;
 
 
 --> Failed, My thinking here is, even though we selecting from a hive catalogged table, the source table still contained a watermark column, and well Iceberg does not support watermark's, and well it made it clear iceberg does not support watermark columns, so there was that ;)
@@ -179,11 +179,11 @@ CREATE CATALOG c_hive WITH (
         'hive-conf-dir' = './conf'
 );
 
-use catalog c_hive;
+USE CATALOG c_hive;
 
 CREATE DATABASE c_hive.db01;
 
-CREATE TABLE c_hive.db01.t_k_avro_salesbaskets_x (
+CREATE TABLE c_hive.db01.t_k_avro_salesbaskets (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -212,17 +212,17 @@ Now we create our Iceberg based catalog.
 CREATE CATALOG c_iceberg WITH (
        'type' = 'iceberg',
        'catalog-type'='hive',
-       'warehouse' = 's3a://warehouse',
+       'warehouse' = 's3a://iceberg',
        'hive-conf-dir' = './conf'
 );
 
-use catalog c_iceberg;
+USE CATALOG c_iceberg;
 
 CREATE DATABASE c_iceberg.dev;
 
 Followed by a CTAS statement, notice we exclude the watermark column, as this is not allowed in the iceberg table and by referencing the fields, we actually pull their value/data and not their definitions.
 
-CREATE TABLE c_iceberg.dev.t_i_avro_salesbaskets_x AS
+CREATE TABLE c_iceberg.dev.t_salesbaskets AS
   SELECT 
     `invoiceNumber`,
     `saleDateTime_Ltz`,
@@ -235,7 +235,7 @@ CREATE TABLE c_iceberg.dev.t_i_avro_salesbaskets_x AS
     `clerk`,
     `basketItems`,
     `saleTimestamp_WM`
-  FROM c_hive.db01.t_k_avro_salesbaskets_x;
+  FROM c_hive.db01.t_k_avro_salesbaskets;
 
   As we're creating this inside the c_iceberg.dev catalog.database by fully qualifying the location, it inherits the storage location from the catalog, which says Iceberg based table, Definitions into Hive, data onto MinIO.
 

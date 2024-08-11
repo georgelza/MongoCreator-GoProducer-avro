@@ -432,6 +432,15 @@ services:
       - 9083:9083
 
     
+  # Used to test the Kafka Connector/sinks
+  # mongo:
+  #   image: mongodb/mongodb-atlas-local:7.0.5
+  #   hostname: mongodb
+  #   container_name: mongodb
+  #   ports:
+  #     - "27017:27017" 
+
+
   # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
   # shadowtraffic:
   #   image: shadowtraffic/shadowtraffic:0.6.0

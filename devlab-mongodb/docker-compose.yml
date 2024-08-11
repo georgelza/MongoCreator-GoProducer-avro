@@ -159,7 +159,14 @@ services:
     entrypoint: /bin/bash -i
     tty: true
 
-
+  # Used to test the Kafka Connector/sinks
+  mongo:
+    image: mongodb/mongodb-atlas-local:7.0.5
+    hostname: mongodb
+    container_name: mongodb
+    ports:
+      - "27017:27017" 
+      
 
   # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
   # shadowtraffic:

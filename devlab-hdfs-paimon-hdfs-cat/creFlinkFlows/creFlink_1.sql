@@ -36,14 +36,14 @@ CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salescompleted (
     SALESTIMESTAMP_WM as TO_TIMESTAMP(FROM_UNIXTIME(CAST(`SALETIMESTAMP_EPOC` AS BIGINT) / 1000)),
     WATERMARK FOR SALESTIMESTAMP_WM AS SALESTIMESTAMP_WM
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_salescompleted',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'scan.startup.mode' = 'earliest-offset',
-    'properties.group.id' = 'testGroup',
-    'value.format' = 'avro-confluent',
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_salescompleted',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'scan.startup.mode'             = 'earliest-offset',
+    'properties.group.id'           = 'testGroup',
+    'value.format'                  = 'avro-confluent',
     'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'value.fields-include'          = 'ALL'
 );
 
 -- NEW OUTPUT Tables/Aggregations.
@@ -60,14 +60,14 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min (
     totalperterminal DOUBLE,
     PRIMARY KEY (store_id, terminalpoint, window_start, window_end) NOT ENFORCED
 ) WITH (
-    'connector' = 'upsert-kafka',
-    'topic' = 'avro_sales_per_store_per_terminal_per_5min',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'key.format' = 'avro-confluent',
-    'key.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'upsert-kafka',
+    'topic'                         = 'avro_sales_per_store_per_terminal_per_5min',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'key.format'                    = 'avro-confluent',
+    'key.avro-confluent.url'        = 'http://schema-registry:9081',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour (
@@ -79,14 +79,14 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour (
     totalperterminal DOUBLE,
     PRIMARY KEY (store_id, terminalpoint, window_start, window_end) NOT ENFORCED
 ) WITH (
-    'connector' = 'upsert-kafka',
-    'topic' = 'avro_sales_per_store_per_terminal_per_hour',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'key.format' = 'avro-confluent',
-    'key.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'connector'                     = 'upsert-kafka',
+    'topic'                         = 'avro_sales_per_store_per_terminal_per_hour',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'key.format'                    = 'avro-confluent',
+    'key.avro-confluent.url'        = 'http://schema-registry:9081',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
 );
 
 

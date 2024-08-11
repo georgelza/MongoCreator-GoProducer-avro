@@ -18,8 +18,22 @@
 -- Add sink to Iceberg
 -- Originates from Robbin Moffat's : https://www.decodable.co/blog/kafka-to-iceberg-with-flink blog post.
 
+-- Set checkpoint to happen every minute
+SET 'execution.checkpointing.interval' = '60sec';
 
-CREATE or replace TABLE c_hive.db01.t_k_avro_salesbaskets_x (
+-- Set this so that the operators are separate in the Flink WebUI.
+SET 'pipeline.operator-chaining.enabled' = 'false';
+
+-- display mode
+-- SET 'sql-client.execution.result-mode' = 'table';
+
+-- SET 'execution.runtime-mode' = ''streaming;
+-- SET 'execution.runtime-mode' = ''batch;
+
+USE c_iceberg.dev;
+
+-- Source topics is Avro serialized.
+CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salesbaskets (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -33,24 +47,18 @@ CREATE or replace TABLE c_hive.db01.t_k_avro_salesbaskets_x (
     `saleTimestamp_WM` as TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
     WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_salesbaskets',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
+    'connector'                       = 'kafka',
+    'topic'                           = 'avro_salesbaskets',
+    'properties.bootstrap.servers'    = 'broker:29092',
+    'properties.group.id'             = 'testGroup',
+    'scan.startup.mode'               = 'earliest-offset',
+    'value.format'                    = 'avro-confluent',
     'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'value.fields-include'            = 'ALL'
 );
 
-SET 'pipeline.name' = 'Sales Basket - Output to Iceberg Table';
 
-CREATE TABLE c_iceberg.dev.t_i_avro_salesbaskets_x AS
-  SELECT * FROM c_hive.db01.t_k_avro_salesbaskets_x;
-
--- pull (INPUT) the avro_salespayments topic into Flink (avro_salespayments_x)
-
-CREATE TABLE c_hive.db01.t_k_avro_salespayments_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salespayments (
     `invoiceNumber` STRING,
     `payDateTime_Ltz` STRING,
     `payTimestamp_Epoc` STRING,
@@ -59,27 +67,21 @@ CREATE TABLE c_hive.db01.t_k_avro_salespayments_x (
     `payTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`payTimestamp_Epoc` AS BIGINT) / 1000)),
     WATERMARK FOR `payTimestamp_WM` AS `payTimestamp_WM`
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_salespayments',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081', 
+    'connector'                     = 'kafka',
+    'topic'                         = 'avro_salespayments',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081', 
     'value.avro-confluent.properties.use.latest.version' = 'true',
-    'value.fields-include' = 'ALL'
+    'value.fields-include'          = 'ALL'
 );
 
-SET 'pipeline.name' = 'Sales Payment - Output to Iceberg Table';
-
-CREATE TABLE c_iceberg.dev.t_i_avro_salespayments_x AS
-  SELECT * FROM c_hive.db01.t_k_avro_salespayments_x;
-
-
--- Our avro_salescompleted_x (OUTPUT) table which will push values to the CP Kafka topic.
+-- Our t_f_avro_salescompleted (OUTPUT) table which will push values to the CP Kafka topic.
 -- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
 
-CREATE TABLE c_hive.db01.t_f_avro_salescompleted_x (
+CREATE OR REPLACE TABLE c_hive.db01.t_f_avro_salescompleted (
     `invoiceNumber` STRING,
     `saleDateTime_Ltz` STRING,
     `saleTimestamp_Epoc` STRING,
@@ -98,22 +100,53 @@ CREATE TABLE c_hive.db01.t_f_avro_salescompleted_x (
     `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
     WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
 ) WITH (
-    'connector' = 'kafka',
-    'topic' = 'avro_salescompleted_x',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
+    'connector'                     = 'kafka',
+    'topic'                         = 't_f_avro_salescompleted',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
     'value.avro-confluent.schema-registry.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
+    'value.fields-include'          = 'ALL'
 );
 
--- the fields in the select is case sensitive, needs to match theprevious create tables which match the definitions in the struct/avro sections.
-SET 'execution.runtime-mode' = 'streaming';
+-- unnest the salesBasket -> Output
+-- Our t_f_unnested_sales (OUTPUT) table which will push values to the CP Kafka topic.
 
+CREATE OR REPLACE TABLE c_hive.db01.t_f_unnested_sales (
+    `store_id` STRING,
+    `product` STRING,
+    `brand` STRING,
+    `saleValue` DOUBLE,
+    `category` STRING,
+    `saleDateTime_Ltz` STRING,
+    `saleTimestamp_Epoc` STRING,
+    `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
+      WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
+) WITH (
+    'connector'                     = 'kafka',
+    'topic'                         = 't_f_unnested_sales',
+    'properties.bootstrap.servers'  = 'broker:29092',
+    'properties.group.id'           = 'testGroup',
+    'scan.startup.mode'             = 'earliest-offset',
+    'value.format'                  = 'avro-confluent',
+    'value.avro-confluent.url'      = 'http://schema-registry:9081',
+    'value.fields-include'          = 'ALL'
+);
+
+
+-- Create Iceberg target tables, stored on S3, data pulled from hive catalogged table/source, either as a HIVE computer table or from Kafka.
+
+-- Our avro_salescompleted (OUTPUT) table which will push values to the CP Kafka topic.
+-- https://nightlies.apache.org/flink/flink-docs-release-1.13/docs/connectors/table/formats/avro-confluent/
+
+
+-- the fields in the select is case sensitive, needs to match theprevious create tables which match the definitions in the struct/avro sections.
+-- SET 'execution.runtime-mode' = 'streaming';
+    
 SET 'pipeline.name' = 'Sales Completed Join - Output to Kafka Topic';
 
-Insert into c_hive.db01.t_f_avro_salescompleted_x
+Insert into c_hive.db01.t_f_avro_salescompleted
 select
         b.invoiceNumber,
         b.saleDateTime_Ltz,
@@ -130,40 +163,31 @@ select
         a.paid,
         a.finTransactionId
     FROM 
-        c_hive.db01.t_k_avro_salespayments_x a,
-        c_hive.db01.t_k_avro_salesbaskets_x b
+        c_hive.db01.t_k_avro_salespayments a,
+        c_hive.db01.t_k_avro_salesbaskets b
     WHERE a.invoiceNumber = b.invoiceNumber
     AND a.payTimestamp_WM > b.saleTimestamp_WM 
     AND b.saleTimestamp_WM > (b.saleTimestamp_WM - INTERVAL '1' HOUR);
 
 
+SET 'pipeline.name' = 'Sales Basket Source - Output to Iceberg Table';
+
+CREATE TABLE c_iceberg.dev.t_salesbaskets AS
+  SELECT * FROM c_hive.db01.t_k_avro_salesbaskets;
+
+
+SET 'pipeline.name' = 'Sales Payments Source - Output to Iceberg Table';
+
+CREATE TABLE c_iceberg.dev.t_salespayments AS
+  SELECT * FROM c_hive.db01.t_k_avro_salespayments;
+
+
 SET 'pipeline.name' = 'Sales Completed - Output to Iceberg Target';
 
-CREATE TABLE c_iceberg.dev.t_i_avro_salescompleted_x AS
-  SELECT * FROM c_hive.db01.t_f_avro_salescompleted_x;
+CREATE TABLE c_iceberg.dev.t_salescompleted AS
+  SELECT * FROM c_hive.db01.t_f_avro_salescompleted;
 
---- unest the salesBasket
-
-CREATE TABLE c_hive.db01.t_f_unnested_sales (
-    `store_id` STRING,
-    `product` STRING,
-    `brand` STRING,
-    `saleValue` DOUBLE,
-    `category` STRING,
-    `saleDateTime_Ltz` STRING,
-    `saleTimestamp_Epoc` STRING,
-    `saleTimestamp_WM` AS TO_TIMESTAMP(FROM_UNIXTIME(CAST(`saleTimestamp_Epoc` AS BIGINT) / 1000)),
-      WATERMARK FOR `saleTimestamp_WM` AS `saleTimestamp_WM`
-) WITH (
-    'connector' = 'kafka',
-    'topic' = 'unnested_sales',
-    'properties.bootstrap.servers' = 'broker:29092',
-    'properties.group.id' = 'testGroup',
-    'scan.startup.mode' = 'earliest-offset',
-    'value.format' = 'avro-confluent',
-    'value.avro-confluent.url' = 'http://schema-registry:9081',
-    'value.fields-include' = 'ALL'
-);
+--- unnest the salesBasket
 
 SET 'pipeline.name' = 'Sales Completed, Unnested Basket - Output to Kafka Topic';
 
@@ -176,28 +200,21 @@ SELECT
       bi.`category` AS `category`,
       `saleDateTime_Ltz` as saleDateTime_Ltz,
       `saleTimestamp_Epoc` as saleTimestamp_Epoc
-    FROM c_hive.db01.t_f_avro_salescompleted_x  -- assuming avro_salescompleted_x is a table function
+    FROM c_hive.db01.t_f_avro_salescompleted  -- assuming avro_salescompleted is a table function
     CROSS JOIN UNNEST(`basketItems`) AS bi;
 
-
--- Set checkpoint to happen every minute
-SET 'execution.checkpointing.interval' = '60sec';
--- Set this so that the operators are separate in the Flink WebUI.
-SET 'pipeline.operator-chaining.enabled' = 'false';
--- display mode
-SET 'sql-client.execution.result-mode' = 'table';
 
 
 SET 'pipeline.name' = 'Sales Completed, Unnested Basket - Output to Iceberg Table';
 
-CREATE TABLE c_iceberg.dev.t_i_unnested_sales AS
+CREATE TABLE c_iceberg.dev.t_unnested_sales AS
   SELECT * FROM c_hive.db01.t_f_unnested_sales;
 
 
 
--- docker compose exec mc bash -c "mc ls -r minio/warehouse/"
+-- docker compose exec mc bash -c "mc ls -r minio/iceberg/"
 
--- Sales per store per brand per 5 min - output table
+-- some aggregations
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
   `store_id` STRING,
@@ -217,23 +234,6 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x (
     'value.fields-include' = 'ALL'
 );
 
-SET 'pipeline.name' = 'Sales per store per brand per 5min - Output to Kafka Topic';
-
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
-SELECT 
-    store_id,
-    brand,
-    window_start,
-    window_end,
-    COUNT(*) as `salesperbrand`,
-    SUM(saleValue) as `totalperbrand`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
-  GROUP BY store_id, brand, window_start, window_end;
-
-
--- Sales per store per product per 5 min - output table
-
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
   `store_id` STRING,
   `product` STRING,
@@ -251,22 +251,6 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x (
     'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
-
-SET 'pipeline.name' = 'Sales per store per product per 5min - Output to Kafka Topic';
-
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
-SELECT 
-    store_id,
-    product,
-    window_start,
-    window_end,
-    COUNT(*) as `salesperproduct`,
-    SUM(saleValue) as `totalperproduct`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
-  GROUP BY store_id, product, window_start, window_end;
-
--- Sales per store per category per 5 min - output table
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
   `store_id` STRING,
@@ -286,22 +270,6 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x (
     'value.fields-include' = 'ALL'
 );
 
-SET 'pipeline.name' = 'Sales per store per category per 5min - Output to Kafka Topic';
-
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x
-SELECT 
-    store_id,
-    category,
-    window_start,
-    window_end,
-    COUNT(*) as `salespercategory`,
-    SUM(saleValue) as `totalpercategory`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
-  GROUP BY store_id, category, window_start, window_end;
-
--- Create sales per store per terminal per 5 min output table - dev purposes
-
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     `store_id` STRING,
     `terminalPoint` STRING,
@@ -319,26 +287,6 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x (
     'value.avro-confluent.url' = 'http://schema-registry:9081',
     'value.fields-include' = 'ALL'
 );
-
--- Calculate sales per store per terminal per 5 min - dev purposes
--- Aggregate query/worker
-
-SET 'pipeline.name' = 'Sales per store per terminal per 5min - Output to Kafka Topic';
-
-Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x
-SELECT 
-    `store`.`id` as `store_id`,
-    terminalPoint,
-    window_start,
-    window_end,
-    COUNT(*) as `salesperterminal`,
-    SUM(total) as `totalperterminal`
-  FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
-  GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
-
-
--- Create sales per store per terminal per hour output table
 
 CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x (
     `store_id` STRING,
@@ -358,9 +306,68 @@ CREATE TABLE c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x (
     'value.fields-include' = 'ALL'
 );
 
--- Calculate sales per store per terminal per hour
 
-SET 'pipeline.name' = 'Sales per store per terminal per hour - Output to Kafka Topic';
+SET 'pipeline.name' = 'Sales Per Store Per Brand per 5min - Output to Kafka Topic';
+
+Insert into c_hive.db01.t_f_avro_sales_per_store_per_brand_per_5min_x
+SELECT 
+    store_id,
+    brand,
+    window_start,
+    window_end,
+    COUNT(*) as `salesperbrand`,
+    SUM(saleValue) as `totalperbrand`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+  GROUP BY store_id, brand, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Product per 5min - Output to Kafka Topic';
+
+Insert into c_hive.db01.t_f_avro_sales_per_store_per_product_per_5min_x
+SELECT 
+    store_id,
+    product,
+    window_start,
+    window_end,
+    COUNT(*) as `salesperproduct`,
+    SUM(saleValue) as `totalperproduct`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+  GROUP BY store_id, product, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Category per 5min - Output to Kafka Topic';
+
+Insert into c_hive.db01.t_f_avro_sales_per_store_per_category_per_5min_x
+SELECT 
+    store_id,
+    category,
+    window_start,
+    window_end,
+    COUNT(*) as `salespercategory`,
+    SUM(saleValue) as `totalpercategory`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_unnested_sales, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTE))
+  GROUP BY store_id, category, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Terminal per 5min - Output to Kafka Topic';
+
+Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_5min_x
+SELECT 
+    `store`.`id` as `store_id`,
+    terminalPoint,
+    window_start,
+    window_end,
+    COUNT(*) as `salesperterminal`,
+    SUM(total) as `totalperterminal`
+  FROM TABLE(
+    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted, DESCRIPTOR(saleTimestamp_WM), INTERVAL '5' MINUTES))
+  GROUP BY `store`.`id`, terminalPoint, window_start, window_end;
+
+
+SET 'pipeline.name' = 'Sales Per Store Per Terminal per hour - Output to Kafka Topic';
 
 Insert into c_hive.db01.t_f_avro_sales_per_store_per_terminal_per_hour_x
 SELECT 
@@ -371,5 +378,5 @@ SELECT
     COUNT(*) as `salesperterminal`,
     SUM(total) as `totalperterminal`
   FROM TABLE(
-    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted_x, DESCRIPTOR(saleTimestamp_WM), INTERVAL '1' HOUR))
+    TUMBLE(TABLE c_hive.db01.t_f_avro_salescompleted, DESCRIPTOR(saleTimestamp_WM), INTERVAL '1' HOUR))
   GROUP BY `store`.`id`, terminalPoint, window_start, window_end;

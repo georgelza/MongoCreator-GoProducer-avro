@@ -11,17 +11,19 @@ Available commands:
 
 - deploy: This will create all the catalogs, tables, flink inserts etc.
 
-- run: Run the project
-
 - stop: Stop the project
 
-- down: Down the project
+- down: Tear down the project, clean directories
 
 - ps: Show all running containers
 
 - logs: Show logs
 
 - watch: Watch logs
+
+- ksql: Open KSql
+
+- fsql: Open Flink Sql
 
 endef
 
@@ -41,12 +43,12 @@ run:
 
 deploy: createcat createtopics deployksql deployflink1 deployflink2
 
+createcat:
+	docker compose exec flink-sql-client sql-client.sh -f /sql/creCat.sql
 createtopics:
 	cd ../creTopics; ./creTopics.sh
 deployksql:
 	docker compose exec ksqldb-cli ksql -f /sql/creStreams.sql  http://ksqldb-server:8088
-createcat:
-	docker compose exec flink-sql-client sql-client.sh -f /sql/creCat.sql
 deployflink1:
 	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_1.sql
 deployflink2:
@@ -57,14 +59,7 @@ stop:
 
 down:	
 	docker compose down
-	cd data; cd hdfs; rm -rf * ;rm -rf .DS*
 	cd data; cd minio; rm -rf * ;rm -rf .minio.sys ;rm -rf .DS*
-
-stop:
-	docker compose stop
-
-down:	
-	docker compose down
 
 ps:
 	docker compose ps
@@ -74,3 +69,9 @@ logs:
 
 watch:
 	watch docker compose ps
+
+ksql:
+	docker compose exec ksqldb-cli ksql http://ksqldb-server:8088
+
+fsql:
+	docker compose exec flink-sql-client sql-client.sh

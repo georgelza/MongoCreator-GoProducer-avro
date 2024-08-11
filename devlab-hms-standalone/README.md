@@ -18,6 +18,7 @@ This directory includes a docker compose.yml file which can be used to spin :
 - Apache Hive Metastore Standalone backed internal DerbyDB
 - Iceberg Python Client
 - DuckDB
+- MongoDB Atlas
 
 This deployment uses a local stand alone Apache HIVE Metastore with an internal DerbyDB database for persistence.
 
@@ -27,7 +28,7 @@ Note the same 'export COMPOSE_PROJECT_NAME=devlab' is specified in the creTopics
 
 Note: I work on a M1 based Mac, so my architecture is arm64, aka aarch64, ss such see all Dockerfile's under "./devlab/*" for the base images used.
 
-If you are going to use shadotraffic to generate data make sure you get yourself a license key from https://www.shadotraffic.com/
+If you are going to use shadowtraffic to generate data make sure you get yourself a license key from https://www.shadotraffic.com/
 
 Note: I had to change the schema_manager default port from 8081 to 9081 as 8081 is already in use by the flink cluster/jobmanager, and it was easier to change the port for schema_manager than to change the jobmanager port.
 

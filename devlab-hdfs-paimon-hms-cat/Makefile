@@ -37,7 +37,6 @@ build:
 	cd flink; make build;
 	cd hdfs; make buildbase
 	cd hdfs; make build
-#	cd hive; make build
 	cd sql-client; make build
 
 run:
@@ -45,12 +44,12 @@ run:
 
 deploy: createcat createtopics deployksql deployflink1 deployflink2
 
+createcat:
+	docker compose exec flink-sql-client sql-client.sh -f /sql/creCat.sql
 createtopics:
 	cd ../creTopics; ./creTopics.sh
 deployksql:
 	docker compose exec ksqldb-cli ksql -f /sql/creStreams.sql  http://ksqldb-server:8088
-createcat:
-	docker compose exec flink-sql-client sql-client.sh -f /sql/creCat.sql
 deployflink1:
 	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_1.sql
 deployflink2:
@@ -72,3 +71,9 @@ logs:
 
 watch:
 	watch docker compose ps
+
+ksql:
+	docker compose exec ksqldb-cli ksql http://ksqldb-server:8088
+
+fsql:
+	docker compose exec flink-sql-client sql-client.sh

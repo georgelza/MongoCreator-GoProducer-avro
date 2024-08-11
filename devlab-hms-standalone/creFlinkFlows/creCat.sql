@@ -10,50 +10,30 @@
 -- comes from salescompleted writing out to Kafka. 
 
 CREATE CATALOG c_hive WITH (
-        'type' = 'hive',
+        'type'          = 'hive',
         'hive-conf-dir' = './conf'
 );
 
-use catalog c_hive;
+USE CATALOG c_hive;
 
 CREATE DATABASE c_hive.db01;
 
 USE c_hive.db01;
 SHOW TABLES;
 
-use catalog default_catalog;
+USE CATALOG default_catalog;
 
+-- => http://minio:9000/warehouse/dev/db/*
 CREATE CATALOG c_iceberg WITH (
-       'type' = 'iceberg',
-       'catalog-type'='hive',
-       'warehouse' = 's3a://warehouse',
-       'hive-conf-dir' = './conf'
+       'type'           = 'iceberg',
+       'catalog-type'   = 'hive',
+       'warehouse'      = 's3a://iceberg',
+       'hive-conf-dir'  = './conf'
 );
 
-use catalog c_iceberg;
+USE CATALOG c_iceberg;
 
 CREATE DATABASE c_iceberg.dev;
 
 USE c_iceberg.dev;
 SHOW TABLES;
-
-
-
-
-
-
--- Example/test
-CREATE TABLE t_foo (c1 varchar, c2 int);
-
-INSERT INTO t_foo VALUES ('a',42);
-
--- Go see minio:9001/browser
-
-SET 'execution.runtime-mode' = 'batch';
-SET 'sql-client.execution.result-mode' = 'tableau';
-
--- Wait a few moments; running this straightaway often doesn't show
--- the results
-
-SELECT * FROM t_foo;
----------------------------------------------------------------------------------------------------------

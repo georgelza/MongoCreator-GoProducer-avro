@@ -30,15 +30,16 @@ RUN confluent-hub install --no-prompt confluentinc/kafka-connect-s3:latest
 # Source - https://debezium.io/docs/connectors/mysql/
 # RUN confluent-hub install --no-prompt debezium/debezium-connector-mysql:latest
 
-
 USER root
 
+# COPY stage/mysql-connector-j-9.0.0.jar /usr/share/java/kafka/mysql-connector-j-9.0.0.jar 
+# COPY stage/postgresql-42.7.3.jar /usr/share/java/kafka/postgresql-42.7.3.jar 
 
 RUN echo "--> Installing Database Connector Plugins" && \
     wget -O /usr/share/java/kafka/mysql-connector-j-9.0.0.jar \
     https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.0.0/mysql-connector-j-9.0.0.jar
 
-
+    
 USER appuser
 
 # docker build -t kafka-connect-custom:1.0 .

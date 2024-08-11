@@ -78,6 +78,8 @@ CREATE STREAM avro_salescompleted WITH (
 		on b.InvoiceNumber = p.InvoiceNumber
 	emit changes;
 
+-- WARNING: DEPRECATION NOTICE: Stream-stream joins statements without a GRACE PERIOD will not be accepted in a future ksqlDB version.
+-- Please use the GRACE PERIOD clause as specified in https://docs.ksqldb.io/en/latest/developer-guide/ksqldb-reference/select-push-query/
 
 ------------------------------------------------------------------------------
 -- Some aggregations calculated via kSQL
