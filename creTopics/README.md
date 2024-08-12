@@ -9,4 +9,4 @@ Make sure to populate match the "COMPOSE_PROJECT_NAME" with the value used in th
 
 ## For Schema Registry
 
-I used the 2 below *.sh and *.json to create the schema entries for the Avro source topics.
+I used the 2 below *.sh and *.avsc (Avro Schema files) to create the schema entries for the Avro source topics.
