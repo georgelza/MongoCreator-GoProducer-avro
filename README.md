@@ -90,6 +90,41 @@ Another option would be to emit changes which means as the number increases then
 
     There is also a little script called cremongoatlassinks. If you populate a file .pwdmongoatlas with your Atlas credentials then this will create a sink job to push salesbaskets and salespayments onto MongoDB Atlas. Likewise if you decide to deploy a local mongodb instance/container then populate .pwdmongolocal with the credentials for cremonglocalsinks.sh use.
 
+## Note:
+
+The following steps was copied out of Rob Moffit's blog, all credit goes to him.
+
+1. Inspecting the data stored in the MinIO S3 container can be accomplished via MC as follows:
+
+    - List the files/folders in iceberg store, and as you get to know more you can increase the depth of the listing.
+
+    docker exec minio mc ls -r minio/iceberg/
+
+    - Copy contents of the hms-standalone DerbyDB out.
+
+    docker cp hms-standalone:/tmp/metastore_db /tmp/hms_db
+
+
+    rlwrap ij
+    
+    SHOW TABLE IN app;
+    
+    SELECT db_id, name FROM dbs;
+
+    - Let's look at the data that's been written to MinIO:
+    
+    docker exec minio mc ls -r minio/warehouse/
+
+    - Update the below folder/file structure as per your own needs.
+    
+    docker exec minio mc head minio/warehouse/db_rmoff.db/t_foo/metadata/00000-57d8f913-9e90-4446-a049-db084d17e49d.metadata.json
+
+
+    docker exec minio mc \
+        cat minio/warehouse/db_rmoff.db/t_foo/data/00000-0-e4327b65-69ac-40bc-8e90-aae40dc607c7-00001.parquet \
+        /tmp/data.parquet && \
+        duckdb :memory: "SELECT * FROM read_parquet('/tmp/data.parquet')"
+
 
 ## Deployable Sections/Sub projects:
 

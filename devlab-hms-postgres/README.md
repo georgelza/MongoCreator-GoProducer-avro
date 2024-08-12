@@ -38,6 +38,8 @@ Note: I realise by building a seperate apachepod for the job manager and task ma
 Note: allot of the technical bits came from Robin Moffatt's blogs (You can't do Kafka or Flink and not follow him as a first stop):
 
     https://github.com/decodableco/examples/blob/main/catalogs/flink-iceberg-jdbc/README.adoc
+    https://www.decodable.co/blog/catalogs-in-flink-sql-a-primer
+    https://www.decodable.co/blog/catalogs-in-flink-sql-hands-on
     &
     https://rmoff.net
 
