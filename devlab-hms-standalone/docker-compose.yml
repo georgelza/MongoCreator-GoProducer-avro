@@ -309,21 +309,21 @@ services:
     ports:
       - "27017:27017" 
 
-  # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
-  shadowtraffic:
-    image: shadowtraffic/shadowtraffic:0.6.0
-    container_name: shadowtraffic
-    hostname: shadowtraffic
-      #    profiles: ["shadowtraffic"]
-    env_file:
-      - shadowtraffic/license.env
-    volumes:
-      - ./shadowtraffic:/data
-    command: --config /home/config.json --watch --sample 10 --stdout
-    configs:
-      - source: shadow
-        target: /home/config.json
-        mode: 444
+  # # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
+  # shadowtraffic:
+  #   image: shadowtraffic/shadowtraffic:0.6.0
+  #   container_name: shadowtraffic
+  #   hostname: shadowtraffic
+  #     #    profiles: ["shadowtraffic"]
+  #   env_file:
+  #     - shadowtraffic/license.env
+  #   volumes:
+  #     - ./shadowtraffic:/data
+  #   command: --config /home/config.json --watch --sample 10 --stdout
+  #   configs:
+  #     - source: shadow
+  #       target: /home/config.json
+  #       mode: 444
 
 
 

@@ -352,8 +352,8 @@ services:
       - schema-registry
     env_file:
       - shadowtraffic/license.env
-    volumes:
-      - ./shadowtraffic:/data
+    # volumes:
+    #   - ./shadowtraffic:/data
     command: --config /home/config.json --watch --sample 2 --stdout
     configs:
       - source: shadow
