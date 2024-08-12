@@ -29,7 +29,7 @@ Note the same 'export COMPOSE_PROJECT_NAME=devlab' is specified in the creTopics
 
 Note: I work on a M1 based Mac, so my architecture is arm64, aka aarch64, ss such see all Dockerfile's under "./devlab/*" for the base images used.
 
-If you are going to use shadowtraffic to generate data make sure you get yourself a license key from https://www.shadotraffic.com/
+If you are going to use shadowtraffic to generate data make sure you get yourself a license key from https://www.shadotraffic.com/ (https://github.com/ShadowTraffic)
 
 Note: I had to change the schema_manager default port from 8081 to 9081 as 8081 is already in use by the flink cluster/jobmanager, and it was easier to change the port for schema_manager than to change the jobmanager port.
 

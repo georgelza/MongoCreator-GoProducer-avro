@@ -22,7 +22,7 @@ creConnect/.pwdmongolocal
 creConnect/.pwdmongoatlas
 
 # Shadowtraffic license file
-shadowntraffic/license.env
+devlab-hms-postgres/conf/license.env
 
 # Dependency directories (remove the comment below to include it)
 # vendor/

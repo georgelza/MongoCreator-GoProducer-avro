@@ -19,6 +19,7 @@
 *	Copyright © 2021: George Leonard georgelza@gmail.com aka georgelza on Discord and Mongo Community Forum
 *
 *	jsonformatter 	: https://jsonformatter.curiousconcept.com/#
+*					: https://jsonlint.com/
 *
 *  	json to avro schema	: http://www.dataedu.ca/avro
 *
