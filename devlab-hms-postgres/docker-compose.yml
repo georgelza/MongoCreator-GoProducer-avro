@@ -15,6 +15,8 @@ configs:
     file: ./creFlinkFlows/creFlink_1.sql
   creFlink_2:
     file: ./creFlinkFlows/creFlink_2.sql
+  shadow:
+    file: ./shadowtraffic/kafka-retail.json
 
 services:
   # Core Confluent Kafka bits
@@ -340,16 +342,30 @@ services:
 
 
   # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
-  # shadowtraffic:
-  #   image: shadowtraffic/shadowtraffic:0.6.0
-  #   container_name: shadowtraffic
-  #   hostname: shadowtraffic
-  #     #    profiles: ["shadowtraffic"]
-  #   env_file:
-  #     - shadowtraffic/license.env
-  #   volumes:
-  #     - ./shadowtraffic:/data
-  #   command: --config /data/kafka-retail.json
+  shadowtraffic:
+    image: shadowtraffic/shadowtraffic:latest
+    container_name: shadowtraffic
+    hostname: shadowtraffic
+      #    profiles: ["shadowtraffic"]
+    depends_on:
+      - broker
+      - schema-registry
+    env_file:
+      - shadowtraffic/license.env
+    volumes:
+      - ./shadowtraffic:/data
+    command: --config /home/config.json --watch --sample 2 --stdout
+    configs:
+      - source: shadow
+        target: /home/config.json
+        mode: 444
+
+docker run -itd \
+  --env-file ./shadowtraffic/license.env \
+  -v $(pwd)/shadowtraffic/kafka-retail.json:/home/config.json \
+  shadowtraffic/shadowtraffic:latest \
+  --config /home/config.json \
+  --watch --sample 10 --stdout
 
 
 # Without a network explicitly defined, you hit this Hive/Thrift error

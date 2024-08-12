@@ -21,6 +21,9 @@
 creConnect/.pwdmongolocal
 creConnect/.pwdmongoatlas
 
+# Shadowtraffic license file
+shadowntraffic/license.env
+
 # Dependency directories (remove the comment below to include it)
 # vendor/
 .DS_Store
