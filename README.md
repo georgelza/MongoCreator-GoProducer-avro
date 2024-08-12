@@ -13,7 +13,7 @@ See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as
 ## Medium Article
 
 - Part 1: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-1-e7c17d61b9d2
-- Part 2:
+- Part 2: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-2-be1bfbca3139
 - Part 3:
 - Part 4:
 - Part 5:
@@ -81,7 +81,14 @@ Another option would be to emit changes which means as the number increases then
 1. all/most subdirectories have local README.md files with some more local topic specific comments.
 
 2. See infrastructure directory for supporting container creates. Each infrastructure directory have a local Makefile.
+    
     See blog-doc/diagrams/ImageAncestry.png for high level order of creation.
+
+    As a start, execute the make pullall to docker pull the source images, followed by make buildall to build the images.
+    After this you can change into one of the 5 sub directories devlab-* and do a make build followed by make run and then make deploy
+    Note make deploy sometimes is a bit to fast, and the topic create fails, just execute it again.
+
+    There is also a little script called cremongoatlassinks. If you populate a file .pwdmongoatlas with your Atlas credentials then this will create a sink job to push salesbaskets and salespayments onto MongoDB Atlas. Likewise if you decide to deploy a local mongodb instance/container then populate .pwdmongolocal with the credentials for cremonglocalsinks.sh use.
 
 
 ## Deployable Sections/Sub projects:
@@ -99,6 +106,7 @@ The project is broken down into the following sections, the Blog will be aligned
 
 5. devlab-hdfs-paimon-hms-cat : As we are now using Apache Paimon, we can now use the Hive metastore as the catalog for the Flink and Paimon object persistence, backed by a Postgresql database. In this last iteration we move the catalog into the Apache Hive catalog.
 
+To deploy start by changing directory into the infrastructure directory, have a look at the Makefile, and then execute the following:
 
 ## Credits... due.
 
