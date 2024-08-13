@@ -25,12 +25,12 @@ See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as
 See example/MongoCreatorProject ./blog-doc/diagrams/*.jpg for visual diagrams of the thinking.
 
 1. Create salesbaskets and salespayments documents (Golang app).
-2. Push salesbaskets and salespayments onto 2 Kafka topics.
-3. Combine 2 topics/streams into a salescompleted topic/document.
+2. Push salesbaskets and salespayments onto 2 Kafka topics  (avro_salesbaskets and avro_salespayments).
+3. Combine 2 topics/streams into a avro_salescompleted topic/document.
 4. Sink Salesbaskets and Salespayments topics onto MongoDB collections using Kafka sink connectors.
 5. Using Kafka Stream processing and kSQL extract sales per store_id per hour into new topic.
 6. Sink sales per store per hour onto MongoDB collection using Kafka sink connector.
-7. Using Apache Flink processing calculate sales per store per terminal per hour into new kafka topic.
+7. Using Apache Flink processing calculate various values including sales per store per terminal per hour etc and expose these via, kafka topic and ...
     a.  Push from Apache Flink to Apache Iceberg on S3
         Added Apache Hive catalog in standalone with a internal DerbyDB back-end. 
         Changed to Apache Hive catalog with a PostgreSql back-end.
@@ -39,11 +39,11 @@ See example/MongoCreatorProject ./blog-doc/diagrams/*.jpg for visual diagrams of
         Changed to Apache Hive catalog on HDFS back-end.
         Changed to Apache Hive catalog with a PostgreSql back end.
         (Using the stand alone Hive metastore for convenience, see infrastructure sub directory for a distributed Hive deployment the in works).
-8. Using Kafka Sink connector sink the sales per store per terminal per hour onto MongoDB collection.
-9. On MongoDB Atlas cluster merge the salesbaskets and salespayments collection feeds into a salescompleted collection. TooDo
-10. Using MongoDB Aggregation calculate sales by brand by hours and sales by product by hour into 2 new collections. ToDo
-11. Using Kafka source connector extract 4 Mongo collections onto 4 new Kafka topics. ToDo
-12. Using 4 Python applications echo the messages from the 4 topics onto the terminal. ToDo
+8. Using Kafka Sink connector sink the various values onto MongoDB collection.
+9. On MongoDB Atlas cluster merge the salesbaskets and salespayments collection into a new salescompleted collection. TooDo
+10. Using MongoDB Aggregation recalculate the various value outputing the aggregated data into 2 new collections. ToDo
+11. Using Kafka source connector extract the various Mongo collections onto new Kafka topics. ToDo
+12. Using X Python applications echo the messages from the 4 topics onto the terminal. ToDo
 
 
 ## Using the app.
