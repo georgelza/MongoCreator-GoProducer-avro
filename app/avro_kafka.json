@@ -1,7 +1,6 @@
-
 {
     "EchoConfig": 2,                                                        # Note EchoConfig from General setup must == 0  for this to be considered
-    "Bootstrapservers": "broker:9092",                                      # Add hostname for broker and schema-registry to host file
+    "Bootstrapservers": "broker.local:9092",                                      # Add hostname for broker and schema-registry to host file
     "SchemaRegistryURL": "http://schema-registry:9081",                     # Default port change 8081->9081 as not to conflict with Flink/Jobmanager
     "Security_protocol": "",
     "Sasl_mechanisms": "",
@@ -11,7 +10,7 @@
     "Replicationfactor": 1,
     "Retension": 3600,                                                      # hour
     "Parseduration": "60s",    
-    "Flush_interval": 100,
+    "Flush_interval": 1000,
     "Sasl_password":"", 
     "Sasl_username":""       
 }

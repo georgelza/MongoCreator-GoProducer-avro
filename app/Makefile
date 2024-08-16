@@ -3,10 +3,6 @@
 
 BINARY_NAME=goprod-avro
 VERSION=1.0.0
-GOOS=linux
-GOARCH=arm64
-# GOOS=${GOOS} 
-# GOARCH=${GOARCH}
 
 .DEFAULT_GOAL := help
 
@@ -27,18 +23,34 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-compile: 
-# env GOOS=linux GOARCH=arm64 go build -o ./cmd/main ./cmd/main.go
-#	go build -o ./cmd/main ./cmd/main.go
-	sudo docker build --platform=linux/arm64 -t ${BINARY_NAME}:${VERSION} .
+compile:
+	GOOS=linux GOARCH=arm64 go build -o cmd/ cmd/main.go
 	
+builddocker: 
 
-build_docker:
-#	sudo docker build --platform=linux/arm64 -t ${BINARY_NAME}:${VERSION} .
-	sudo docker build --platform=linux/arm64 -t ${BINARY_NAME}:${VERSION} .
+	sudo docker build --platform linux/arm64 --no-cache -t ${BINARY_NAME}:${VERSION} .
 	sudo docker tag ${BINARY_NAME}:${VERSION} georgelza/${BINARY_NAME}:${VERSION}
 	sudo docker rmi ${BINARY_NAME}:${VERSION}
 
 push_docker:
 	sudo docker push georgelza/${BINARY_NAME}:${VERSION}
 
+run_core: 
+	docker compose -p devlab up -d broker schema-registry
+	
+deploy: createtopics
+
+createtopics:
+	cd ../creTopics; ./creTopics.sh
+
+run_app:
+	docker compose -p devlab up -d app
+
+down: 
+	docker compose down
+
+ps: 
+	docker compose ps
+
+logs: 
+	docker compose logs

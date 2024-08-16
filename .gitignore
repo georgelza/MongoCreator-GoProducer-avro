@@ -16,8 +16,8 @@
 *.out
 
 # Password/Credentials
-.pwd
-.pwdloc
+app/.pwd
+app/.pwdloc
 creConnect/.pwdmongolocal
 creConnect/.pwdmongoatlas
 

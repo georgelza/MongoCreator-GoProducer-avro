@@ -1,0 +1,10 @@
+{
+    "Url":  "mongo.local:27017/?directConnection=true",
+    "Port": "27017",   
+    "Root": "mongodb",
+    "Datastore": "MongoCom0",            
+    "Basketcollection": "avro_salesbaskets",
+    "Paymentcollection": "avro_salespayments",
+    "Batch_size": 1000                                                 # Must be a factor of the test size from *_app.json
+}        
+    
