@@ -523,7 +523,7 @@ func constructFakeBasket() (strct_Basket types.TPBasket, eventTimestamp time.Tim
 	// now pick from array a random products to add to basket, by using 1 as a start point we ensure we always have at least 1 item.
 	nBasketItems := gofakeit.Number(1, vGeneral.Max_items_basket)
 
-	nett_amount := 0.0
+	total_amount := 0.0
 
 	for count := 0; count < nBasketItems; count++ {
 
@@ -542,13 +542,13 @@ func constructFakeBasket() (strct_Basket types.TPBasket, eventTimestamp time.Tim
 		}
 		strct_BasketItems = append(strct_BasketItems, strct_BasketItem)
 
-		nett_amount = nett_amount + price*float64(quantity)
+		total_amount = total_amount + price*float64(quantity) // Prices shown/listed is inclusive of vat.
 
 	}
 
-	nett_amount = toFixed(nett_amount, 2)
-	vat_amount := toFixed(nett_amount*vGeneral.Vatrate, 2) // sales tax
-	total_amount := toFixed(nett_amount+vat_amount, 2)
+	vat_amount := toFixed(total_amount/(1+vGeneral.Vatrate), 2) // sales tax
+	nett_amount := total_amount - vat_amount                    // Total - vat
+
 	terminalPoint := gofakeit.Number(1, vGeneral.Terminals)
 
 	strct_Basket = types.TPBasket{
