@@ -132,7 +132,7 @@ func loadConfig(params ...string) types.TPGeneral {
 
 		}
 		vGeneral.Hostname = vHostname
-		vGeneral.SeedFile = fmt.Sprintf("%s%s%s", vGeneral.ConfigPath, pathSep, vGeneral.SeedFile)
+		vGeneral.SeedConfigFile = fmt.Sprintf("%s%s%s", vGeneral.ConfigPath, pathSep, vGeneral.SeedFile)
 
 	}
 
@@ -242,8 +242,8 @@ func printConfig(vGeneral types.TPGeneral) {
 	grpcLog.Info("* Mongo Enabled is\t\t", vGeneral.MongoAtlasEnabled)
 
 	grpcLog.Info("* App Path is\t\t\t", vGeneral.CurrentPath)
-	grpcLog.Info("* Config File is\t\t", vGeneral.AppConfigFile)
-	grpcLog.Info("* Seed File is\t\t", vGeneral.SeedFile)
+	grpcLog.Info("* App Config File is\t\t", vGeneral.AppConfigFile)
+	grpcLog.Info("* Seed Config File is\t\t", vGeneral.SeedConfigFile)
 	grpcLog.Info("*")
 	grpcLog.Info("*******************************")
 
@@ -603,7 +603,7 @@ func runLoader(arg string) {
 	}
 
 	// Lets get Seed Data from the specified seed file
-	varSeed = loadSeed(vGeneral.SeedFile)
+	varSeed = loadSeed(vGeneral.SeedConfigFile)
 
 	// Initiale the vKafka struct variable - This holds our Confluent Kafka configuration settings.
 	// if Kafka is enabled then create the confluent kafka connection session/objects

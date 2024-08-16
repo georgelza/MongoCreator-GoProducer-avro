@@ -37,7 +37,7 @@ WORKDIR /app
 COPY cmd/ /app/cmd
 COPY types/ /app/types
 COPY .pwdloc /app
-COPY *.json /app
+COPY conf/*.json /app/conf
 COPY runs_avro.sh /app
 
 #RUN go build -v -o /app/cmd/ /app/cmd/main.go

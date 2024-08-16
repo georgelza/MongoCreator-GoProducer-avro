@@ -12,6 +12,7 @@ type TPGeneral struct {
 	ConfigPath        string  // current
 	AppConfigFile     string  // General Config file
 	SeedFile          string  // Which seed file to read in
+	SeedConfigFile    string  // Full path to the seed config file
 	OSName            string  // OS name
 	Vatrate           float64 // Amount
 	Store             int     // if <> 0 then store at that position in array is selected.
@@ -23,7 +24,6 @@ type TPGeneral struct {
 	TimeOffset        string  // what offset do we run with, from GMT / Zulu time
 	Max_items_basket  int     // max items in a basket
 	Max_quantity      int     // max quantity of items in a basket per product
-
 }
 
 type TPKafka struct {
