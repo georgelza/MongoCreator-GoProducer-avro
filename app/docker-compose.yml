@@ -68,8 +68,6 @@ services:
       Sasl_password: 
       mongo_username: 
       mongo_password: 
-    volumes:
-      - ./:/app
     configs:
       - source: app_file
         target: /app/avro_app.json

@@ -36,7 +36,7 @@ WORKDIR /app
 
 COPY cmd/ /app/cmd
 COPY types/ /app/types
-COPY .pwdloc /app
+COPY .pwd /app
 COPY conf/*.json /app/conf
 COPY runs_avro.sh /app
 
