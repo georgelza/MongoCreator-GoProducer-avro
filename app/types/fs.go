@@ -7,9 +7,11 @@ type TPGeneral struct {
 	Debuglevel        int
 	Testsize          int     // Used to limit number of records posted, over rided when reading test cases from input_source,
 	Sleep             int     // sleep time between Basket payload Create and Payment payload create
-	SeedFile          string  // Which seed file to read in
 	EchoSeed          int     // 0/1 Echo the seed data to terminal
 	CurrentPath       string  // current
+	ConfigPath        string  // current
+	AppConfigFile     string  // General Config file
+	SeedFile          string  // Which seed file to read in
 	OSName            string  // OS name
 	Vatrate           float64 // Amount
 	Store             int     // if <> 0 then store at that position in array is selected.
@@ -21,8 +23,7 @@ type TPGeneral struct {
 	TimeOffset        string  // what offset do we run with, from GMT / Zulu time
 	Max_items_basket  int     // max items in a basket
 	Max_quantity      int     // max quantity of items in a basket per product
-	KafkaConfigFile   string  // Kafka configuration file
-	MongoConfigFile   string  // Mongo configuration file
+
 }
 
 type TPKafka struct {
@@ -40,6 +41,7 @@ type TPKafka struct {
 	Sasl_username     string
 	Sasl_password     string
 	Flush_interval    int
+	KafkaConfigFile   string // Kafka configuration file
 }
 
 type TPMongodb struct {
@@ -53,6 +55,7 @@ type TPMongodb struct {
 	Basketcollection  string
 	Paymentcollection string
 	Batch_size        int
+	MongoConfigFile   string // Mongo configuration file
 }
 
 type TPStoreStruct struct {

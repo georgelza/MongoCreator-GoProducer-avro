@@ -69,10 +69,10 @@ var (
 	grpcLog  glog.LoggerV2
 	varSeed  types.TPSeed
 	vGeneral types.TPGeneral
-	pathSep  = string(os.PathSeparator)
-	runId    string
 	vKafka   types.TPKafka
 	vMongodb types.TPMongodb
+	pathSep  = string(os.PathSeparator)
+	runId    string
 )
 
 func init() {
@@ -115,12 +115,12 @@ func loadConfig(params ...string) types.TPGeneral {
 		grpcLog.Fatalln("Problem retrieving current path: %s", err)
 
 	}
-
+	vGeneral.ConfigPath = fmt.Sprintf("%s%sconf", vGeneral.CurrentPath, pathSep)
 	vGeneral.OSName = runtime.GOOS
 
 	// General config file
-	fileName := fmt.Sprintf("%s%s%s_app.json", vGeneral.CurrentPath, pathSep, env)
-	err = gonfig.GetConf(fileName, &vGeneral)
+	vGeneral.AppConfigFile = fmt.Sprintf("%s%s%s_app.json", vGeneral.ConfigPath, pathSep, env)
+	err = gonfig.GetConf(vGeneral.AppConfigFile, &vGeneral)
 	if err != nil {
 		grpcLog.Fatalln("Error Reading Config File: ", err)
 
@@ -132,7 +132,7 @@ func loadConfig(params ...string) types.TPGeneral {
 
 		}
 		vGeneral.Hostname = vHostname
-		vGeneral.SeedFile = fmt.Sprintf("%s%s%s", vGeneral.CurrentPath, pathSep, vGeneral.SeedFile)
+		vGeneral.SeedFile = fmt.Sprintf("%s%s%s", vGeneral.ConfigPath, pathSep, vGeneral.SeedFile)
 
 	}
 
@@ -140,100 +140,46 @@ func loadConfig(params ...string) types.TPGeneral {
 		vGeneral.Output_path = fmt.Sprintf("%s%s%s", vGeneral.CurrentPath, pathSep, vGeneral.Output_path)
 	}
 
-	if vGeneral.EchoConfig == 1 {
-		grpcLog.Infoln("*")
-		grpcLog.Infoln("* Config:")
-		grpcLog.Infoln("* Current path:", vGeneral.CurrentPath)
-		grpcLog.Infoln("* Config File :", fileName)
-		grpcLog.Infoln("*")
-
-		printConfig(vGeneral)
-	}
-
 	return vGeneral
 }
 
 // Load Kafka specific configuration Parameters, this is so that we can gitignore this dev_kafka.json file/seperate
 // from the dev_app.json file
-func loadKafka(params ...string) types.TPKafka {
+func loadKafka(params ...string) (vKafka types.TPKafka) {
 
-	vKafka := types.TPKafka{}
+	//	vKafka := types.TPKafka{}
 	env := "dev"
 	if len(params) > 0 {
 		env = params[0]
 	}
 
-	path, err := os.Getwd()
-	if err != nil {
-		grpcLog.Error(fmt.Sprintf("Problem retrieving current path: %s", err))
-		os.Exit(1)
-
-	}
-
-	//	fileName := fmt.Sprintf("%s/%s_app.json", path, env)
-	fileName := fmt.Sprintf("%s/%s_kafka.json", path, env)
-	err = gonfig.GetConf(fileName, &vKafka)
+	vKafka.KafkaConfigFile = fmt.Sprintf("%s%s%s_kafka.json", vGeneral.ConfigPath, pathSep, env)
+	err := gonfig.GetConf(vKafka.KafkaConfigFile, &vKafka)
 	if err != nil {
 		grpcLog.Error(fmt.Sprintf("Error Reading Kafka File: %s", err))
 		os.Exit(1)
 
 	}
 
-	vGeneral.KafkaConfigFile = fileName
-
-	if vGeneral.Debuglevel > 0 {
-
-		grpcLog.Info("*")
-		grpcLog.Info("* Kafka Config :")
-		grpcLog.Info(fmt.Sprintf("* Current path : %s", path))
-		grpcLog.Info(fmt.Sprintf("* Kafka File   : %s", fileName))
-		grpcLog.Info("*")
-
-	}
-
 	vKafka.Sasl_password = os.Getenv("Sasl_password")
 	vKafka.Sasl_username = os.Getenv("Sasl_username")
-
-	if vGeneral.EchoConfig == 1 {
-		printKafkaConfig(vKafka)
-	}
 
 	return vKafka
 }
 
-func loadMongoProps(params ...string) types.TPMongodb {
+func loadMongoProps(params ...string) (vMongodb types.TPMongodb) {
 
-	vMongodb := types.TPMongodb{}
+	//	vMongodb := types.TPMongodb{}
 	env := "dev"
 	if len(params) > 0 {
 		env = params[0]
 	}
 
-	path, err := os.Getwd()
-	if err != nil {
-		grpcLog.Error(fmt.Sprintf("Problem retrieving current path: %s", err))
-		os.Exit(1)
-
-	}
-
-	//	fileName := fmt.Sprintf("%s/%s_app.json", path, env)
-	fileName := fmt.Sprintf("%s/%s_mongo.json", path, env)
-	err = gonfig.GetConf(fileName, &vMongodb)
+	vMongodb.MongoConfigFile = fmt.Sprintf("%s%s%s_mongo.json", vGeneral.ConfigPath, pathSep, env)
+	err := gonfig.GetConf(vMongodb.MongoConfigFile, &vMongodb)
 	if err != nil {
 		grpcLog.Error(fmt.Sprintf("Error Reading Mongo File: %s", err))
 		os.Exit(1)
-
-	}
-
-	vGeneral.MongoConfigFile = fileName
-
-	if vGeneral.Debuglevel > 0 {
-
-		grpcLog.Info("*")
-		grpcLog.Info("* Mongo Config :")
-		grpcLog.Info(fmt.Sprintf("* Current path : %s", path))
-		grpcLog.Info(fmt.Sprintf("* Mongo File   : %s", fileName))
-		grpcLog.Info("*")
 
 	}
 
@@ -249,16 +195,12 @@ func loadMongoProps(params ...string) types.TPMongodb {
 		vMongodb.Uri = fmt.Sprintf("%s://%s&w=majority", vMongodb.Root, vMongodb.Url)
 	}
 
-	if vGeneral.EchoConfig == 1 {
-		printMongoConfig(vMongodb)
-	}
-
 	return vMongodb
 }
 
-func loadSeed(fileName string) types.TPSeed {
+func loadSeed(fileName string) (vSeed types.TPSeed) {
 
-	var vSeed types.TPSeed
+	//	var vSeed types.TPSeed
 
 	err := gonfig.GetConf(fileName, &vSeed)
 	if err != nil {
@@ -273,15 +215,6 @@ func loadSeed(fileName string) types.TPSeed {
 
 	if vGeneral.EchoSeed == 1 {
 		prettyJSON(string(v))
-
-	}
-
-	if vGeneral.Debuglevel > 0 {
-		grpcLog.Infoln("*")
-		grpcLog.Infoln("* Seed :")
-		grpcLog.Infoln("* Current path:", vGeneral.CurrentPath)
-		grpcLog.Infoln("* Seed File   :", vGeneral.SeedFile)
-		grpcLog.Infoln("*")
 
 	}
 
@@ -300,14 +233,17 @@ func printConfig(vGeneral types.TPGeneral) {
 	grpcLog.Info("* Sleep Duration is\t\t", vGeneral.Sleep)
 	grpcLog.Info("* Test Batch Size is\t\t", vGeneral.Testsize)
 	grpcLog.Info("* Echo Seed is\t\t", vGeneral.EchoSeed)
-	grpcLog.Info("* Seed File is\t\t", vGeneral.SeedFile)
 	grpcLog.Info("* Json to File is\t\t", vGeneral.Json_to_file)
 	if vGeneral.Json_to_file == 1 {
 		grpcLog.Infoln("* Output path\t\t\t", vGeneral.Output_path)
 	}
+
 	grpcLog.Info("* Kafka Enabled is\t\t", vGeneral.KafkaEnabled)
 	grpcLog.Info("* Mongo Enabled is\t\t", vGeneral.MongoAtlasEnabled)
 
+	grpcLog.Info("* App Path is\t\t\t", vGeneral.CurrentPath)
+	grpcLog.Info("* Config File is\t\t", vGeneral.AppConfigFile)
+	grpcLog.Info("* Seed File is\t\t", vGeneral.SeedFile)
 	grpcLog.Info("*")
 	grpcLog.Info("*******************************")
 
@@ -318,10 +254,9 @@ func printConfig(vGeneral types.TPGeneral) {
 // print some more configurations
 func printKafkaConfig(vKafka types.TPKafka) {
 
-	fmt.Printf("xxxxxxxxxxxxxxxxxxx")
-
 	grpcLog.Info("****** Kafka Connection Parameters *****")
 	grpcLog.Info("*")
+	grpcLog.Info("* Kafka Config file is\t", vKafka.KafkaConfigFile)
 	grpcLog.Info("* Kafka bootstrap Server is\t", vKafka.Bootstrapservers)
 	grpcLog.Info("* Kafka schema Registry is\t", vKafka.SchemaRegistryURL)
 	grpcLog.Info("* Kafka Basket Topic is\t", vKafka.BasketTopicname)
@@ -330,11 +265,8 @@ func printKafkaConfig(vKafka types.TPKafka) {
 	grpcLog.Info("* Kafka Rep Factor is\t\t", vKafka.Replicationfactor)
 	grpcLog.Info("* Kafka Retension is\t\t", vKafka.Retension)
 	grpcLog.Info("* Kafka ParseDuration is\t", vKafka.Parseduration)
-
 	grpcLog.Info("* Kafka SASL Mechanism is\t", vKafka.Sasl_mechanisms)
 	grpcLog.Info("* Kafka SASL Username is\t", vKafka.Sasl_username)
-
-	grpcLog.Info("*")
 	grpcLog.Info("* Kafka Flush Size is\t\t", vKafka.Flush_interval)
 	grpcLog.Info("*")
 	grpcLog.Info("*******************************")
@@ -349,15 +281,14 @@ func printMongoConfig(vMongodb types.TPMongodb) {
 	grpcLog.Info("*")
 	grpcLog.Info("****** MongoDB Connection Parameters *****")
 	grpcLog.Info("*")
-
+	grpcLog.Info("* Mongo Config file is\t", vMongodb.MongoConfigFile)
 	grpcLog.Info("* Mongo URL is\t\t", vMongodb.Url)
 	grpcLog.Info("* Mongo Port is\t\t", vMongodb.Port)
 	grpcLog.Info("* Mongo DataStore is\t\t", vMongodb.Datastore)
 	grpcLog.Info("* Mongo Username is\t\t", vMongodb.Username)
 	grpcLog.Info("* Mongo Basket Collection is\t", vMongodb.Basketcollection)
 	grpcLog.Info("* Mongo Payment Collection is\t", vMongodb.Paymentcollection)
-	grpcLog.Info("* Mongo Batch szie is\t\t", vMongodb.Batch_size)
-
+	grpcLog.Info("* Mongo Batch size is\t\t", vMongodb.Batch_size)
 	grpcLog.Info("*")
 	grpcLog.Info("*******************************")
 
@@ -387,6 +318,8 @@ func CreateTopic(props types.TPKafka) {
 	}
 
 	if vGeneral.Debuglevel > 0 {
+		grpcLog.Info("**** Configure Client Kafka Connection ****")
+		grpcLog.Info("*")
 		grpcLog.Info("* Basic Client ConfigMap compiled")
 	}
 
@@ -470,7 +403,6 @@ func CreateTopic(props types.TPKafka) {
 	}
 
 	adminClient.Close()
-	grpcLog.Info("")
 
 }
 
@@ -666,6 +598,9 @@ func runLoader(arg string) {
 
 	// Initialize the vGeneral struct variable - This holds our configuration settings.
 	vGeneral = loadConfig(arg)
+	if vGeneral.EchoConfig == 1 {
+		printConfig(vGeneral)
+	}
 
 	// Lets get Seed Data from the specified seed file
 	varSeed = loadSeed(vGeneral.SeedFile)
@@ -675,6 +610,9 @@ func runLoader(arg string) {
 	if vGeneral.KafkaEnabled == 1 {
 
 		vKafka = loadKafka(arg)
+		if vGeneral.EchoConfig == 1 {
+			printKafkaConfig(vKafka)
+		}
 
 		// Lets make sure the topic/s exist
 		CreateTopic(vKafka)
@@ -682,15 +620,6 @@ func runLoader(arg string) {
 		// --
 		// Create Producer instance
 		// https://docs.confluent.io/current/clients/confluent-kafka-go/index.html#NewProducer
-
-		if vGeneral.Debuglevel > 0 {
-			grpcLog.Info("**** Configure Client Kafka Connection ****")
-			grpcLog.Info("*")
-			grpcLog.Infof("* Kafka bootstrap Server is %s", vKafka.Bootstrapservers)
-			if vKafka.SchemaRegistryURL != "" {
-				grpcLog.Infof("* Schema Registry URL is    %s", vKafka.SchemaRegistryURL)
-			}
-		}
 
 		cm := kafka.ConfigMap{
 			"bootstrap.servers":       vKafka.Bootstrapservers,
@@ -768,7 +697,7 @@ func runLoader(arg string) {
 		}
 
 		if vGeneral.Debuglevel > 0 {
-			grpcLog.Infoln("* Created Kafka Producer instance :")
+			grpcLog.Infoln("* Created Kafka Producer instance")
 			grpcLog.Infoln("")
 		}
 	}
@@ -776,6 +705,9 @@ func runLoader(arg string) {
 	if vGeneral.MongoAtlasEnabled == 1 {
 
 		vMongodb = loadMongoProps(arg)
+		if vGeneral.EchoConfig == 1 {
+			printMongoConfig(vMongodb)
+		}
 
 		serverAPI := options.ServerAPI(options.ServerAPIVersion1)
 
