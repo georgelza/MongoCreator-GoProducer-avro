@@ -16,8 +16,8 @@ See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as
 - Part 2: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-2-be1bfbca3139
 - Part 3: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-3-fc8b5e5889ac
 - Part 4: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-4-9f0362998ebc
-- Part 5:
-- Part 6:
+- Part 5: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-5-8463f7b25545
+- Part 6: https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-6-4226614b65f7
 
 
 ## Overview/plan.
@@ -48,11 +48,11 @@ See example/MongoCreatorProject ./blog-doc/diagrams/*.jpg for visual diagrams of
 
 ## Using the app.
 
-This application generates fake data (salesbaskets), how that is done is controlled by the *_app.json configuration file that configures the run environment. The *_seed.json in which seed data is provided is used to generate the fake basket + basket items and the associated payments (salespayments) documents.
+This application generates fake data (salesbaskets and associated salespayments), how that is done is controlled by the *_app.json configuration file that configures the run environment. The *_seed.json in which seed data is provided is used to generate the fake basket + basket items and the associated payments (salespayments) documents.
 
 the *_app.json contains comments to explain the impact of the value.
 
-on the Mac (and Linux) platform you can run the program by executing runs_avro.sh
+on the Mac (and Linux) platform you can run the program by executing app/runs_avro.sh
 a similar bat file can be configured on Windows
 
 The User can always start up multiple copies, specify/hard code the store, and configure one store to have small baskets, low quantity per basket and configure a second run to have larger baskets, more quantity per product, thus higher value baskets.
@@ -60,11 +60,10 @@ The User can always start up multiple copies, specify/hard code the store, and c
 
 ## Note: Not included in the repo is a 2 files called ./*.pwd
 
-This file would be located in the project root folder next to the runs_**.sh filesystem
+This file would be located in the project (app/) root folder next to the runs_**.sh filesystem
 Example: 
 
 export Sasl_password=Vj8MASendaIs0j4r34rsdfe4Vc8LG6cZ1XWilAJjYS05bZIk7AaGx0Y49xb
-
 export Sasl_username=3MZ4dfgsdfdfIUUA
 
 This files is executed via the runs_*.sh file, reading the values into local environment, from where they are injested by a os.Getenv call, if this code is pushed into a docker container then these values can be pushed into a secret included in the environment.
@@ -83,12 +82,13 @@ Another option would be to emit changes which means as the number increases then
 2. See infrastructure directory for supporting container creates. Each infrastructure directory have a local Makefile.
     
     See blog-doc/diagrams/ImageAncestry.png for high level order of creation.
+    See the various blog-doc/diagrams/*DBLinaegeOver.jpg for a visual representation of the various data lineages followed.
 
     As a start, execute the make pullall to docker pull the source images, followed by make buildall to build the images.
     After this you can change into one of the 5 sub directories devlab-* and do a make build followed by make run and then make deploy
     Note make deploy sometimes is a bit to fast, and the topic create fails, just execute it again.
 
-    There is also a little script called cremongoatlassinks. If you populate a file .pwdmongoatlas with your Atlas credentials then this will create a sink job to push salesbaskets and salespayments onto MongoDB Atlas. Likewise if you decide to deploy a local mongodb instance/container then populate .pwdmongolocal with the credentials for cremonglocalsinks.sh use.
+    There is also a little script called creConnect/cremongoatlassinks. If you populate the file .pwdmongoatlas with your Atlas credentials then this will create a sink job to push salesbaskets and salespayments onto MongoDB Atlas. Likewise if you decide to deploy a local mongodb instance/container then populate .pwdmongolocal with the credentials for cremonglocalsinks.sh use.
 
 ## Note:
 
