@@ -161,8 +161,8 @@ func loadKafka(params ...string) (vKafka types.TPKafka) {
 
 	}
 
-	vKafka.Sasl_password = os.Getenv("Sasl_password")
-	vKafka.Sasl_username = os.Getenv("Sasl_username")
+	vKafka.Sasl_password = os.Getenv("SASL_PASSWORD")
+	vKafka.Sasl_username = os.Getenv("SASL_USERNAME")
 
 	return vKafka
 }
@@ -183,8 +183,8 @@ func loadMongoProps(params ...string) (vMongodb types.TPMongodb) {
 
 	}
 
-	vMongodb.Username = os.Getenv("mongo_username")
-	vMongodb.Password = os.Getenv("mongo_password")
+	vMongodb.Username = os.Getenv("MONGO_USERNAME")
+	vMongodb.Password = os.Getenv("MONGO_PASSWORD")
 
 	if vMongodb.Username != "" {
 

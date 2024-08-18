@@ -65,9 +65,9 @@ services:
       - schema-registry
     environment:
       Sasl_username: 
-      Sasl_password: 
+      Sasl_password:
       mongo_username: 
-      mongo_password: 
+      mongo_password:
     configs:
       - source: app_file
         target: /app/avro_app.json
