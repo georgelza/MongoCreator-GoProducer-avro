@@ -59,3 +59,6 @@ ps:
 
 logs: 
 	docker compose logs
+
+monitor_app:
+	docker compose logs -f app |grep Record

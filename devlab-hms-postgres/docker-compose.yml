@@ -15,8 +15,7 @@ configs:
     file: ./creFlinkFlows/creFlink_1.sql
   creFlink_2:
     file: ./creFlinkFlows/creFlink_2.sql
-  shadow:
-    file: ./shadowtraffic/kafka-retail.json
+
   app_file:
     file: ../app/conf/avro_app.json
   kafka_file:
@@ -366,7 +365,7 @@ services:
         mode: 444
 
 
-  # # Used to test the Kafka Connector/sinks locally
+  # # Used to test the local Kafka Connector/sinks inot MongoDB
   # mongo:
   #   image: mongodb/mongodb-atlas-local:7.0.5
   #   hostname: mongodb
@@ -375,6 +374,7 @@ services:
   #     - "27017:27017" 
 
 
+  # In Progress
   # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
   #
   # shadowtraffic:

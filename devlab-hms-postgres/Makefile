@@ -5,25 +5,23 @@ define HELP
 
 Available commands:
 
-- build: Build all the images from the downloaded infrastructure components.
+- build: Build all the images from the downloaded infrastructure components. After this execute "make run", followed by "make deploy" and then "make app".
 
-- run: This will startup the compose project 
+- run: This will startup the core infrastructure of the project first
+- deploy: This will create the Kafka topics, schema entries, all the Hive catalogs, Flink tables, flink inserts jobs etc.
+- run_app: Run workload creator/the Golang app.
+- stop_app: Stop the workload creator/the Golang app.
 
-- deploy: This will create all the catalogs, tables, flink inserts etc.
+- stop: Stop the project.
+- down: Tear down the project, clean directories.
+- ps: Show all running containers.
 
-- stop: Stop the project
+- logs: Show logs.
+- monitor_app: show the logs of the workload creator/the Golang app.
 
-- down: Tear down the project, clean directories
-
-- ps: Show all running containers
-
-- logs: Show logs
-
-- watch: Watch logs
-
-- ksql: Open KSql
-
-- fsql: Open Flink Sql
+- watch: Watch logs.
+- ksql: Open KSql.
+- fsql: Open Flink Sql.
 
 endef
 
@@ -41,14 +39,14 @@ build:
 run: core
 # Run the core, followed by deploy and then app
 
-core: confluent flink hms misc
+core: confluent hms flink misc
 
 confluent:
 	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat 
-flink: 
-	docker compose -p devlab up -d flink-jobmanager flink-taskmanager flink-sql-client
 hms:
 	docker compose -p devlab up -d minio mc postgres hive-metastore 
+flink: 
+	docker compose -p devlab up -d flink-sql-client
 misc:
 	docker compose -p devlab up -d pyiceberg duckdb
 
@@ -65,9 +63,11 @@ deployflink1:
 deployflink2:
 	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_2.sql
 
-app:
+run_app:
 	docker compose -p devlab up -d app
 
+stop_app:
+	docker compose -p devlab stop app
 
 stop:
 	docker compose stop
@@ -81,6 +81,9 @@ ps:
 
 logs:
 	docker compose logs
+
+monitor_app:
+	docker compose logs -f app |grep Record
 
 watch:
 	watch docker compose ps
