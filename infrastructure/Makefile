@@ -31,11 +31,14 @@ help:
 
 pullall: os confluent flink db s3 iop misc
 
-buildall: buildos builddb 
+buildall: buildos builddb buildapp
 
 # Base images used along the way, used to build 2nd level images.
+# ubuntu:jammy & golang:1.22 are used when building the app/* into a docker image
 os: 
 	docker pull arm64v8/ubuntu:20.04
+	docker pull ubuntu:jammy
+	docker pull golang:1.22
 
 confluent:
 	docker pull confluentinc/cp-kafka:7.6.1
@@ -52,8 +55,8 @@ flink:
 db:
 	docker pull postgres:12	
 	docker pull mongodb/mongodb-atlas-local:7.0.5
-	docker pull mongodb/mongodb-atlas-local:latest
 	docker pull mysql:9.0
+	docker pull paradedb/paradedb:latest
 
 s3: 
 	docker pull minio/minio:latest
@@ -96,3 +99,5 @@ buildhive:
 builddb:
 	cd build-postgres-12.0; make build
 
+buildapp:
+	cd ../app; make builddocker

@@ -10,19 +10,16 @@ define HELP
 
 Available commands:
 
-- compile: Compile Golang Binary.
-
-- build_docker: Build Docker Image.
-
+- builddocker: Build Docker Image.
 - push_docker: Push Docker Image.
 
 - run_core: Run the Broker and Shema Registry.
-
 - deploy: create topics and schema registry entries.
 
-- run_app: Run the Golang Application/
+- run_app: Run the container app that will produce the documents onto the 2 topics.
+- stop_app: Well... stop the app ;)
 
-- down, ps & logs: well what is probably expected.
+- down, ps & logs: well what is expected.
 
 endef
 
@@ -31,8 +28,6 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-compile:
-	go build -o cmd/main cmd/main.go
 	
 builddocker: 
 	sudo docker build --platform linux/arm64 --no-cache -t ${BINARY_NAME}:${VERSION} .
@@ -41,7 +36,6 @@ builddocker:
 
 push_docker:
 	docker push georgelza/${BINARY_NAME}:${VERSION}
-
 
 run_core: 
 	docker compose -p devlab up -d broker schema-registry
@@ -57,7 +51,7 @@ run_app:
 
 stop_app:
 	docker compose -p devlab stop app
-	
+
 down: 
 	docker compose down
 
