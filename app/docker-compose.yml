@@ -42,6 +42,8 @@ services:
       # Replace CLUSTER_ID with a unique base64 UUID using "bin/kafka-storage.sh random-uuid" 
       # See https://docs.confluent.io/kafka/operations-tools/kafka-tools.html#kafka-storage-sh
       CLUSTER_ID: 'MkU3OEVBNTcwNTJENDM2Qk'
+    networks:
+      - project
 
   schema-registry:
     image: confluentinc/cp-schema-registry:7.6.1
@@ -55,6 +57,8 @@ services:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'broker:29092'
       SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:9081
+    networks:
+      - project
 
   app:
     image: georgelza/goprod-avro:1.0.0
@@ -81,7 +85,12 @@ services:
       - source: seed_file
         target: /app/sit_seed.json
         mode: 444
+    networks:
+      - project
 
 networks:
-  default:
+  project:
     name: ${COMPOSE_PROJECT_NAME}
+    external: true
+      
+      

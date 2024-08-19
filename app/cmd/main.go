@@ -290,6 +290,8 @@ func printMongoConfig(vMongodb types.TPMongodb) {
 // Create Kafka topic if not exist, using admin client
 func CreateTopic(props types.TPKafka) {
 
+	grpcLog.Info("**** CreateTopic ****")
+
 	cm := kafka.ConfigMap{
 		"bootstrap.servers":       props.Bootstrapservers,
 		"broker.version.fallback": "0.10.0.0",
@@ -303,25 +305,25 @@ func CreateTopic(props types.TPKafka) {
 		cm["sasl.password"] = props.Sasl_password
 
 		if vGeneral.Debuglevel > 0 {
-			grpcLog.Info("* Security Authentifaction configured in ConfigMap")
+			grpcLog.Info("* CreateTopic: Security Authentifaction configured in ConfigMap")
 
 		}
 	}
 
 	if vGeneral.Debuglevel > 0 {
-		grpcLog.Info("**** Configure Client Kafka Connection ****")
+		grpcLog.Info("**** CreateTopic: Configure Client Kafka Connection ****")
 		grpcLog.Info("*")
 		grpcLog.Info("* Basic Client ConfigMap compiled")
 	}
 
 	adminClient, err := kafka.NewAdminClient(&cm)
 	if err != nil {
-		grpcLog.Fatalf("Admin Client Creation Failed: %s", err)
+		grpcLog.Fatalf("CreateTopic: Admin Client Creation Failed: %s", err)
 
 	}
 
 	if vGeneral.Debuglevel > 0 {
-		grpcLog.Info("* Admin Client Created Succeeded")
+		grpcLog.Info("* CreateTopic: Admin Client Created Succeeded")
 
 	}
 
@@ -330,12 +332,12 @@ func CreateTopic(props types.TPKafka) {
 
 	maxDuration, err := time.ParseDuration(props.Parseduration)
 	if err != nil {
-		grpcLog.Fatalf("Error Configuring maxDuration via ParseDuration: %s", props.Parseduration)
+		grpcLog.Fatalf("CreateTopic: Error Configuring maxDuration via ParseDuration: %s", props.Parseduration)
 
 	}
 
 	if vGeneral.Debuglevel > 0 {
-		grpcLog.Info("* Configured maxDuration via ParseDuration")
+		grpcLog.Info("* CreateTopic: Configured maxDuration via ParseDuration")
 
 	}
 
@@ -349,7 +351,7 @@ func CreateTopic(props types.TPKafka) {
 		kafka.SetAdminOperationTimeout(maxDuration))
 
 	if err != nil {
-		grpcLog.Error(fmt.Sprintf("Problem during the topic creation: %v", err))
+		grpcLog.Error(fmt.Sprintf("CreateTopic: Problem during the topic creation: %v", err))
 		os.Exit(1)
 	}
 
@@ -357,11 +359,11 @@ func CreateTopic(props types.TPKafka) {
 	for _, result := range results {
 		if result.Error.Code() != kafka.ErrNoError &&
 			result.Error.Code() != kafka.ErrTopicAlreadyExists {
-			grpcLog.Fatalf("Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
+			grpcLog.Fatalf("CreateTopic: Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
 
 		} else {
 			if vGeneral.Debuglevel > 0 {
-				grpcLog.Infof("* Topic Creation Succeeded for %s", result.Topic)
+				grpcLog.Infof("* CreateTopic: Topic Creation Succeeded for %s", result.Topic)
 
 			}
 		}
@@ -376,18 +378,18 @@ func CreateTopic(props types.TPKafka) {
 		kafka.SetAdminOperationTimeout(maxDuration))
 
 	if err != nil {
-		grpcLog.Fatal("Problem during the topic creation: %v", err)
+		grpcLog.Fatal("CreateTopic: Problem during the topic creation: %v", err)
 	}
 
 	// Check for specific topic errors
 	for _, result := range results {
 		if result.Error.Code() != kafka.ErrNoError &&
 			result.Error.Code() != kafka.ErrTopicAlreadyExists {
-			grpcLog.Fatalf("Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
+			grpcLog.Fatalf("CreateTopic: Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
 
 		} else {
 			if vGeneral.Debuglevel > 0 {
-				grpcLog.Infof("* Topic Creation Succeeded for %s", result.Topic)
+				grpcLog.Infof("* CreateTopic: Topic Creation Succeeded for %s", result.Topic)
 
 			}
 		}
@@ -620,7 +622,7 @@ func runLoader(arg string) {
 		}
 
 		if vGeneral.Debuglevel > 0 {
-			grpcLog.Info("* Basic Client ConfigMap compiled")
+			grpcLog.Info("* runLoader: Basic Client ConfigMap compiled")
 
 		}
 
@@ -630,7 +632,7 @@ func runLoader(arg string) {
 			cm["sasl.username"] = vKafka.Sasl_username
 			cm["sasl.password"] = vKafka.Sasl_password
 			if vGeneral.Debuglevel > 0 {
-				grpcLog.Info("* Security Authentifaction configured in ConfigMap")
+				grpcLog.Info("* runLoader: Security Authentifaction configured in ConfigMap")
 
 			}
 			fmt.Println("Mechanism", vKafka.Sasl_mechanisms)
@@ -642,26 +644,26 @@ func runLoader(arg string) {
 		// Variable p holds the new Producer instance.
 		p, err = kafka.NewProducer(&cm)
 		if err != nil {
-			grpcLog.Fatalf("Failed to create Kafka producer: %s", err)
+			grpcLog.Fatalf("runLoader: Failed to create Kafka producer: %s", err)
 
 		}
 		defer p.Close()
 
 		// Check for errors in creating the Producer
 		if err != nil {
-			grpcLog.Errorf("😢Oh noes, there's an error creating the Producer! %s", err)
+			grpcLog.Errorf("runLoader: 😢Oh noes, there's an error creating the Producer! %s", err)
 
 			if ke, ok := err.(kafka.Error); ok {
 				switch ec := ke.Code(); ec {
 				case kafka.ErrInvalidArg:
-					grpcLog.Errorf("😢 Can't create the producer because you've configured it wrong (code: %d)!\n\t%v\n\nTo see the configuration options, refer to https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md", ec, err)
+					grpcLog.Errorf("runLoader: 😢 Can't create the producer because you've configured it wrong (code: %d)!\n\t%v\n\nTo see the configuration options, refer to https://github.com/edenhill/librdkafka/blob/master/CONFIGURATION.md", ec, err)
 				default:
 					grpcLog.Errorf("😢 Can't create the producer (Kafka error code %d)\n\tError: %v\n", ec, err)
 				}
 
 			} else {
 				// It's not a kafka.Error
-				grpcLog.Errorf("😢 Oh noes, there's a generic error creating the Producer! %v", err.Error())
+				grpcLog.Errorf("runLoader: 😢 Oh noes, there's a generic error creating the Producer! %v", err.Error())
 			}
 			// call it when you know it's broken
 			os.Exit(1)
@@ -671,7 +673,7 @@ func runLoader(arg string) {
 		// Create a new Schema Registry client
 		client, err = schemaregistry.NewClient(schemaregistry.NewConfig(vKafka.SchemaRegistryURL))
 		if err != nil {
-			grpcLog.Fatalf("Failed to create Schema Registry client: %s", err)
+			grpcLog.Fatalf("runLoader: Failed to create Schema Registry client: %s", err)
 
 		}
 
@@ -683,12 +685,12 @@ func runLoader(arg string) {
 		//serializer, err = avro.NewGenericSerializer(client, serde.ValueSerde, serdeConfig)
 		serializer, err = avrov2.NewSerializer(client, serde.ValueSerde, serdeConfig)
 		if err != nil {
-			grpcLog.Fatalf("Failed to create Avro serializer: %s", err)
+			grpcLog.Fatalf("runLoader: Failed to create Avro serializer: %s", err)
 
 		}
 
 		if vGeneral.Debuglevel > 0 {
-			grpcLog.Infoln("* Created Kafka Producer instance")
+			grpcLog.Infoln("* runLoader: Created Kafka Producer instance")
 			grpcLog.Infoln("")
 		}
 	}
@@ -704,36 +706,36 @@ func runLoader(arg string) {
 
 		opts := options.Client().ApplyURI(vMongodb.Uri).SetServerAPIOptions(serverAPI)
 
-		grpcLog.Infoln("* MongoDB URI Constructed: ", vMongodb.Uri)
+		grpcLog.Infoln("* runLoader: MongoDB URI Constructed: ", vMongodb.Uri)
 
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		grpcLog.Infoln("* MongoDB Context Object Created")
+		grpcLog.Infoln("* runLoader: MongoDB Context Object Created")
 
 		defer cancel()
 
 		Mongoclient, err := mongo.Connect(ctx, opts)
 		if err != nil {
-			grpcLog.Fatalf("Mongo Connect Failed: %s", err)
+			grpcLog.Fatalf("runLoader: Mongo Connect Failed: %s", err)
 		}
-		grpcLog.Infoln("* MongoDB Client Connected")
+		grpcLog.Infoln("* runLoader: MongoDB Client Connected")
 
 		defer func() {
 			if err = Mongoclient.Disconnect(ctx); err != nil {
-				grpcLog.Errorf("Mongo Disconected: %s", err)
+				grpcLog.Errorf("runLoader: Mongo Disconected: %s", err)
 				os.Exit(1)
 			}
 		}()
 
 		// Ping the primary
 		if err := Mongoclient.Ping(ctx, readpref.Primary()); err != nil {
-			grpcLog.Fatal("There was a error creating the Client object, Ping failed: ", err)
+			grpcLog.Fatal("runLoader: There was a error creating the Client object, Ping failed: ", err)
 		}
-		grpcLog.Infoln("* MongoDB Client Pinged")
+		grpcLog.Infoln("* runLoader: MongoDB Client Pinged")
 
 		// Create go routine to defer the closure
 		defer func() {
 			if err = Mongoclient.Disconnect(context.TODO()); err != nil {
-				grpcLog.Errorf("Mongo Disconected: %s", err)
+				grpcLog.Errorf("runLoader: Mongo Disconected: %s", err)
 				os.Exit(1)
 			}
 		}()
@@ -745,7 +747,7 @@ func runLoader(arg string) {
 		paymentcol = appLabDatabase.Collection(vMongodb.Paymentcollection)
 
 		if vGeneral.Debuglevel > 0 {
-			grpcLog.Infoln("* MongoDB Datastore and Collections Intialized")
+			grpcLog.Infoln("* runLoader: MongoDB Datastore and Collections Intialized")
 			grpcLog.Infoln("*")
 		}
 

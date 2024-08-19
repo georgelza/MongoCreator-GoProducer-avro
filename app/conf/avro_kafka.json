@@ -1,6 +1,6 @@
 {
     "EchoConfig": 2,                                                        # Note EchoConfig from General setup must == 0  for this to be considered
-    "Bootstrapservers": "broker.local:9092",                                      # Add hostname for broker and schema-registry to host file
+    "Bootstrapservers": "broker:9092",                                      # Add hostname for broker and schema-registry to host file
     "SchemaRegistryURL": "http://schema-registry:9081",                     # Default port change 8081->9081 as not to conflict with Flink/Jobmanager
     "Security_protocol": "",
     "Sasl_mechanisms": "",

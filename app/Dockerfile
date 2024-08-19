@@ -1,16 +1,14 @@
-FROM bitnami/golang:1.22 AS base_arm64
+FROM bitnami/golang:1.22 AS builder
 
 LABEL Author="George Leonard (georgelza@gmail.com)"
 
 ENV GOPROXY=https://proxy.golang.org,direct
 ENV GOSUMDB=sum.golang.org
 
-WORKDIR /app
+WORKDIR /build
 
 # pre-copy/cache go.mod for pre-downloading dependencies and only redownloading them in subsequent builds if they change
-
-COPY go.mod /app/
-COPY go.sum /app/
+COPY . .
 
 RUN go mod download && go mod tidy
 
@@ -28,25 +26,17 @@ RUN go mod download && go mod tidy
 # RUN go get go.mongodb.org/mongo-driver/mongo/readpref
 # RUN go get google.golang.org/grpc/grpclog
 
-###########START NEW IMAGE###################
-FROM base_arm64 AS client
 
-WORKDIR /app
-
-COPY . .
-
-RUN go build -v -o /app/cmd/main /app/cmd/main.go
+RUN go build -v -o ./main /build/cmd/main.go
 
 ###########START NE W IMAGE###################
-FROM bitnami/golang:1.22 AS prod
+FROM bitnami/golang:1.22 AS production
 
 WORKDIR /app
 
-COPY --from=client /app/cmd/main /app/cmd/
-RUN chmod +x /app/cmd/main
-COPY .pwd /app
-COPY conf/*.json /app/conf
-COPY runs_avro.sh /app
+COPY --from=builder /build/main .
+RUN chmod +x /app/main
+COPY .pwd .
+COPY conf /app/conf/
 
-CMD ["main", "avro"]
-#CMD ["runs_avro.sh"]
+CMD ["/app/main", "avro"]
