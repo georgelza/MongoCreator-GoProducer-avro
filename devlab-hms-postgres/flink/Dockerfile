@@ -6,14 +6,13 @@
 FROM arm64v8/flink:1.18.1-scala_2.12-java11
 SHELL ["/bin/bash", "-c"]
 
-
 WORKDIR /opt/flink
 
 
 RUN echo "--> Install some useful tools" && \
-    build_dep="neovim tree lnav unzip" && \
+    build_deps="neovim tree lnav unzip" && \
     apt-get update && \
-    apt-get install -y $build_dep
+    apt-get install -y $build_deps
 
 
 RUN echo "--> Install Duckdb client" && \
@@ -26,7 +25,7 @@ RUN echo "--> Install JARs: Flink's S3 plugin" && \
     mkdir ./plugins/s3-fs-hadoop && \
     cp ./opt/flink-s3-fs-hadoop-1.18.1.jar ./plugins/s3-fs-hadoop/
 
-
+    
 RUN echo "--> Set up Hive config"
 COPY conf/hive-site.xml ./conf/hive-site.xml
 

@@ -125,7 +125,6 @@ func loadConfig(params ...string) types.TPGeneral {
 		grpcLog.Fatalln("Error Reading Config File: ", err)
 
 	} else {
-
 		vHostname, err := os.Hostname()
 		if err != nil {
 			grpcLog.Fatalln("Can't retrieve hostname %s", err)
@@ -139,7 +138,6 @@ func loadConfig(params ...string) types.TPGeneral {
 	if vGeneral.Json_to_file == 1 {
 		vGeneral.Output_path = fmt.Sprintf("%s%s%s", vGeneral.CurrentPath, pathSep, vGeneral.Output_path)
 	}
-
 	return vGeneral
 }
 
@@ -147,7 +145,6 @@ func loadConfig(params ...string) types.TPGeneral {
 // from the dev_app.json file
 func loadKafka(params ...string) (vKafka types.TPKafka) {
 
-	//	vKafka := types.TPKafka{}
 	env := "dev"
 	if len(params) > 0 {
 		env = params[0]
@@ -160,7 +157,6 @@ func loadKafka(params ...string) (vKafka types.TPKafka) {
 		os.Exit(1)
 
 	}
-
 	vKafka.Sasl_password = os.Getenv("SASL_PASSWORD")
 	vKafka.Sasl_username = os.Getenv("SASL_USERNAME")
 
@@ -169,7 +165,6 @@ func loadKafka(params ...string) (vKafka types.TPKafka) {
 
 func loadMongoProps(params ...string) (vMongodb types.TPMongodb) {
 
-	//	vMongodb := types.TPMongodb{}
 	env := "dev"
 	if len(params) > 0 {
 		env = params[0]
@@ -187,11 +182,9 @@ func loadMongoProps(params ...string) (vMongodb types.TPMongodb) {
 	vMongodb.Password = os.Getenv("MONGO_PASSWORD")
 
 	if vMongodb.Username != "" {
-
 		vMongodb.Uri = fmt.Sprintf("%s://%s:%s@%s&w=majority", vMongodb.Root, vMongodb.Username, vMongodb.Password, vMongodb.Url)
 
 	} else {
-
 		vMongodb.Uri = fmt.Sprintf("%s://%s&w=majority", vMongodb.Root, vMongodb.Url)
 	}
 
@@ -199,8 +192,6 @@ func loadMongoProps(params ...string) (vMongodb types.TPMongodb) {
 }
 
 func loadSeed(fileName string) (vSeed types.TPSeed) {
-
-	//	var vSeed types.TPSeed
 
 	err := gonfig.GetConf(fileName, &vSeed)
 	if err != nil {

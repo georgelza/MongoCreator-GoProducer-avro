@@ -5,6 +5,8 @@
     "Datastore": "MongoCom0",            
     "Basketcollection": "avro_salesbaskets",
     "Paymentcollection": "avro_salespayments",
-    "Batch_size": 1000                                                 # Must be a factor of the test size from *_app.json
+    "Batch_size": 1000,                                                 # Must be a factor of the test size from *_app.json,
+    "Username": "",                                                     # Leave empty, value retrieved from .env or a secret.
+    "Passworsd": ""                                                     # Leave empty, value retrieved from .env or a secret.
 }        
     

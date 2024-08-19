@@ -66,7 +66,7 @@ services:
     environment:
       Sasl_username: 
       Sasl_password:
-      mongo_username: 
+      mongo_username:  
       mongo_password:
     configs:
       - source: app_file

@@ -11,6 +11,6 @@
     "Retension": 3600,                                                      # hour
     "Parseduration": "60s",    
     "Flush_interval": 1000,
-    "Sasl_password":"", 
-    "Sasl_username":""       
+    "Sasl_password":"",                                                     # Leave empty, value retrieved from .env or a secret.
+    "Sasl_username":""                                                      # Leave empty, value retrieved from .env or a secret.
 }

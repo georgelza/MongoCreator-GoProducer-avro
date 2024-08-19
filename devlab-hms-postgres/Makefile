@@ -74,4 +74,3 @@ ksql:
 
 fsql:
 	docker compose exec flink-sql-client sql-client.sh
-

@@ -43,11 +43,10 @@ FROM bitnami/golang:1.22 AS prod
 WORKDIR /app
 
 COPY --from=client /app/cmd/main /app/cmd/
+RUN chmod +x /app/cmd/main
 COPY .pwd /app
 COPY conf/*.json /app/conf
 COPY runs_avro.sh /app
-
-ENV PATH=/app:/app/cmd:$PATH
 
 CMD ["main", "avro"]
 #CMD ["runs_avro.sh"]
