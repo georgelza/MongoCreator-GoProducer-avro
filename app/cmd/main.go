@@ -287,118 +287,6 @@ func printMongoConfig(vMongodb types.TPMongodb) {
 
 }
 
-// Create Kafka topic if not exist, using admin client
-func CreateTopic(props types.TPKafka) {
-
-	grpcLog.Info("**** CreateTopic ****")
-
-	cm := kafka.ConfigMap{
-		"bootstrap.servers":       props.Bootstrapservers,
-		"broker.version.fallback": "0.10.0.0",
-		"api.version.fallback.ms": 0,
-	}
-
-	if props.Sasl_mechanisms != "" {
-		cm["sasl.mechanisms"] = props.Sasl_mechanisms
-		cm["security.protocol"] = props.Security_protocol
-		cm["sasl.username"] = props.Sasl_username
-		cm["sasl.password"] = props.Sasl_password
-
-		if vGeneral.Debuglevel > 0 {
-			grpcLog.Info("* CreateTopic: Security Authentifaction configured in ConfigMap")
-
-		}
-	}
-
-	if vGeneral.Debuglevel > 0 {
-		grpcLog.Info("**** CreateTopic: Configure Client Kafka Connection ****")
-		grpcLog.Info("*")
-		grpcLog.Info("* Basic Client ConfigMap compiled")
-	}
-
-	adminClient, err := kafka.NewAdminClient(&cm)
-	if err != nil {
-		grpcLog.Fatalf("CreateTopic: Admin Client Creation Failed: %s", err)
-
-	}
-
-	if vGeneral.Debuglevel > 0 {
-		grpcLog.Info("* CreateTopic: Admin Client Created Succeeded")
-
-	}
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	maxDuration, err := time.ParseDuration(props.Parseduration)
-	if err != nil {
-		grpcLog.Fatalf("CreateTopic: Error Configuring maxDuration via ParseDuration: %s", props.Parseduration)
-
-	}
-
-	if vGeneral.Debuglevel > 0 {
-		grpcLog.Info("* CreateTopic: Configured maxDuration via ParseDuration")
-
-	}
-
-	// FIX THIS - Nasty version/hack for now.
-	// Basket topic
-	results, err := adminClient.CreateTopics(ctx,
-		[]kafka.TopicSpecification{{
-			Topic:             props.BasketTopicname,
-			NumPartitions:     props.Numpartitions,
-			ReplicationFactor: props.Replicationfactor}},
-		kafka.SetAdminOperationTimeout(maxDuration))
-
-	if err != nil {
-		grpcLog.Error(fmt.Sprintf("CreateTopic: Problem during the topic creation: %v", err))
-		os.Exit(1)
-	}
-
-	// Check for specific topic errors
-	for _, result := range results {
-		if result.Error.Code() != kafka.ErrNoError &&
-			result.Error.Code() != kafka.ErrTopicAlreadyExists {
-			grpcLog.Fatalf("CreateTopic: Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
-
-		} else {
-			if vGeneral.Debuglevel > 0 {
-				grpcLog.Infof("* CreateTopic: Topic Creation Succeeded for %s", result.Topic)
-
-			}
-		}
-	}
-
-	// Payment topic
-	results, err = adminClient.CreateTopics(ctx,
-		[]kafka.TopicSpecification{{
-			Topic:             props.PaymentTopicname,
-			NumPartitions:     props.Numpartitions,
-			ReplicationFactor: props.Replicationfactor}},
-		kafka.SetAdminOperationTimeout(maxDuration))
-
-	if err != nil {
-		grpcLog.Fatal("CreateTopic: Problem during the topic creation: %v", err)
-	}
-
-	// Check for specific topic errors
-	for _, result := range results {
-		if result.Error.Code() != kafka.ErrNoError &&
-			result.Error.Code() != kafka.ErrTopicAlreadyExists {
-			grpcLog.Fatalf("CreateTopic: Topic Creation Failed for %s: %v", result.Topic, result.Error.String())
-
-		} else {
-			if vGeneral.Debuglevel > 0 {
-				grpcLog.Infof("* CreateTopic: Topic Creation Succeeded for %s", result.Topic)
-
-			}
-		}
-	}
-
-	adminClient.Close()
-
-}
-
 // Some Helper Functions
 
 // Pretty Print JSON string
@@ -606,9 +494,6 @@ func runLoader(arg string) {
 		if vGeneral.EchoConfig == 1 {
 			printKafkaConfig(vKafka)
 		}
-
-		// Lets make sure the topic/s exist
-		CreateTopic(vKafka)
 
 		// --
 		// Create Producer instance

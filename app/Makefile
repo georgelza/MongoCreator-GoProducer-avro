@@ -55,6 +55,9 @@ run_app:
 	docker compose -p devlab up -d app
 # docker run -it --network devlab  georgelza/goprod-avro:1.0.0 runs_avro.sh
 
+stop_app:
+	docker compose -p devlab stop app
+	
 down: 
 	docker compose down
 

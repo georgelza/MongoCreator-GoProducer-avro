@@ -72,21 +72,21 @@ services:
       mongo_password:
     configs:
       - source: app_file
-        target: /app/avro_app.json
+        target: /app/conf/avro_app.json
         mode: 444
       - source: kafka_file
-        target: /app/avro_kafka.json
+        target: /app/conf/avro_kafka.json
         mode: 444
       - source: mongo_file
-        target: /app/avro_mongo.json
+        target: /app/conf/avro_mongo.json
         mode: 444
       - source: seed_file
-        target: /app/sit_seed.json
+        target: /app/conf/sit_seed.json
         mode: 444
 
 
 networks:
-  project:
+  default:
     name: ${COMPOSE_PROJECT_NAME}
       
       
