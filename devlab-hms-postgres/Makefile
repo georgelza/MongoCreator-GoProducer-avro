@@ -36,9 +36,21 @@ build:
 	cd connect; make build
 	cd flink; make build;
 	cd sql-client; make build
+	cd ../app; make build
 
-run:
-	docker compose -p devlab up -d
+run: core
+# Run the core, followed by deploy and then app
+
+core: confluent flink hms misc
+
+confluent:
+	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat 
+flink: 
+	docker compose -p devlab up -d flink-jobmanager flink-taskmanager flink-sql-client
+hms:
+	docker compose -p devlab up -d minio mc postgres hive-metastore 
+misc:
+	docker compose -p devlab up -d pyiceberg duckdb
 
 deploy: createcat createtopics deployksql deployflink1 deployflink2
 
@@ -52,6 +64,10 @@ deployflink1:
 	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_1.sql
 deployflink2:
 	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_2.sql
+
+app:
+	docker compose -p devlab up -d app
+
 
 stop:
 	docker compose stop

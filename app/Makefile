@@ -10,7 +10,7 @@ define HELP
 
 Available commands:
 
-- builddocker: Build Docker Image.
+- build: Build Docker Image.
 - push_docker: Push Docker Image.
 
 - run_core: Run the Broker and Shema Registry.
@@ -28,8 +28,7 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-	
-builddocker: 
+build: 
 	sudo docker build --platform linux/arm64 --no-cache -t ${BINARY_NAME}:${VERSION} .
 	sudo docker tag ${BINARY_NAME}:${VERSION} georgelza/${BINARY_NAME}:${VERSION}
 	sudo docker rmi ${BINARY_NAME}:${VERSION}

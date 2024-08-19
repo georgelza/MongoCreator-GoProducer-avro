@@ -17,6 +17,14 @@ configs:
     file: ./creFlinkFlows/creFlink_2.sql
   shadow:
     file: ./shadowtraffic/kafka-retail.json
+  app_file:
+    file: ../app/conf/avro_app.json
+  kafka_file:
+    file: ../app/conf/avro_kafka.json
+  mongo_file:
+    file: ../app/conf/avro_mongo.json
+  seed_file:
+    file: ../app/conf/sit_seed.json
 
 services:
   # Core Confluent Kafka bits
@@ -330,6 +338,32 @@ services:
     hostname: duckdb
     restart: no
     entrypoint: tail -f /dev/null
+
+  app:
+    image: georgelza/goprod-avro:1.0.0
+    container_name: app
+    hostname: app
+    depends_on:
+      - broker
+      - schema-registry
+    environment:
+      Sasl_username: 
+      Sasl_password:
+      mongo_username:  
+      mongo_password:
+    configs:
+      - source: app_file
+        target: /app/conf/avro_app.json
+        mode: 444
+      - source: kafka_file
+        target: /app/conf/avro_kafka.json
+        mode: 444
+      - source: mongo_file
+        target: /app/conf/avro_mongo.json
+        mode: 444
+      - source: seed_file
+        target: /app/conf/sit_seed.json
+        mode: 444
 
 
   # # Used to test the Kafka Connector/sinks locally

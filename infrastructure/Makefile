@@ -34,11 +34,11 @@ pullall: os confluent flink db s3 iop misc
 buildall: buildos builddb buildapp
 
 # Base images used along the way, used to build 2nd level images.
-# ubuntu:jammy & golang:1.22 are used when building the app/* into a docker image
+# arm64/v8 used as base for all images except the app/*.
+# ubuntu:jammy & golang:1.22 (see misc:) are used when building the app/* into a docker image
 os: 
 	docker pull arm64v8/ubuntu:20.04
 	docker pull ubuntu:jammy
-	docker pull golang:1.22
 
 confluent:
 	docker pull confluentinc/cp-kafka:7.6.1
@@ -70,7 +70,8 @@ iop:
 misc:
 # Used in hms-standalone
 	docker pull kulikoa/hms-standalone:latest
-	
+	docker pull golang:1.22
+
 # Used for inspecting data in the various back end stores.
 	docker pull python:3.12-bookworm
 	docker pull codieplusplus/duckdb
@@ -100,4 +101,4 @@ builddb:
 	cd build-postgres-12.0; make build
 
 buildapp:
-	cd ../app; make builddocker
+	cd ../app; make build
