@@ -74,9 +74,6 @@ services:
     hostname: control-center
     depends_on:
       - broker
-      - schema-registry
-      - connect
-      - ksqldb-server
     ports:
       - "9021:9021"     # -> Web UI console
     environment:
@@ -101,7 +98,6 @@ services:
     hostname: connect
     depends_on:
       - broker
-      - schema-registry
     ports:
       - "8083:8083"
     environment:
@@ -134,7 +130,6 @@ services:
     hostname: ksqldb-server
     depends_on:
       - broker
-      - connect
     ports:
       - "8088:8088"
     environment:
@@ -156,8 +151,6 @@ services:
     container_name: ksqldb-cli
     hostname: ksqldb-cli
     depends_on:
-      - broker
-      - connect
       - ksqldb-server
     entrypoint: /bin/sh
     tty: true
@@ -172,7 +165,6 @@ services:
     hostname: kcat
     depends_on:
       - broker
-      - schema-registry
     entrypoint: /bin/bash -i
     tty: true
 
@@ -294,7 +286,7 @@ services:
     hostname: hms
     depends_on:
       - postgres
-      - minio
+      - mc
     environment:
       - DATABASE_HOST=${DATABASE_HOST}
       - DATABASE_PORT=${DATABASE_PORT}
@@ -316,7 +308,6 @@ services:
     container_name: pyiceberg
     hostname: pyiceberg
     depends_on:
-      - minio
       - hive-metastore
     environment:
       PYICEBERG_CATALOG__DEFAULT__URI: thrift://hms:9083
@@ -345,6 +336,7 @@ services:
     depends_on:
       - broker
       - schema-registry
+      - control-center
     environment:
       Sasl_username: 
       Sasl_password:
