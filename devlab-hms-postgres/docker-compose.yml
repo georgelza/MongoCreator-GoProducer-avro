@@ -23,10 +23,11 @@ configs:
     file: ../app/conf/avro_mongo.json
   seed_file:
     file: ../app/conf/sit_seed.json
+
   hive-site:
-    file: ./conf/hive-site.xml
+    file: ./conf/hive-site-x.xml
   flink-conf:
-    file: ./conf/flink-conf.yaml
+    file: ./conf/flink-conf-x.yaml
 
 services:
   # Core Confluent Kafka bits

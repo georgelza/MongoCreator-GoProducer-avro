@@ -25,7 +25,7 @@ jobmanager.rpc.address: flink-jobmanager
 table.catalog-store.kind: file
 table.catalog-store.file.path: /opt/flink/conf/catalogs
 
-fs.s3a.access.key: safzyj-paxGoc-4nitdu
-fs.s3a.secret.key: safzyj-paxGoc-n3itdu
-fs.s3a.endpoint: http://172.16.10.24:9000
+fs.s3a.access.key: admin
+fs.s3a.secret.key: password
+fs.s3a.endpoint: http://minio:9000
 fs.s3a.path.style.access: true

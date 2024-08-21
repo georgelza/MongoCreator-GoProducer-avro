@@ -17,6 +17,7 @@
 
 -- INTERESTING, things written to the c_hive catalog is only recorded as existing in the hive catalog, but not persisted to Minio/S3... The persistence in this case
 -- comes from salescompleted writing out to Kafka. 
+USE c_hive.db01;
 
 CREATE OR REPLACE TABLE c_hive.db01.t_k_avro_salescompleted (
     INVNUMBER STRING,
