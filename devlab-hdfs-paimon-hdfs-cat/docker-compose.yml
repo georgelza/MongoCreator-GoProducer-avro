@@ -14,14 +14,11 @@ configs:
     file: ./creFlinkFlows/creFlink_1.sql
   creFlink_2:
     file: ./creFlinkFlows/creFlink_2.sql
-  # Values pulled in as environment variables like the hadoop.env we can leave as is... as the entrypoint.sh reads the env values and output
-  # to relevant file, but it can also be replaced using the below. 
-  # parameters which we copy as a file into the container can be replaced using the below local file pointer and mounting the file into
-  # the desired directory inside the image.
-  flink_vars:
-    file: ./conf/flink-conf.yaml
-  hive_vars:
-    file: ./sql-client/conf/hive-site.xml
+
+  # hive-site:
+  #   file: ./conf/hive-site.xml
+  # flink-conf:
+  #   file: ./conf/flink-conf.yaml
 
 services:
   # Core Confluent Kafka bits
@@ -186,6 +183,10 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         rest.bind-port: 8081
+    # configs:
+    #   - source: hive-site
+    #     target: /opt/hive/conf/hive-site.xml
+    #     mode: 444  
 
   flink-taskmanager:
     image: apacheflink:1.18.1-scala_2.12-java11-c
@@ -200,7 +201,10 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
-
+    # configs:
+    #   - source: hive-site
+    #     target: /opt/hive/conf/hive-site.xml
+    #     mode: 444  
 
   flink-sql-client:
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-c
@@ -221,7 +225,12 @@ services:
       - source: creFlink_2
         target: /sql/creFlink_2.sql
         mode: 444
-
+      # - source: hive-site
+      #   target: /opt/sql-client/conf/hive-site.xml
+      #   mode: 444  
+      # - source: flink-conf
+      #   target: /opt/flink/conf/flink-conf.yaml
+      #   mode: 444  
 
   # First we will start with a local (HDFS) file based Catalog for Apache Paimon
 

@@ -45,6 +45,11 @@ See example/MongoCreatorProject ./blog-doc/diagrams/*.jpg for visual diagrams of
 11. Using Kafka source connector extract the various Mongo collections onto new Kafka topics. ToDo
 12. Using X Python applications echo the messages from the 4 topics onto the terminal. ToDo
 
+## Note:
+
+You can point the devlab-hms-postgres (as a first version) environment to connect to a remote Minio store. see the ./conf/ directory for the flink-conf-x.yaml & hive-site-x.xml files. Configure these to point to the Minio location.
+Also remember to update the .env file to point to the Minio location.
+The docker-compose.yml file contains a configs section which define which configuration files are pushed into the flink and sql-client containers.
 
 ## Using the app.
 

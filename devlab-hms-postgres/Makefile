@@ -31,10 +31,10 @@ help:
 .PHONY: help
 
 build:
-#	cd connect; make build
+	cd connect; make build
 	cd flink; make build
 	cd sql-client; make build
-#	cd ../app; make build
+	cd ../app; make build
 
 run: core
 # Run the core, followed by deploy and then app
@@ -60,7 +60,7 @@ deployflink2:
 	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_2.sql
 
 run_app:
-	../app/runs_avro.sh
+	cd ../app; ./runs_avro.sh
 #	docker compose -p devlab up -d app
 
 stop_app:
