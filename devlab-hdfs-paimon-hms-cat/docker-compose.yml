@@ -232,7 +232,7 @@ services:
     environment:
       - CLUSTER_NAME=${CLUSTER_NAME}
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
     ports:
       - "9870:9870"  # NameNode Web UI
 
@@ -250,7 +250,7 @@ services:
     environment:
       - CLUSTER_NAME=${CLUSTER_NAME}
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
     ports:
       - "8089:8088" # Resource Manager Web UI
   
@@ -266,7 +266,7 @@ services:
     volumes:
       - ./data/hdfs/historyserver:/hadoop/yarn/timeline
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
     ports:
       - "8188:8188"
   
@@ -280,7 +280,7 @@ services:
     environment:
       - CLUSTER_NAME=${CLUSTER_NAME}
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
     ports:
       - "8042:8042"   # NodeManager Web UI
   
@@ -294,7 +294,7 @@ services:
     volumes:
       - ./data/hdfs/datanode1:/hadoop/dfs/data
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
   
   datanode2:
     image: hadoop-datanode-3.3.5-java11:1.0.0
@@ -306,7 +306,7 @@ services:
     volumes:
       - ./data/hdfs/datanode2:/hadoop/dfs/data
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
   
   datanode3:
     image: hadoop-datanode-3.3.5-java11:1.0.0
@@ -318,7 +318,7 @@ services:
     volumes:
       - ./data/hdfs/datanode3:/hadoop/dfs/data
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
 
   datanode4:
     image: hadoop-datanode-3.3.5-java11:1.0.0
@@ -330,7 +330,7 @@ services:
     volumes:
       - ./data/hdfs/datanode4:/hadoop/dfs/data
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
       
   datanode5:
     image: hadoop-datanode-3.3.5-java11:1.0.0
@@ -342,7 +342,7 @@ services:
     volumes:
       - ./data/hdfs/datanode5:/hadoop/dfs/data
     env_file:
-      - ./hdfs/hadoop.env
+      - ./conf/hadoop.env
 
 
   # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog
@@ -434,19 +434,6 @@ services:
   #   container_name: mongodb
   #   ports:
   #     - "27017:27017" 
-
-
-  # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
-  # shadowtraffic:
-  #   image: shadowtraffic/shadowtraffic:0.6.0
-  #   container_name: shadowtraffic
-  #   hostname: shadowtraffic
-  #     #    profiles: ["shadowtraffic"]
-  #   env_file:
-  #     - shadowtraffic/license.env
-  #   volumes:
-  #     - ./shadowtraffic:/data
-  #   command: --config /data/kafka-retail.json
 
 
 # Without a network explicitly defined, you hit this Hive/Thrift error
