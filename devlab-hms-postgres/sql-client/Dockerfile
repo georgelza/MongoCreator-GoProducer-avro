@@ -6,6 +6,7 @@
 FROM arm64v8/flink:1.18.1-scala_2.12-java11
 SHELL ["/bin/bash", "-c"]
 
+# this is where we have flink itself installed.
 WORKDIR /opt/flink
 
 
@@ -27,11 +28,6 @@ RUN echo "--> Creating SQL Client directories" && \
 
 RUN echo "--> Copy SQL Client shell scripts"
 COPY bin/sql-client.sh /opt/sql-client/
-
-
-RUN echo "--> Copy configuration files"
-COPY conf/flink-conf.yaml ./conf/flink-conf.yaml 
-COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
 
 # Install JARs
