@@ -23,7 +23,6 @@ configs:
     file: ../app/conf/avro_mongo.json
   seed_file:
     file: ../app/conf/sit_seed.json
-
   hive-site:
     file: ./conf/hive-site-x.xml
   flink-conf:
@@ -188,10 +187,10 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         rest.bind-port: 8081
-    configs:
-      - source: hive-site
-        target: /opt/hive/conf/hive-site.xml
-        mode: 444  
+    # configs:
+    #   - source: hive-site
+    #     target: /opt/hive/conf/hive-site.xml
+    #     mode: 444  
 
   flink-taskmanager:
     image: apacheflink:1.18.1-scala_2.12-java11-b
@@ -206,10 +205,10 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
-    configs:
-      - source: hive-site
-        target: /opt/flink/conf/hive-site.xml
-        mode: 444  
+    # configs:
+    #   - source: hive-site
+    #     target: /opt/flink/conf/hive-site.xml
+    #     mode: 444  
 
   flink-sql-client:
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
@@ -230,12 +229,12 @@ services:
       - source: creFlink_2
         target: /sql/creFlink_2.sql
         mode: 444    
-      - source: hive-site
-        target: /opt/sql-client/conf/hive-site.xml
-        mode: 444  
-      - source: flink-conf
-        target: /opt/flink/conf/flink-conf.yaml
-        mode: 444  
+      # - source: hive-site
+      #   target: /opt/sql-client/conf/hive-site.xml
+      #   mode: 444  
+      # - source: flink-conf
+      #   target: /opt/flink/conf/flink-conf.yaml
+      #   mode: 444  
 
 
   # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog
@@ -256,8 +255,8 @@ services:
     command: ["server", "/data", "--console-address", ":9001"]
     volumes:
       - ./data/minio:/data
-    profiles:
-      - donotstart
+    # profiles:
+    #   - donotstart
 
   # https://hub.docker.com/r/minio/mc
   # Minio Client
@@ -265,8 +264,8 @@ services:
     image: minio/mc:latest
     container_name: mc
     hostname: mc
-    # depends_on:
-    #   - minio
+    depends_on:
+      - minio
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -275,10 +274,10 @@ services:
     entrypoint: >
       /bin/sh -c "
       until (/usr/bin/mc config host add minio ${S3_ENDPOINT_URL} admin password) do echo '...waiting...' && sleep 1; done;
+      /usr/bin/mc rm -r --force minio/${S3_BUCKET};
       /usr/bin/mc mb minio/${S3_BUCKET};
       tail -f /dev/null
       " 
-#      /usr/bin/mc rm -r --force minio/${S3_BUCKET};
 
   # Datastore for Hive Metastore - Standalone 
   postgres:
