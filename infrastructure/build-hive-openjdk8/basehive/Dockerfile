@@ -14,6 +14,7 @@ RUN echo "--> Make Temp dir" && \
     mkdir -p /tmp/root
 
 COPY bin/* /tmp/var/bin
+# To be removed and files rather imported via volume mounts.
 COPY conf/* /tmp/var/conf
 
 RUN echo "--> set environment variables"
@@ -72,6 +73,7 @@ RUN echo "--> Install/Link AWS s3 drivers" && \
 RUN echo "--> Remove libs causing error from hive - duplicated from hadoop" && \
 	rm /opt/hive/lib/log4j-slf4j-impl-*.jar
 
+# Replace with rather using remote volume mounts.
 RUN echo "--> Move hadoop configuration files and scripts" && \
     mv /tmp/var/conf/core-site.xml $HADOOP_CONF_DIR && \
     mv /tmp/var/conf/hadoop-log4j2.properties $HADOOP_CONF_DIR/log4j.properties
