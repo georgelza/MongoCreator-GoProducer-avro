@@ -76,8 +76,10 @@ The User can always start up multiple copies, specify/hard code the store, and c
 This file would be located in the project (app/) root folder next to the runs_**.sh filesystem
 Example: 
 
+```
 export Sasl_password=Vj8MASendaIs0j4r34rsdfe4Vc8LG6cZ1XWilAJjYS05bZIk7AaGx0Y49xb
 export Sasl_username=3MZ4dfgsdfdfIUUA
+```
 
 This files is executed via the runs_*.sh file, reading the values into local environment, from where they are injested by a os.Getenv call, if this code is pushed into a docker container then these values can be pushed into a secret included in the environment.
 
