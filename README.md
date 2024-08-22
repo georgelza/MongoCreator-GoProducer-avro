@@ -18,7 +18,7 @@ George
 
 georgelza@gmail.com
 
-## Medium Article - An exercise in Discovery, Streaming data in the analytical world.
+### Medium Article - An exercise in Discovery, Streaming data in the analytical world.
 
 - [Part 1:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-1-e7c17d61b9d2)
 - [Part 2:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-2-be1bfbca3139)
