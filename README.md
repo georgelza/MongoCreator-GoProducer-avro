@@ -12,8 +12,10 @@ See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as
 
 Everything changed a bit... but the idea is still there.
 
-(If it is not clear, or something is broken(I keep on updating the repo), then please email me at georgelza@gmail.com)
+(If it is not clear, or something is broken (I keep on tinkering the repo), then please email me at georgelza@gmail.com)
+
 George
+
 georgelza@gmail.com
 
 ## Medium Article

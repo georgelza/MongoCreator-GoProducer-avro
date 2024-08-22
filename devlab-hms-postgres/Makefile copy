@@ -31,7 +31,7 @@ help:
 .PHONY: help
 
 build:
-	cd connect; make build 
+	cd connect; make build
 	cd flink; make build
 	cd sql-client; make build
 	cd ../app; make build
@@ -40,12 +40,11 @@ run: core
 # Run the core, followed by deploy and then app
 
 core:
-	docker compose -p devlab up -d broker \
-		schema-registry control-center connect \
-		ksqldb-server ksqldb-cli kcat \
-		hive-metastore \
-		flink-sql-client \ 
-		pyiceberg duckdb
+	docker compose -p devlab up -d broker schema-registry control-center connect 
+	docker compose -p devlab up -d ksqldb-server ksqldb-cli kcat 
+	docker compose -p devlab up -d hive-metastore
+	docker compose -p devlab up -d flink-sql-client 
+	docker compose -p devlab up -d pyiceberg duckdb
 
 deploy: createcat createtopics deployksql deployflink1 deployflink2
 
