@@ -20,7 +20,7 @@ georgelza@gmail.com
 
 ## Medium Article
 
-- Part 1: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-1-e7c17d61b9d2](An exercise in Discovery, Streaming data in the analytical world. -Part 1)
+- (An exercise in Discovery, Streaming data in the analytical world. -Part 1)[https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-1-e7c17d61b9d2]
 - Part 2: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-2-be1bfbca3139](An exercise in Discovery, Streaming data in the analytical world. -Part 2)
 - Part 3: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-3-fc8b5e5889ac](An exercise in Discovery, Streaming data in the analytical world. -Part 3)
 - Part 4: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-4-9f0362998ebc](An exercise in Discovery, Streaming data in the analytical world. -Part 4)
