@@ -32,7 +32,6 @@ from t_salesbaskets limit 5;
 
 
 
-
 -- Yellow Taxi Datasets
 
 CREATE FOREIGN TABLE nyc_yellow_2023 ()

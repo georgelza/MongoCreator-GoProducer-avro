@@ -92,9 +92,6 @@ fsql:
 start_pdb:
 	docker compose -p devlab up -d paradedb
 stop_pdb:
-	docker compose -p devlab down paradedb
-pdb-cli:
-#	docker compose exec paradedb bash
-	docker compose -p devlab exec paradedb psql -h localhost -p 5432 -U ${PDBDATABASE_USER}
+	docker compose -p devlab stop paradedb
 monitor_pdb:
 	docker compose logs -f paradedb
