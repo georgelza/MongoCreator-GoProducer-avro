@@ -117,27 +117,27 @@ The following steps was copied out of Rob Moffit's blog, all credit goes to him.
 
     ```docker cp hms-standalone:/tmp/metastore_db /tmp/hms_db```
 
-
+```
     rlwrap ij
     
     SHOW TABLE IN app;
     
     SELECT db_id, name FROM dbs;
-
+```
     - Let's look at the data that's been written to MinIO:
     
-    docker exec minio mc ls -r minio/warehouse/
+    ```docker exec minio mc ls -r minio/warehouse/```
 
     - Update the below folder/file structure as per your own needs.
     
-    docker exec minio mc head minio/warehouse/db_rmoff.db/t_foo/metadata/00000-57d8f913-9e90-4446-a049-db084d17e49d.metadata.json
+    ```docker exec minio mc head minio/warehouse/db_rmoff.db/t_foo/metadata/00000-57d8f913-9e90-4446-a049-db084d17e49d.metadata.json```
 
-
+```
     docker exec minio mc \
         cat minio/warehouse/db_rmoff.db/t_foo/data/00000-0-e4327b65-69ac-40bc-8e90-aae40dc607c7-00001.parquet \
         /tmp/data.parquet && \
         duckdb :memory: "SELECT * FROM read_parquet('/tmp/data.parquet')"
-
+```
 
 ## Deployable Sections/Sub projects:
 
