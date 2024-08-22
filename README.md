@@ -18,14 +18,14 @@ George
 
 georgelza@gmail.com
 
-## Medium Article
+## Medium Article - An exercise in Discovery, Streaming data in the analytical world.
 
-- (An exercise in Discovery, Streaming data in the analytical world. -Part 1)[https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-1-e7c17d61b9d2]
-- Part 2: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-2-be1bfbca3139](An exercise in Discovery, Streaming data in the analytical world. -Part 2)
-- Part 3: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-3-fc8b5e5889ac](An exercise in Discovery, Streaming data in the analytical world. -Part 3)
-- Part 4: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-4-9f0362998ebc](An exercise in Discovery, Streaming data in the analytical world. -Part 4)
-- Part 5: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-5-8463f7b25545](An exercise in Discovery, Streaming data in the analytical world. -Part 5)
-- Part 6: [https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-6-4226614b65f7](An exercise in Discovery, Streaming data in the analytical world. -Part 6)
+- [Part 1:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-1-e7c17d61b9d2)
+- [Part 2:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-2-be1bfbca3139)
+- [Part 3:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-3-fc8b5e5889ac)
+- [Part 4:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-4-9f0362998ebc)
+- [Part 5:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-5-8463f7b25545)
+- [Part 6:](https://medium.com/@georgelza/an-exercise-in-discovery-streaming-data-in-the-analytical-world-part-6-4226614b65f7)
 
 
 ## Overview/plan.
