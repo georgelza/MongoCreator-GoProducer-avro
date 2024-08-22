@@ -9,12 +9,16 @@ select count(*) from t_salesbaskets;
 
 select store->>'id' from t_salesbaskets limit 5;
 
-select basketitems[1]->>'quantity', 
-	basketitems[1]->>'brand',
-	basketitems[1]->>'name',
-	basketitems[1]->>'price',
-	basketitems[1]->>'category' 
+select  
+	basketitems[1]->>'brand' as brand,
+	basketitems[1]->>'name' as product,
+	basketitems[1]->>'category' as category, 
+	basketitems[1]->>'price' as price,
+	basketitems[1]->>'quantity' as quantity,
+	round(CAST(basketitems[1]->>'price' as numeric)*CAST (basketitems[1]->>'quantity' as integer),2) as subtotal
 	from t_salesbaskets limit 5;
+
+
 
 
 -- Yellow Taxi Datasets
