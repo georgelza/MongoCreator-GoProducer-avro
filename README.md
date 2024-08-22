@@ -6,9 +6,15 @@ https://github.com/georgelza/MongoCreator-GoProducer-avro
 
 Golang app that generate fake sales (maybe split as a basket onto one kafka topic and then a payment onto another, implying the 2 was out of band), then sinking the topic/s into MongoDB using a sink connectors.
 At this point I want to show a 2nd stream to it all, and do it via Python. was thinking…
-maybe based on data sinked into the MongoDB store, do a trigger… with a do a source connector out of Mongo onto Kafka (some aggregating) and then consume that via the Python app and for simplistic just echo this to the console (implying it can be pushed somewhere further)
+Maybe based on data sinked into the MongoDB store, do a trigger… with a do a source connector out of Mongo onto Kafka (some aggregating) and then consume that via the Python app and for simplistic just echo this to the console (implying it can be pushed somewhere further)
 
 See ./blog-doc/Blog.docx for writeup. This will eventually be posted onto XXX as a multi part article.
+
+Everything changed a bit... but the idea is still there.
+
+(If it is not clear, or something is broken(I keep on updating the repo), then please email me at georgelza@gmail.com)
+George
+georgelza@gmail.com
 
 ## Medium Article
 
