@@ -111,11 +111,11 @@ The following steps was copied out of Rob Moffit's blog, all credit goes to him.
 
     - List the files/folders in iceberg store, and as you get to know more you can increase the depth of the listing.
 
-    docker exec minio mc ls -r minio/iceberg/
+    ```docker exec minio mc ls -r minio/iceberg/```
 
     - Copy contents of the hms-standalone DerbyDB out.
 
-    docker cp hms-standalone:/tmp/metastore_db /tmp/hms_db
+    ```docker cp hms-standalone:/tmp/metastore_db /tmp/hms_db```
 
 
     rlwrap ij
