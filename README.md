@@ -113,11 +113,11 @@ The following steps was copied out of Rob Moffit's blog, all credit goes to him.
 
     - List the files/folders in iceberg store, and as you get to know more you can increase the depth of the listing.
 
-    ```docker exec minio mc ls -r minio/iceberg/```
+        ```docker exec minio mc ls -r minio/iceberg/```
 
     - Copy contents of the hms-standalone DerbyDB out.
 
-    ```docker cp hms-standalone:/tmp/metastore_db /tmp/hms_db```
+        ```docker cp hms-standalone:/tmp/metastore_db /tmp/hms_db```
 
 ```
     rlwrap ij
@@ -126,13 +126,16 @@ The following steps was copied out of Rob Moffit's blog, all credit goes to him.
     
     SELECT db_id, name FROM dbs;
 ```
+
     - Let's look at the data that's been written to MinIO:
     
     ```docker exec minio mc ls -r minio/warehouse/```
 
+
     - Update the below folder/file structure as per your own needs.
     
     ```docker exec minio mc head minio/warehouse/db_rmoff.db/t_foo/metadata/00000-57d8f913-9e90-4446-a049-db084d17e49d.metadata.json```
+    
 
 ```
     docker exec minio mc \
