@@ -1,5 +1,6 @@
 
 .DEFAULT_GOAL := help
+include .env
 
 define HELP
 
@@ -40,12 +41,8 @@ run: core
 # Run the core, followed by deploy and then app
 
 core:
-	docker compose -p devlab up -d broker \
-		schema-registry control-center connect \
-		ksqldb-server ksqldb-cli kcat \
-		hive-metastore \
-		flink-sql-client \ 
-		pyiceberg duckdb
+	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat hive-metastore flink-sql-client pyiceberg duckdb
+
 
 deploy: createcat createtopics deployksql deployflink1 deployflink2
 
@@ -91,3 +88,13 @@ ksql:
 
 fsql:
 	docker compose exec flink-sql-client sql-client.sh
+
+start_pdb:
+	docker compose -p devlab up -d paradedb
+stop_pdb:
+	docker compose -p devlab down paradedb
+pdb-cli:
+#	docker compose exec paradedb bash
+	docker compose -p devlab exec paradedb psql -h localhost -p 5432 -U ${PDBDATABASE_USER}
+monitor_pdb:
+	docker compose logs -f paradedb

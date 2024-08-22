@@ -122,8 +122,8 @@ services:
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
       CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
       CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
-    volumes:
-      - ./data/connect:/data
+    # volumes:
+    #   - ./data/connect:/data
 
 
   # Confluent ksql server
@@ -187,10 +187,10 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         rest.bind-port: 8081
-    # configs:
-    #   - source: hive-site
-    #     target: /opt/hive/conf/hive-site.xml
-    #     mode: 444  
+    configs:
+      - source: hive-site
+        target: /opt/hive/conf/hive-site.xml
+        mode: 444  
 
   flink-taskmanager:
     image: apacheflink:1.18.1-scala_2.12-java11-b
@@ -205,10 +205,10 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
-    # configs:
-    #   - source: hive-site
-    #     target: /opt/flink/conf/hive-site.xml
-    #     mode: 444  
+    configs:
+      - source: hive-site
+        target: /opt/flink/conf/hive-site.xml
+        mode: 444  
 
   flink-sql-client:
     image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
@@ -229,12 +229,12 @@ services:
       - source: creFlink_2
         target: /sql/creFlink_2.sql
         mode: 444    
-      # - source: hive-site
-      #   target: /opt/sql-client/conf/hive-site.xml
-      #   mode: 444  
-      # - source: flink-conf
-      #   target: /opt/flink/conf/flink-conf.yaml
-      #   mode: 444  
+      - source: hive-site
+        target: /opt/sql-client/conf/hive-site.xml
+        mode: 444  
+      - source: flink-conf
+        target: /opt/flink/conf/flink-conf.yaml
+        mode: 444  
 
 
   # The below Iceberg bits come from Robbin Moffats Kafka to Iceberg blog
@@ -255,8 +255,8 @@ services:
     command: ["server", "/data", "--console-address", ":9001"]
     volumes:
       - ./data/minio:/data
-    # profiles:
-    #   - donotstart
+    profiles:
+      - donotstart
 
   # https://hub.docker.com/r/minio/mc
   # Minio Client
@@ -264,8 +264,8 @@ services:
     image: minio/mc:latest
     container_name: mc
     hostname: mc
-    depends_on:
-      - minio
+    # depends_on:
+    #   - minio
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -374,6 +374,19 @@ services:
       - source: seed_file
         target: /app/conf/sit_seed.json
         mode: 444
+  
+  paradedb:
+    image: paradedb/paradedb:latest
+    container_name: paradedb
+    hostname: paradedb
+    volumes:
+      - ./data/paradedb:/var/lib/postgresql/data/
+    ports:
+      - 15432:5432
+    environment:
+      - POSTGRES_USER=${PDBDATABASE_USER}
+      - POSTGRES_PASSWORD=${PDBDATABASE_PASSWORD}
+      - POSTGRES_DB=${PDBDATABASE_DB}
 
 
   # # Used to test the local Kafka Connector/sinks inot MongoDB
