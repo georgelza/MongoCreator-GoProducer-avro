@@ -1,4 +1,4 @@
-FROM ubuntu20.04:1.0.0
+FROM georgelza/ubuntu20.04:1.0.0
 
 WORKDIR /root
 

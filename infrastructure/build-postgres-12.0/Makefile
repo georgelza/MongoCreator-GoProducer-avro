@@ -1,5 +1,9 @@
 .DEFAULT_GOAL := help
 
+REPO_NAME=georgelza
+IMAGE_NAME=postgres-12.0
+VERSION=1.0.0
+
 define HELP
 
 Available commands:
@@ -15,5 +19,5 @@ help:
 
 
 build:  
-	sudo docker build -t postgres-12.0:1.0.0 .
+	sudo docker build -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} .
 

@@ -31,7 +31,7 @@ help:
 
 pullall: os confluent flink db s3 iop misc
 
-buildall: buildos builddb buildapp
+buildall: buildos buildopenjdk buildhadoop buildhive builddb buildapp
 
 # Base images used along the way, used to build 2nd level images.
 # arm64/v8 used as base for all images except the app/*.
@@ -82,6 +82,7 @@ misc:
 # Used if desired to create fake JSON based data
 	docker pull shadowtraffic/shadowtraffic:0.6.0
 
+buildall: buildos buildopenjdk buildhadoop buildhive builddb buildapp
 
 # Build images, not 100% all of whats needed, but these are all common images.
 buildos:

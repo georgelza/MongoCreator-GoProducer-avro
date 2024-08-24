@@ -1,13 +1,16 @@
 .DEFAULT_GOAL := help
 
-HADOOP_VERSION=3.3.5-java11
+REPO_NAME=georgelza
 VERSION=1.0.0
+HADOOP_VERSION=3.3.5-java11
 
 define HELP
 
 Based on Ubuntu 20.04 / OpenJDK 11 / Apache Hadoop 3.3.8
 
 Available commands:
+
+- wget: Download Apache Hadoop 3.3.8 tar.gz source files.
 
 - buildbase: Build the base image project
 
@@ -30,15 +33,18 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-buildbase:
-	sudo docker build -t hadoop-base-$(HADOOP_VERSION):$(VERSION) ./base
+wget:
+	cd base; mkdir stage; cd  stage; wget https://downloads.apache.org/hadoop/common/hadoop-3.3.5/hadoop-3.3.5-aarch64.tar.gz
 
-build:  
-	sudo docker build -t hadoop-namenode-$(HADOOP_VERSION):$(VERSION) ./namenode
-	sudo docker build -t hadoop-datanode-$(HADOOP_VERSION):$(VERSION) ./datanode
-	sudo docker build -t hadoop-resourcemanager-$(HADOOP_VERSION):$(VERSION) ./resourcemanager
-	sudo docker build -t hadoop-nodemanager-$(HADOOP_VERSION):$(VERSION) ./nodemanager
-	sudo docker build -t hadoop-historyserver-$(HADOOP_VERSION):$(VERSION) ./historyserver
+buildbase: 
+	sudo docker build -t ${REPO_NAME}/hadoop-base-$(HADOOP_VERSION):$(VERSION) ./base
+
+build:   buildbase
+	sudo docker build -t ${REPO_NAME}/hadoop-namenode-$(HADOOP_VERSION):$(VERSION) ./namenode
+	sudo docker build -t ${REPO_NAME}/hadoop-datanode-$(HADOOP_VERSION):$(VERSION) ./datanode
+	sudo docker build -t ${REPO_NAME}/hadoop-resourcemanager-$(HADOOP_VERSION):$(VERSION) ./resourcemanager
+	sudo docker build -t ${REPO_NAME}/hadoop-nodemanager-$(HADOOP_VERSION):$(VERSION) ./nodemanager
+	sudo docker build -t ${REPO_NAME}/hadoop-historyserver-$(HADOOP_VERSION):$(VERSION) ./historyserver
 
 run:
 	docker compose -p devlab up -d

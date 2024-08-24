@@ -1,4 +1,4 @@
-FROM hive-base-3.1.3-java8:1.0.0
+FROM georgelza/hive-base-3.1.3-java8:1.0.0
  
 RUN echo "--> Build Apache Hive Hiveserver"
 

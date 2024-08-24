@@ -24,9 +24,9 @@ configs:
   seed_file:
     file: ../app/conf/sit_seed.json
   hive-site:
-    file: ./conf/hive-site-x.xml
+    file: ./conf/hive-site.xml
   flink-conf:
-    file: ./conf/flink-conf-x.yaml
+    file: ./conf/flink-conf.yaml
 
 services:
   # Core Confluent Kafka bits
@@ -96,7 +96,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: connect/Dockerfile
-    image: kafka-connect-custom:1.2
+    image: georgelza/kafka-connect-custom:1.2
     container_name: connect
     hostname: connect
     depends_on:
@@ -174,7 +174,7 @@ services:
 
   # Apache Flink bits    
   flink-jobmanager:
-    image: apacheflink:1.18.1-scala_2.12-java11-b
+    image: georgelza/apacheflink:1.18.1-scala_2.12-java11-b
     container_name: flink-jobmanager
     hostname: flink-jobmanager
     depends_on:
@@ -193,7 +193,7 @@ services:
         mode: 444  
 
   flink-taskmanager:
-    image: apacheflink:1.18.1-scala_2.12-java11-b
+    image: georgelza/apacheflink:1.18.1-scala_2.12-java11-b
     hostname: flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -211,7 +211,7 @@ services:
         mode: 444  
 
   flink-sql-client:
-    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
+    image: georgelza/apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
     container_name: flink-sql-client
     hostname: flink-sql-client
     depends_on:
@@ -255,8 +255,8 @@ services:
     command: ["server", "/data", "--console-address", ":9001"]
     volumes:
       - ./data/minio:/data
-    profiles:
-      - donotstart
+    # profiles:
+    #   - donotstart
 
   # https://hub.docker.com/r/minio/mc
   # Minio Client
@@ -264,8 +264,8 @@ services:
     image: minio/mc:latest
     container_name: mc
     hostname: mc
-    # depends_on:
-    #   - minio
+    depends_on:
+      - minio
     environment:
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
@@ -281,18 +281,35 @@ services:
 
   # Datastore for Hive Metastore - Standalone 
   postgres:
-    image: postgres-12.0:1.0.0
+    image: georgelza/postgres-12.0:1.0.0
     container_name: postgres
     hostname: postgres
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_DB}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
-    # volumes:
-    #   - ./data/postgres:/var/lib/postgresql/data
+      - ${DATABASE_PORT}:5432
+    # profiles:
+    #   - donotstart
 
+  # Iceberg/S3 -> Parquet interface via Paradedb
+  paradedb:
+    image: paradedb/paradedb:latest
+    container_name: paradedb
+    hostname: paradedb
+    environment:
+      - POSTGRES_USER=${PDBDATABASE_USER}
+      - POSTGRES_PASSWORD=${PDBDATABASE_PASSWORD}
+      - POSTGRES_DB=${PDBDATABASE_DB}
+    volumes:
+      - ./data/paradedb:/var/lib/postgresql/data/
+    ports:
+      - ${PDBDATABASE_PORT}:5432
+    # profiles:
+    #   - donotstart
 
   # Catalog for Flink
   # https://hub.docker.com/r/naushadh/hive-metastore
@@ -374,29 +391,20 @@ services:
       - source: seed_file
         target: /app/conf/sit_seed.json
         mode: 444
-  
-  paradedb:
-    image: paradedb/paradedb:latest
-    container_name: paradedb
-    hostname: paradedb
-    volumes:
-      - ./data/paradedb:/var/lib/postgresql/data/
-    ports:
-      - 15432:5432
-    environment:
-      - POSTGRES_USER=${PDBDATABASE_USER}
-      - POSTGRES_PASSWORD=${PDBDATABASE_PASSWORD}
-      - POSTGRES_DB=${PDBDATABASE_DB}
-
+    profiles:
+      - donotstart
 
   # # Used to test the local Kafka Connector/sinks inot MongoDB
-  # mongo:
-  #   image: mongodb/mongodb-atlas-local:7.0.5
-  #   hostname: mongodb
-  #   container_name: mongodb
-  #   ports:
-  #     - "27017:27017" 
-
+  mongo:
+    image: mongodb/mongodb-atlas-local:7.0.5
+    hostname: mongodb
+    container_name: mongodb
+    volumes:
+      - ./data/mongodb:/data/db
+    ports:
+      - "27017:27017" 
+    # profiles:
+    #   - donotstart
 
 # Without a network explicitly defined, you hit this Hive/Thrift error
 # java.net.URISyntaxException Illegal character in hostname

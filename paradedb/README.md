@@ -11,16 +11,16 @@
 ### If you want to start the image manually
 
 ```
-    docker start \
-  --name paradedb \
-  -e POSTGRES_USER=pdbadmin \
-  -e POSTGRES_PASSWORD=pdbpassword \
-  -e POSTGRES_DB=iceberg \
-  -v ./data/paradedb:/var/lib/postgresql/data/ \
-  -p 15432:5432 \
-  --network devlab \
-  -d \
-  paradedb/paradedb:latest
+      docker start \
+    --name paradedb \
+    -e POSTGRES_USER=pdbadmin \
+    -e POSTGRES_PASSWORD=pdbpassword \
+    -e POSTGRES_DB=iceberg \
+    -v ./data/paradedb:/var/lib/postgresql/data/ \
+    -p 15432:5432 \
+    --network devlab \
+    -d \
+    paradedb/paradedb:latest
 ```
 
 ### Some Makefile commands

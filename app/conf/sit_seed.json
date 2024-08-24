@@ -14,8 +14,21 @@
       {"id": "324213441", "name": "Meyerton"},
       {"id": "324213410", "name": "Randburg"},
       {"id": "324213410", "name": "Milnerton"},
-      {"id": "324213416", "name": "Warmer"}
-    ],
+      {"id": "324213416", "name": "Warmer"},
+      {"id": "323213417", "name": "Humansdor"},
+      {"id": "324213418", "name": "Patensie"},
+      {"id": "322213419", "name": "Knysna"},
+      {"id": "321213411", "name": "Brackenfell"},
+      {"id": "325213412", "name": "Blouberg"},
+      {"id": "324613413", "name": "Saldanha"},
+      {"id": "324713414", "name": "Robertson"},
+      {"id": "324813415", "name": "Worcestor"},
+      {"id": "324913416", "name": "Durban"},
+      {"id": "324223417", "name": "Pretoria"},
+      {"id": "324233418", "name": "Nelspruit"},
+      {"id": "324243419", "name": "George"},
+      {"id": "324253411", "name": "Bloemfontein"}
+   ],
 
     "Clerks": [
       {"id": "10001", "name": "Martin", "surname":"Smith", "storeId": "324213412"},

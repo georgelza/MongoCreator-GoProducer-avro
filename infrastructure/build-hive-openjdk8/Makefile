@@ -1,12 +1,17 @@
 .DEFAULT_GOAL := help
 
+REPO_NAME=georgelza
+VERSION=1.0.0
+
 HIVE_VERSION=3.1.3-java8
 HADOOP_VERSION=3.3.5-java8
-VERSION=1.0.0
 
 define HELP
 
 Available commands:
+
+- wgethadoop: Download Apache Hadoop 3.3.8 tar.gz source files.
+- wgethive: Download Apache Hive require source files.
 
 - basehadoop: Build the Apache Hadoop base image project
 
@@ -44,15 +49,24 @@ ifdef CUSTOM_CA
 	cp -rf $(CUSTOM_CA)/* ca_certificates/ || cp -f $(CUSTOM_CA) ca_certificates/
 endif
 
-basehadoop:
-	sudo docker build -t hadoop-base-$(HADOOP_VERSION):$(VERSION) --no-cache ./basehadoop
+wgethadoop:
+	cd basehadoop; mkdir stage; cd  stage; wget https://downloads.apache.org/hadoop/common/hadoop-3.3.5/hadoop-3.3.5-aarch64.tar.gz
 
-basehive:
-	sudo docker build -t hive-base-$(HIVE_VERSION):$(VERSION) --no-cache ./basehive
+basehadoop: 
+	sudo docker build -t ${REPO_NAME}/hadoop-base-$(HADOOP_VERSION):$(VERSION) ./basehadoop
 
-build:  
-	sudo docker build -t hive-metastore-$(HIVE_VERSION):$(VERSION) ./hive-metastore 
-	sudo docker build -t hive-hiveserver2-$(HIVE_VERSION):$(VERSION) ./hive-hiveserver2
+wgethive:
+	cd basehive; mkdir stage; cd  stage; wget https://downloads.apache.org/hive/hive-3.1.3/apache-hive-3.1.3-bin.tar.gz
+	cd basehive; cd  stage; wget https://downloads.apache.org/hadoop/common/hadoop-3.3.5/hadoop-3.3.5-aarch64.tar.gz
+	cd basehive; cd  stage; wget http://www.congiu.net/hive-json-serde/1.3.8/cdh5/json-serde-1.3.8-jar-with-dependencies.jar 
+	cd basehive; cd  stage; wget https://jdbc.postgresql.org/download/postgresql-42.7.4.jar
+
+basehive: 
+	sudo docker build -t ${REPO_NAME}/hive-base-$(HIVE_VERSION):$(VERSION) ./basehive
+
+build:  basehadoop basehive
+	sudo docker build -t ${REPO_NAME}/hive-metastore-$(HIVE_VERSION):$(VERSION) ./hive-metastore 
+	sudo docker build -t ${REPO_NAME}/hive-hiveserver2-$(HIVE_VERSION):$(VERSION) ./hive-hiveserver2
 
 run:
 	docker compose -p devlab up -d
