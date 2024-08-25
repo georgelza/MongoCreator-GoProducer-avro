@@ -14,11 +14,18 @@ configs:
     file: ./creFlinkFlows/creFlink_1.sql
   creFlink_2:
     file: ./creFlinkFlows/creFlink_2.sql
-
-  # hive-site:
-  #   file: ./conf/hive-site.xml
-  # flink-conf:
-  #   file: ./conf/flink-conf.yaml
+  app_file:
+    file: ../app/conf/avro_app.json
+  kafka_file:
+    file: ../app/conf/avro_kafka.json
+  mongo_file:
+    file: ../app/conf/avro_mongo.json
+  seed_file:
+    file: ../app/conf/sit_seed.json
+  hive-site:
+    file: ./conf/hive-site.xml
+  flink-conf:
+    file: ./conf/flink-conf.yaml
 
 services:
   # Core Confluent Kafka bits
@@ -69,9 +76,6 @@ services:
     hostname: control-center
     depends_on:
       - broker
-      - schema-registry
-      - connect
-      - ksqldb-server
     ports:
       - "9021:9021"
     environment:
@@ -91,12 +95,11 @@ services:
     # build:
     #   context: .
     #   dockerfile: connect/Dockerfile
-    image: kafka-connect-custom:1.2
+    image: ${REPO_NAME}/kafka-connect-custom:1.2
     container_name: connect
     hostname: connect
     depends_on:
       - broker
-      - schema-registry
     ports:
       - "8083:8083"
     environment:
@@ -118,6 +121,8 @@ services:
       CONNECT_PRODUCER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor"
       CONNECT_CONSUMER_INTERCEPTOR_CLASSES: "io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor"
       CONNECT_LOG4J_LOGGERS: org.apache.zookeeper=ERROR,org.I0Itec.zkclient=ERROR,org.reflections=ERROR
+    # volumes:
+    #   - ./data/connect:/data
 
 
   # Confluent ksql server
@@ -127,7 +132,6 @@ services:
     hostname: ksqldb-server
     depends_on:
       - broker
-      - connect
     ports:
       - "8088:8088"
     environment:
@@ -149,8 +153,6 @@ services:
     container_name: ksqldb-cli
     hostname: ksqldb-cli
     depends_on:
-      - broker
-      - connect
       - ksqldb-server
     entrypoint: /bin/sh
     tty: true
@@ -165,31 +167,32 @@ services:
     hostname: kcat
     depends_on:
       - broker
-      - schema-registry
     entrypoint: /bin/bash -i
     tty: true
 
 
   # Apache Flink bits    
   flink-jobmanager:
-    image: apacheflink:1.18.1-scala_2.12-java11-c
+    image: ${REPO_NAME}/apacheflink:1.18.1-scala_2.12-java11-c
     container_name: flink-jobmanager
     hostname: flink-jobmanager
+    depends_on:
+      - hive-metastore
     ports:
-      - 8081:8081
+      - 8081:8081     # -> Web UI console
     command: jobmanager
     environment:
       - |
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         rest.bind-port: 8081
-    # configs:
-    #   - source: hive-site
-    #     target: /opt/hive/conf/hive-site.xml
-    #     mode: 444  
+    configs:
+      - source: hive-site
+        target: /opt/flink/conf/hive-site.xml
+        mode: 444  
 
   flink-taskmanager:
-    image: apacheflink:1.18.1-scala_2.12-java11-c
+    image: ${REPO_NAME}/apacheflink:1.18.1-scala_2.12-java11-c
     hostname: flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -201,13 +204,13 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
-    # configs:
-    #   - source: hive-site
-    #     target: /opt/hive/conf/hive-site.xml
-    #     mode: 444  
+    configs:
+      - source: hive-site
+        target: /opt/flink/conf/hive-site.xml
+        mode: 444  
 
   flink-sql-client:
-    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-c
+    image: ${REPO_NAME}/apacheflink_sqlpod:1.18.1-scala_2.12-java11-c
     container_name: flink-sql-client
     hostname: flink-sql-client
     depends_on:
@@ -224,13 +227,13 @@ services:
         mode: 444
       - source: creFlink_2
         target: /sql/creFlink_2.sql
-        mode: 444
-      # - source: hive-site
-      #   target: /opt/sql-client/conf/hive-site.xml
-      #   mode: 444  
-      # - source: flink-conf
-      #   target: /opt/flink/conf/flink-conf.yaml
-      #   mode: 444  
+        mode: 444    
+      - source: hive-site
+        target: /opt/sql-client/conf/hive-site.xml
+        mode: 444  
+      - source: flink-conf
+        target: /opt/flink/conf/flink-conf.yaml
+        mode: 444  
 
   # First we will start with a local (HDFS) file based Catalog for Apache Paimon
 
@@ -239,7 +242,7 @@ services:
   # The Namenode UI can be accessed at http://localhost:9870/⁠ and 
   # the ResourceManager UI can be accessed at http://localhost:8089/⁠
   namenode:
-    image: hadoop-namenode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-namenode-3.3.5-java11:1.0.0
     container_name: namenode
     volumes:
       - ./data/hdfs/namenode:/hadoop/dfs/name
@@ -251,7 +254,7 @@ services:
       - "9870:9870"  # NameNode Web UI
 
   resourcemanager:
-    image: hadoop-resourcemanager-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-resourcemanager-3.3.5-java11:1.0.0
     container_name: resourcemanager
     restart: on-failure
     depends_on:
@@ -269,7 +272,7 @@ services:
       - "8089:8088" # Resource Manager Web UI
   
   historyserver:
-    image: hadoop-historyserver-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-historyserver-3.3.5-java11:1.0.0
     container_name: historyserver
     depends_on:
       - namenode
@@ -285,7 +288,7 @@ services:
       - "8188:8188"
   
   nodemanager1:
-    image: hadoop-nodemanager-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-nodemanager-3.3.5-java11:1.0.0
     container_name: nodemanager1
     depends_on:
       - namenode
@@ -299,7 +302,7 @@ services:
       - "8042:8042"   # NodeManager Web UI
   
   datanode1:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode1
     depends_on:
       - namenode
@@ -311,7 +314,7 @@ services:
       - ./hdfs/hadoop.env
   
   datanode2:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode2
     depends_on:
       - namenode
@@ -323,7 +326,7 @@ services:
       - ./hdfs/hadoop.env
   
   datanode3:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode3
     depends_on:
       - namenode
@@ -335,7 +338,7 @@ services:
       - ./hdfs/hadoop.env
 
   datanode4:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode4
     depends_on:
       - namenode
@@ -347,7 +350,7 @@ services:
       - ./hdfs/hadoop.env
       
   datanode5:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode5
     depends_on:
       - namenode
@@ -377,7 +380,8 @@ services:
     command: ["server", "/data", "--console-address", ":9001"]
     volumes:
       - ./data/minio:/data
-
+    # profiles:
+    #   - donotstart
 
   # https://hub.docker.com/r/minio/mc
   # Minio Client
@@ -403,15 +407,19 @@ services:
 
   # Datastore for Hive Metastore - Standalone
   postgres:
-    image: postgres-12.0:1.0.0
+    image: ${REPO_NAME}/postgres-12.0:1.0.0
     container_name: postgres
     hostname: postgres
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_DB}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
     ports:
-      - '5432:5432'
+      - ${DATABASE_PORT}:5432
+    # profiles:
+    #   - donotstart
 
 
   # Catalog for Flink
@@ -425,7 +433,7 @@ services:
     hostname: hms
     depends_on:
       - postgres
-      - minio
+      - mc
     environment:
       - DATABASE_HOST=${DATABASE_HOST}
       - DATABASE_PORT=${DATABASE_PORT}
@@ -441,15 +449,6 @@ services:
       - 9083:9083
 
     
-  # Used to test the Kafka Connector/sinks
-  # mongo:
-  #   image: mongodb/mongodb-atlas-local:7.0.5
-  #   hostname: mongodb
-  #   container_name: mongodb
-  #   ports:
-  #     - "27017:27017" 
-
-
   # watch 'docker exec shadowtraffic curl -s localhost:9400/metrics |grep events_sent'
   # shadowtraffic:
   #   image: shadowtraffic/shadowtraffic:0.6.0
@@ -461,7 +460,8 @@ services:
   #   volumes:
   #     - ./shadowtraffic:/data
   #   command: --config /data/kafka-retail.json
-
+  #   profiles:
+  #     - donotstart
 
 # Without a network explicitly defined, you hit this Hive/Thrift error
 # java.net.URISyntaxException Illegal character in hostname

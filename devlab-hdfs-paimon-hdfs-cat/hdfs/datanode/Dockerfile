@@ -1,4 +1,4 @@
-FROM hadoop-base-3.3.5-java11:1.0.0
+FROM georgelza/hadoop-base-3.3.5-java11:1.0.0
  
 RUN echo "--> Build Hadoop HDFS Datanode"
 

@@ -1,5 +1,8 @@
-
 .DEFAULT_GOAL := help
+include ../.env
+
+IMAGE_NAME=hms-standalone-s3
+VERSION=1.0.0
 
 define HELP
 
@@ -15,5 +18,5 @@ help:
 .PHONY: help
 
 build:
-	sudo docker build -t hms-standalone-s3:1.0.0 .
+	sudo docker build -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} .
 

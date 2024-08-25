@@ -41,5 +41,3 @@ RUN echo "--> Installing Database Connector Plugins" && \
 
     
 USER appuser
-
-# docker build -t kafka-connect-custom:1.0 .

@@ -39,6 +39,15 @@ build:
 	cd hdfs; make build
 	cd sql-client; make build
 
+run: core
+# Run the core, followed by deploy and then run_app
+
+core: hdfs
+	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat hive-metastore flink-sql-client
+
+hdfs:
+	dockr compose -p devlab up -d namenode resourcemanager historyserver nodemanager1 datanode1 datanode2 datanode3 datanode4 datanode5
+
 run:
 	docker compose -p devlab up -d
 
@@ -55,6 +64,15 @@ deployflink1:
 deployflink2:
 	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_2.sql
 
+# to be fixed still. App runs but for some reason even though it says it's posting payload need to figure out where to.
+run_app:
+	cd ../app; ./runs_avro.sh
+#	docker compose -p devlab up -d app
+
+# well this sort of requires the app to run inside the container, which is broken atm, so we running it directly above still.
+stop_app:
+	docker compose -p devlab stop app
+
 stop:
 	docker compose stop
 
@@ -68,6 +86,10 @@ ps:
 
 logs:
 	docker compose logs
+
+# if run va container.
+monitor_app:
+	docker compose logs -f app |grep Record
 
 watch:
 	watch docker compose ps

@@ -394,7 +394,7 @@ services:
     profiles:
       - donotstart
 
-  # # Used to test the local Kafka Connector/sinks inot MongoDB
+  # Used to test the local Kafka Connector/sinks inot MongoDB
   mongo:
     image: mongodb/mongodb-atlas-local:7.0.5
     hostname: mongodb

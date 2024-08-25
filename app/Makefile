@@ -1,10 +1,10 @@
+.DEFAULT_GOAL := help
 
 .ONESHELL:
 
+REPO_NAME=georgelza
 BINARY_NAME=goprod-avro
 VERSION=1.0.0
-
-.DEFAULT_GOAL := help
 
 define HELP
 
@@ -30,11 +30,11 @@ help:
 
 build: 
 	sudo docker build --platform linux/arm64 -t ${BINARY_NAME}:${VERSION} .
-	sudo docker tag ${BINARY_NAME}:${VERSION} georgelza/${BINARY_NAME}:${VERSION}
+	sudo docker tag ${BINARY_NAME}:${VERSION} ${REPO_NAME}/${BINARY_NAME}:${VERSION}
 	sudo docker rmi ${BINARY_NAME}:${VERSION}
 
 push_docker:
-	docker push georgelza/${BINARY_NAME}:${VERSION}
+	docker push ${REPO_NAME}/${BINARY_NAME}:${VERSION}
 
 run_core: 
 	docker compose -p devlab up -d broker schema-registry

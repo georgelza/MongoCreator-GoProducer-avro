@@ -34,9 +34,9 @@ RUN echo "--> Copy SQL Client shell scripts"
 COPY bin/sql-client.sh /opt/sql-client/
 
 
-RUN echo "--> Copy configuration files" 
-COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
-COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+#RUN echo "--> Copy configuration files" 
+#COPY conf/flink-conf.yaml /opt/flink/conf/flink-conf.yaml
+#COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
 
 RUN echo "-> Install JARs: Flink's Kafka connector" && \
