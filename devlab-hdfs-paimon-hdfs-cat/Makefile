@@ -39,8 +39,6 @@ build:
 	cd hdfs; make build
 	cd sql-client; make build
 
-# Run the core, followed by deploy and then run_app
-run: core
 
 core: 
 	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat hive-metastore flink-sql-client
