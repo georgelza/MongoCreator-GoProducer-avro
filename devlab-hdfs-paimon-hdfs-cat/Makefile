@@ -7,9 +7,15 @@ Available commands:
 
 - build: Build all the images from the downloaded infrastructure components.
 
-- run: This will startup the compose project 
+- core: This will startup the core infrastructure components
+
+- hdfs: This will startup the hdfs infrastructure components
+
+- run: This will startup the entire docker compose project 
 
 - deploy: This will create all the catalogs, tables, flink inserts etc.
+
+- run_app: This will run the Golang app, the load generator. For now it's a direct Golang run. will be replaced as a container.
 
 - stop: Stop the project
 
@@ -38,7 +44,6 @@ build:
 	cd hdfs; make buildbase
 	cd hdfs; make build
 	cd sql-client; make build
-
 
 core: 
 	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat hive-metastore flink-sql-client
