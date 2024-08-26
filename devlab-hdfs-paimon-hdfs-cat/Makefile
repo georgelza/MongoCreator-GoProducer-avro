@@ -9,8 +9,6 @@ Available commands:
 
 - core: This will startup the core infrastructure components
 
-- hdfs: This will startup the hdfs infrastructure components
-
 - run: This will startup the entire docker compose project 
 
 - deploy: This will create all the catalogs, tables, flink inserts etc.
@@ -46,10 +44,10 @@ build:
 	cd sql-client; make build
 
 core: 
-	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat hive-metastore flink-sql-client
-
-hdfs:
-	docker compose -p devlab up -d namenode resourcemanager historyserver nodemanager1 datanode1 datanode2 datanode3 datanode4 datanode5
+	docker compose -p devlab up -d broker schema-registry control-center connect \
+		ksqldb-server ksqldb-cli kcat \
+		hive-metastore flink-sql-client \
+		namenode resourcemanager historyserver nodemanager1 datanode1 datanode2 datanode3 datanode4 datanode5
 
 run:
 	docker compose -p devlab up -d
