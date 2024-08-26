@@ -10,7 +10,6 @@ EXPOSE 10002
 
 RUN chmod +x /entrypoint.sh
 
-
 ENTRYPOINT ["/entrypoint.sh", "hiveserver"]
 
 HEALTHCHECK CMD [ "sh", "-c", "netstat -ln | grep 10002" ]

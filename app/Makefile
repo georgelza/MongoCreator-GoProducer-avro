@@ -1,8 +1,8 @@
 .DEFAULT_GOAL := help
+include .env
 
 .ONESHELL:
 
-REPO_NAME=georgelza
 BINARY_NAME=goprod-avro
 VERSION=1.0.0
 

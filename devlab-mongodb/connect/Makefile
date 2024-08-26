@@ -1,5 +1,8 @@
-
 .DEFAULT_GOAL := help
+include ../.env
+
+IMAGE_NAME=kafka-connect-custom
+VERSION=1.2
 
 define HELP
 
@@ -15,5 +18,5 @@ help:
 .PHONY: help
 
 build:
-	sudo docker build -t kafka-connect-custom:1.2 .
+	sudo docker build -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} .
 
