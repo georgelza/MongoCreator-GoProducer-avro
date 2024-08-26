@@ -33,8 +33,8 @@ help:
 .PHONY: help
 
 build:
-#	cd connect; make build
-#	cd flink; make build;
+	cd connect; make build
+	cd flink; make build;
 	cd hdfs; make buildbase
 	cd hdfs; make build
 	cd sql-client; make build
