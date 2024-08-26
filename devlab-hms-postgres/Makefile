@@ -37,12 +37,14 @@ build:
 	cd sql-client; make build
 	cd ../app; make build
 
-run: core
 # Run the core, followed by deploy and then app
+run: core
 
 core:
-	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat hive-metastore flink-sql-client pyiceberg duckdb paradedb mongo
-
+	docker compose -p devlab up -d broker schema-registry control-center connect \
+		ksqldb-server ksqldb-cli kcat \
+		hive-metastore flink-sql-client \
+		pyiceberg duckdb paradedb mongo
 
 deploy: createcat createtopics deployksql deployflink1 deployflink2
 
