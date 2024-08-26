@@ -8,8 +8,9 @@ RUN chmod -R 777 /var/log/postgresql/
 
 USER postgres
 
-COPY conf/postgresql.conf /etc/postgresql/postgresql.conf
-COPY conf/pg_hba.conf /etc/postgresql/pg_hba.conf
+# copy some configuration files... this has been moved to the configs section of the docker compose
+#COPY conf/postgresql.conf /etc/postgresql/postgresql.conf
+#COPY conf/pg_hba.conf /etc/postgresql/pg_hba.conf
 
 # Override default Postgres config file
 CMD ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf"]

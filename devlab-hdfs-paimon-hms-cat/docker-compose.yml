@@ -15,7 +15,11 @@ configs:
     file: ./creFlinkFlows/creFlink_1.sql
   creFlink_2:
     file: ./creFlinkFlows/creFlink_2.sql
-
+  postgres_conf:
+    file: ./conf/postgresql.conf
+  postgres_hba:
+    file: ./conf/pg_hba.conf
+    
 services:
   # Core Confluent Kafka bits
   broker:
@@ -87,7 +91,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: connect/Dockerfile
-    image: kafka-connect-custom:1.2
+    image: ${REPO_NAME}/kafka-connect-custom:1.2
     container_name: connect
     hostname: connect
     depends_on:
@@ -170,7 +174,7 @@ services:
 
   # Apache Flink bits    
   flink-jobmanager:
-    image: apacheflink:1.18.1-scala_2.12-java11-c
+    image: ${REPO_NAME}/apacheflink:1.18.1-scala_2.12-java11-c
     container_name: flink-jobmanager
     hostname: flink-jobmanager
     ports:
@@ -181,9 +185,13 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         rest.bind-port: 8081
+    configs:
+      - source: hive-site
+        target: /opt/flink/conf/hive-site.xml
+        mode: 444  
 
   flink-taskmanager:
-    image: apacheflink:1.18.1-scala_2.12-java11-c
+    image: ${REPO_NAME}/apacheflink:1.18.1-scala_2.12-java11-c
     hostname: flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -195,10 +203,13 @@ services:
         FLINK_PROPERTIES=
         jobmanager.rpc.address: flink-jobmanager
         taskmanager.numberOfTaskSlots: 10
-
+    configs:
+      - source: hive-site
+        target: /opt/flink/conf/hive-site.xml
+        mode: 444  
 
   flink-sql-client:
-    image: apacheflink_sqlpod:1.18.1-scala_2.12-java11-c
+    image: ${REPO_NAME}/apacheflink_sqlpod:1.18.1-scala_2.12-java11-c
     container_name: flink-sql-client
     hostname: flink-sql-client
     depends_on:
@@ -215,7 +226,13 @@ services:
         mode: 444
       - source: creFlink_2
         target: /sql/creFlink_2.sql
-        mode: 444
+        mode: 444    
+      - source: hive-site
+        target: /opt/sql-client/conf/hive-site.xml
+        mode: 444  
+      - source: flink-conf
+        target: /opt/flink/conf/flink-conf.yaml
+        mode: 444  
 
 
   # First we will start with a local (HDFS) file based Catalog for Apache Paimon
@@ -225,7 +242,7 @@ services:
   # The Namenode UI can be accessed at http://localhost:9870/⁠ and 
   # the ResourceManager UI can be accessed at http://localhost:8089/⁠
   namenode:
-    image: hadoop-namenode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-namenode-3.3.5-java11:1.0.0
     container_name: namenode
     volumes:
       - ./data/hdfs/namenode:/hadoop/dfs/name
@@ -237,7 +254,7 @@ services:
       - "9870:9870"  # NameNode Web UI
 
   resourcemanager:
-    image: hadoop-resourcemanager-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-resourcemanager-3.3.5-java11:1.0.0
     container_name: resourcemanager
     restart: on-failure
     depends_on:
@@ -255,7 +272,7 @@ services:
       - "8089:8088" # Resource Manager Web UI
   
   historyserver:
-    image: hadoop-historyserver-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-historyserver-3.3.5-java11:1.0.0
     container_name: historyserver
     depends_on:
       - namenode
@@ -271,7 +288,7 @@ services:
       - "8188:8188"
   
   nodemanager1:
-    image: hadoop-nodemanager-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-nodemanager-3.3.5-java11:1.0.0
     container_name: nodemanager1
     depends_on:
       - namenode
@@ -285,7 +302,7 @@ services:
       - "8042:8042"   # NodeManager Web UI
   
   datanode1:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode1
     depends_on:
       - namenode
@@ -297,7 +314,7 @@ services:
       - ./conf/hadoop.env
   
   datanode2:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode2
     depends_on:
       - namenode
@@ -309,7 +326,7 @@ services:
       - ./conf/hadoop.env
   
   datanode3:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode3
     depends_on:
       - namenode
@@ -321,7 +338,7 @@ services:
       - ./conf/hadoop.env
 
   datanode4:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode4
     depends_on:
       - namenode
@@ -333,7 +350,7 @@ services:
       - ./conf/hadoop.env
       
   datanode5:
-    image: hadoop-datanode-3.3.5-java11:1.0.0
+    image: ${REPO_NAME}/hadoop-datanode-3.3.5-java11:1.0.0
     container_name: datanode5
     depends_on:
       - namenode
@@ -389,16 +406,26 @@ services:
 
   # Datastore for Hive Metastore - Standalone
   postgres:
-    image: postgres-12.0:1.0.0
+    image: ${REPO_NAME}/postgres-12.0:1.0.0
     container_name: postgres
     hostname: postgres
     environment:
       - POSTGRES_USER=${DATABASE_USER}
       - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
       - POSTGRES_DB=${DATABASE_DB}
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    configs:
+      - source: postgres_conf
+        target: etc/postgresql/postgresql.conf
+        mode: 444      
+      - source: postgres_hba
+        target: /etc/postgresql/pg_hba.conf
+        mode: 444      
     ports:
-      - '5432:5432'
-
+      - ${DATABASE_PORT}:5432
+    # profiles:
+    #   - donotstart
 
   # Catalog for Flink
   # https://hub.docker.com/r/naushadh/hive-metastore

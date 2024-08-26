@@ -26,6 +26,10 @@ configs:
     file: ./conf/hive-site.xml
   flink-conf:
     file: ./conf/flink-conf.yaml
+  postgres-conf:
+    file: ./conf/postgresql.conf
+  postgres-hba:
+    file: ./conf/pg_hba.conf
 
 services:
   # Core Confluent Kafka bits
@@ -416,6 +420,13 @@ services:
       - POSTGRES_DB=${DATABASE_DB}
     volumes:
       - ./data/postgres:/var/lib/postgresql/data
+    configs:
+      - source: postgres-conf
+        target: etc/postgresql/postgresql.conf
+        mode: 444      
+      - source: postgres-hba
+        target: /etc/postgresql/pg_hba.conf
+        mode: 444      
     ports:
       - ${DATABASE_PORT}:5432
     # profiles:

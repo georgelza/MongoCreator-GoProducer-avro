@@ -23,9 +23,9 @@ RUN echo "--> Copy SQL Client shell script"
 COPY bin/sql-client.sh /opt/sql-client/
 
 
-RUN echo "--> Copy configuration files"
-COPY conf/flink-conf.yaml ./conf/flink-conf.yaml 
-COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
+#RUN echo "--> Copy configuration files"
+#COPY conf/flink-conf.yaml ./conf/flink-conf.yaml 
+#COPY conf/hive-site.xml /opt/sql-client/conf/hive-site.xml
 
     
 # Install JARs

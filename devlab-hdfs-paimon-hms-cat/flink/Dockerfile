@@ -21,8 +21,8 @@ RUN echo "--> Install JARs: Flink's S3 plugin" && \
     cp ./opt/flink-s3-fs-hadoop-1.18.1.jar ./plugins/s3-fs-hadoop/
 
 
-RUN echo "--> Set up Hive config"
-COPY conf/hive-site.xml ./conf/hive-site.xml
+#RUN echo "--> Set up Hive config"
+#COPY conf/hive-site.xml ./conf/hive-site.xml
 
 
 RUN echo "--> Enable SQL Client to find the job manager when running it from this image" && \
