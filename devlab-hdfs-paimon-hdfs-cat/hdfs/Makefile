@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
+include ../.env
 
-REPO_NAME=georgelza
 HADOOP_VERSION=3.3.5-java11
 VERSION=1.0.0
 

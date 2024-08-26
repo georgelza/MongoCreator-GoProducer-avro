@@ -100,7 +100,7 @@ services:
     # build:
     #   context: .
     #   dockerfile: connect/Dockerfile
-    image: georgelza/kafka-connect-custom:1.2
+    image: ${REPO_NAME}/kafka-connect-custom:1.2
     container_name: connect
     hostname: connect
     depends_on:
@@ -178,7 +178,7 @@ services:
 
   # Apache Flink bits    
   flink-jobmanager:
-    image: georgelza/apacheflink:1.18.1-scala_2.12-java11-b
+    image: ${REPO_NAME}/apacheflink:1.18.1-scala_2.12-java11-b
     container_name: flink-jobmanager
     hostname: flink-jobmanager
     depends_on:
@@ -197,7 +197,7 @@ services:
         mode: 444  
 
   flink-taskmanager:
-    image: georgelza/apacheflink:1.18.1-scala_2.12-java11-b
+    image: ${REPO_NAME}/apacheflink:1.18.1-scala_2.12-java11-b
     hostname: flink-taskmanager
     depends_on:
       - flink-jobmanager
@@ -215,7 +215,7 @@ services:
         mode: 444  
 
   flink-sql-client:
-    image: georgelza/apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
+    image: ${REPO_NAME}/apacheflink_sqlpod:1.18.1-scala_2.12-java11-b
     container_name: flink-sql-client
     hostname: flink-sql-client
     depends_on:
@@ -285,7 +285,7 @@ services:
 
   # Datastore for Hive Metastore - Standalone 
   postgres:
-    image: georgelza/postgres-12.0:1.0.0
+    image: ${REPO_NAME}/postgres-12.0:1.0.0
     container_name: postgres
     hostname: postgres
     environment:
@@ -384,7 +384,7 @@ services:
     entrypoint: tail -f /dev/null
 
   app:
-    image: georgelza/goprod-avro:1.0.0
+    image: ${REPO_NAME}/goprod-avro:1.0.0
     container_name: app
     hostname: app
     depends_on:

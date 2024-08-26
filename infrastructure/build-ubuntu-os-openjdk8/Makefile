@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
+include ../.env
 
-REPO_NAME=georgelza
 IMAGE_NAME=ubuntu20.04-openjdk8
 VERSION=1.0.0
 
@@ -18,4 +18,4 @@ help:
 .PHONY: help
 
 build:  
-	sudo docker build -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} .
+	sudo docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} .

@@ -1,4 +1,6 @@
-FROM ubuntu20.04-openjdk11:1.0.0
+ARG REPO_NAME
+
+FROM ${REPO_NAME}/ubuntu20.04-openjdk11:1.0.0
 
 USER root
 

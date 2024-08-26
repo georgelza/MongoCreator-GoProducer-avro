@@ -7,7 +7,9 @@ EXPOSE 10000
 EXPOSE 10001
 EXPOSE 10002
 
+
 RUN chmod +x /entrypoint.sh
+
 
 ENTRYPOINT ["/entrypoint.sh", "hiveserver"]
 

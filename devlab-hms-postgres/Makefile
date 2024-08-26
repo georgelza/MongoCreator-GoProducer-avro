@@ -31,11 +31,14 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-build:
-	cd connect; make build 
-	cd flink; make build
+
+build: 
+	cd connect; make build
+	cd flink; make build;
 	cd sql-client; make build
 	cd ../app; make build
+
+
 
 # Run the core, followed by deploy and then app
 run: core

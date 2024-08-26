@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
+include ../.env
 
-REPO_NAME=georgelza
 IMAGE_NAME=ubuntu20.04
 VERSION=1.0.0
 

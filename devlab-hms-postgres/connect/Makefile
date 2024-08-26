@@ -1,7 +1,6 @@
-
 .DEFAULT_GOAL := help
+include ../.env
 
-REPO_NAME=georgelza
 IMAGE_NAME=kafka-connect-custom
 VERSION=1.2
 

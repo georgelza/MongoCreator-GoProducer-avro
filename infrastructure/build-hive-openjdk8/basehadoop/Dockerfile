@@ -1,6 +1,7 @@
 FROM georgelza/ubuntu20.04-openjdk8:1.0.0
 
 USER root
+
 WORKDIR /tmp/
 
 RUN echo "--> Copy Source Binaries"

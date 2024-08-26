@@ -1,7 +1,7 @@
 
 .DEFAULT_GOAL := help
+include ../.env
 
-REPO_NAME=georgelza
 IMAGE_NAME=apacheflink
 VERSION=1.18.1-scala_2.12-java11-b
 

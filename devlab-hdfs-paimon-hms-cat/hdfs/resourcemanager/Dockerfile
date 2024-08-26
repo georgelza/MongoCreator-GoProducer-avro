@@ -1,4 +1,6 @@
-FROM hadoop-base-3.3.5-java11:1.0.0
+ARG REPO_NAME
+
+FROM ${REPO_NAME}/hadoop-base-3.3.5-java11:1.0.0
 
 RUN echo "--> Build Hadoop HDFS Resource Manager"
 

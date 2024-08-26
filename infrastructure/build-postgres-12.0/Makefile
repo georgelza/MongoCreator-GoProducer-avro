@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
+include ../.env
 
-REPO_NAME=georgelza
 IMAGE_NAME=postgres-12.0
 VERSION=1.0.0
 

@@ -32,12 +32,17 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-build:
+
+build: connect flink hdfs 
+connect:
 	cd connect; make build
+flink:
 	cd flink; make build;
+	cd sql-client; make build
+hdfs:
 	cd hdfs; make buildbase
 	cd hdfs; make build
-	cd sql-client; make build
+
 
 run:
 	docker compose -p devlab up -d

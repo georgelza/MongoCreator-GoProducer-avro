@@ -1,29 +1,15 @@
 
 .DEFAULT_GOAL := help
+include ../.env
+
+IMAGE_NAME=apacheflink
+VERSION=1.18.1-scala_2.12-java11-c
 
 define HELP
 
 Available commands:
 
-- build: Build all the images from the downloaded infrastructure components.
-
-- run: This will startup the compose project 
-
-- deploy: This will create all the catalogs, tables, flink inserts etc.
-
-- stop: Stop the project
-
-- down: Tear down the project, clean directories
-
-- ps: Show all running containers
-
-- logs: Show logs
-
-- watch: Watch logs
-
-- ksql: Open KSql
-
-- fsql: Open Flink Sql
+- build: Build this project
 
 endef
 
@@ -33,48 +19,5 @@ help:
 .PHONY: help
 
 build:
-	cd connect; make build
-	cd flink; make build;
-	cd hdfs; make buildbase
-	cd hdfs; make build
-	cd sql-client; make build
+	sudo docker build -t ${REPO_NAME}/${IMAGE_NAME}:${VERSION} .
 
-run:
-	docker compose -p devlab up -d
-
-deploy: createtopics createcat deployksql deployflink1 
-# deployflink2
-
-createtopics:
-	cd ../creTopics; ./creTopics.sh
-createcat:
-	docker compose exec flink-sql-client sql-client.sh -f /sql/creCat.sql
-deployksql:
-	docker compose exec ksqldb-cli ksql -f /sql/creStreams.sql  http://ksqldb-server:8088
-deployflink1:
-	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_1.sql
-deployflink2:
-	docker compose exec flink-sql-client sql-client.sh -f /sql/creFlink_2.sql
-
-stop:
-	docker compose stop
-
-down:	
-	docker compose down
-	cd data; cd hdfs; rm -rf * ;rm -rf .DS*
-	cd data; cd minio; rm -rf * ;rm -rf .minio.sys ;rm -rf .DS*
-
-ps:
-	docker compose ps
-
-logs:
-	docker compose logs
-
-watch:
-	watch docker compose ps
-
-ksql:
-	docker compose exec ksqldb-cli ksql http://ksqldb-server:8088
-
-fsql:
-	docker compose exec flink-sql-client sql-client.sh

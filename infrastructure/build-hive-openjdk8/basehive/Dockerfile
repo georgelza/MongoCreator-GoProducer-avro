@@ -1,6 +1,9 @@
-FROM georgelza/hadoop-base-3.3.5-java8:1.0.0
+ARG REPO_NAME
+
+FROM ${REPO_NAME}/hadoop-base-3.3.5-java8:1.0.0
 
 USER root
+
 WORKDIR /tmp/
 
 RUN echo "--> Copy Source Binaries"

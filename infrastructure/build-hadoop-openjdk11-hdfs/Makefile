@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
+include ../.env
 
-REPO_NAME=georgelza
 VERSION=1.0.0
 HADOOP_VERSION=3.3.5-java11
 
@@ -37,14 +37,14 @@ wget:
 	cd base; mkdir stage; cd  stage; wget https://downloads.apache.org/hadoop/common/hadoop-3.3.5/hadoop-3.3.5-aarch64.tar.gz
 
 buildbase: 
-	sudo docker build -t ${REPO_NAME}/hadoop-base-$(HADOOP_VERSION):$(VERSION) ./base
+	sudo docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/hadoop-base-$(HADOOP_VERSION):$(VERSION) ./base
 
-build:   buildbase
-	sudo docker build -t ${REPO_NAME}/hadoop-namenode-$(HADOOP_VERSION):$(VERSION) ./namenode
-	sudo docker build -t ${REPO_NAME}/hadoop-datanode-$(HADOOP_VERSION):$(VERSION) ./datanode
-	sudo docker build -t ${REPO_NAME}/hadoop-resourcemanager-$(HADOOP_VERSION):$(VERSION) ./resourcemanager
-	sudo docker build -t ${REPO_NAME}/hadoop-nodemanager-$(HADOOP_VERSION):$(VERSION) ./nodemanager
-	sudo docker build -t ${REPO_NAME}/hadoop-historyserver-$(HADOOP_VERSION):$(VERSION) ./historyserver
+build: buildbase
+	sudo docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/hadoop-namenode-$(HADOOP_VERSION):$(VERSION) ./namenode
+	sudo docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/hadoop-datanode-$(HADOOP_VERSION):$(VERSION) ./datanode
+	sudo docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/hadoop-resourcemanager-$(HADOOP_VERSION):$(VERSION) ./resourcemanager
+	sudo docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/hadoop-nodemanager-$(HADOOP_VERSION):$(VERSION) ./nodemanager
+	sudo docker build --build-arg REPO_NAME=${REPO_NAME} -t ${REPO_NAME}/hadoop-historyserver-$(HADOOP_VERSION):$(VERSION) ./historyserver
 
 run:
 	docker compose -p devlab up -d

@@ -32,11 +32,12 @@ help:
 	@echo "$$HELP"
 .PHONY: help
 
-build:
+
+build: 
 	cd connect; make build
 	cd flink; make build;
-	cd hms-standalone-s3; make build
 	cd sql-client; make build
+	cd hms-standalone-s3; make build
 
 run:
 	docker compose -p devlab up -d
