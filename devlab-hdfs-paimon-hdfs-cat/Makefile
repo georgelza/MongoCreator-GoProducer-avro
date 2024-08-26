@@ -33,20 +33,20 @@ help:
 .PHONY: help
 
 build:
-	cd connect; make build
-	cd flink; make build;
+#	cd connect; make build
+#	cd flink; make build;
 	cd hdfs; make buildbase
 	cd hdfs; make build
 	cd sql-client; make build
 
-run: core
 # Run the core, followed by deploy and then run_app
+run: core
 
-core: hdfs
+core: 
 	docker compose -p devlab up -d broker schema-registry control-center connect ksqldb-server ksqldb-cli kcat hive-metastore flink-sql-client
 
 hdfs:
-	dockr compose -p devlab up -d namenode resourcemanager historyserver nodemanager1 datanode1 datanode2 datanode3 datanode4 datanode5
+	docker compose -p devlab up -d namenode resourcemanager historyserver nodemanager1 datanode1 datanode2 datanode3 datanode4 datanode5
 
 run:
 	docker compose -p devlab up -d
